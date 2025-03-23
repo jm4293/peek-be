@@ -1,0 +1,13 @@
+{
+  "name": "peek-be",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "install:peek": "pnpm install --filter peek",
+    "install:peek-admin": "pnpm install --filter peek-admin",
+    "install:all": "pnpm install --filter peek --filter peek-admin",
+    "start:peek": "pnpm --filter peek start:dev",
+    "start:peek-admin": "pnpm --filter peek-admin start:dev"
+  }
+}
