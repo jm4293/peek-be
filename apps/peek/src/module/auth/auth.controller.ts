@@ -17,23 +17,23 @@ export class AuthController {
 
     return ResConfig.Success({ res, statusCode: 'CREATED', data: ret });
   }
-  //
-  // @Public()
-  // @Post('check-email')
-  // async checkEmail(@Body() dto: CheckEmailDto, @Res() res: Response) {
-  //   const ret = await this.authService.checkEmail(dto);
-  //
-  //   return ResConfig.Success({ res, statusCode: 'OK', data: ret });
-  // }
-  //
-  // @Public()
-  // @Post('login-email')
-  // async loginEmail(@Body() dto: LoginEmailDto, @Req() req: Request, @Res() res: Response) {
-  //   const ret = await this.authService.loginEmail({ dto, req });
-  //
-  //   return ResConfig.Success({ res, statusCode: 'OK', data: ret });
-  // }
-  //
+
+  @Public()
+  @Post('check-email')
+  async checkEmail(@Body() dto: CheckEmailDto, @Res() res: Response) {
+    const ret = await this.authService.checkEmail(dto);
+
+    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+  }
+
+  @Public()
+  @Post('login-email')
+  async loginEmail(@Body() dto: LoginEmailDto, @Req() req: Request, @Res() res: Response) {
+    const ret = await this.authService.loginEmail({ dto, req });
+
+    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+  }
+
   // @Public()
   // @Post('login-oauth')
   // async loginOauth(@Body() dto: LoginOauthDto, @Req() req: Request, @Res() res: Response) {
@@ -41,15 +41,15 @@ export class AuthController {
   //
   //   return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   // }
-  //
-  // @Post('logout')
-  // async logout(@Req() req: Request, @Res() res: Response) {
-  //   return await this.authService.logout({ req, res });
-  // }
-  //
-  // @Public()
-  // @Post('refresh-token')
-  // async refreshToken(@Req() req: Request, @Res() res: Response) {
-  //   return await this.authService.refreshToken({ req, res });
-  // }
+
+  @Post('logout')
+  async logout(@Req() req: Request, @Res() res: Response) {
+    return await this.authService.logout({ req, res });
+  }
+
+  @Public()
+  @Post('refresh-token')
+  async refreshToken(@Req() req: Request, @Res() res: Response) {
+    return await this.authService.refreshToken({ req, res });
+  }
 }

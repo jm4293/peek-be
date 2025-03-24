@@ -1,7 +1,9 @@
 import { IJwtToken } from './interface';
 
-declare module 'express-serve-static-core' {
-  interface Request {
-    user: IJwtToken;
+declare global {
+  namespace Express {
+    interface Request {
+      user: IJwtToken;
+    }
   }
 }

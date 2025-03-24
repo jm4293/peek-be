@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { EntityManager, Repository } from 'typeorm';
 
 import { User } from '@libs/database/entities';
@@ -17,13 +17,13 @@ export class UserRepository extends Repository<User> {
     return await this.save(user);
   }
 
-  // async findUserByUserSeq(userSeq: number) {
-  //   const user = await this.findOne({ where: { userSeq } });
-  //
-  //   if (!user) {
-  //     throw ResConfig.Fail_400({ message: '사용자 정보가 존재하지 않습니다.' });
-  //   }
-  //
-  //   return user;
-  // }
+  async findByUserSeq(userSeq: number) {
+    const user = await this.findOne({ where: { userSeq } });
+
+    if (!user) {
+      throw new BadRequestException('사용자 정보가 존재하지 않습니다.');
+    }
+
+    return user;
+  }
 }

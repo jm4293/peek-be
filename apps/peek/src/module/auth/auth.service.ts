@@ -1,5 +1,6 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException } from '@nestjs/common/exceptions/forbidden.exception';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { AxiosResponse } from 'axios';
@@ -17,7 +18,6 @@ import {
   UserVisitRepository,
 } from '@libs/database/repositories';
 
-import { ResConfig } from '../../config';
 import { BcryptHandler } from '../../handler';
 import { CheckEmailDto, CreateUserEmailDto, LoginEmailDto, LoginOauthDto } from '../../type/dto';
 import { IJwtToken } from '../../type/interface';
@@ -51,59 +51,61 @@ export class AuthService {
 
     const hashedPassword = await BcryptHandler.hashPassword(password);
 
-    const newUserAccount = await this.userAccountRepository.createUserAccountByEmail({
+    const newUserAccount = this.userAccountRepository.create({
+      user,
       userAccountType: UserAccountTypeEnum.EMAIL,
       email,
       password: hashedPassword,
-      user,
     });
+
+    await this.userAccountRepository.save(newUserAccount);
 
     return { email: newUserAccount.email };
   }
 
-  // async checkEmail(dto: CheckEmailDto): Promise<IPostCheckEmailRes> {
-  //   const { email } = dto;
-  //
-  //   const userAccount = await this.userAccountRepository.findOne({
-  //     where: { email },
-  //     relations: ['user'],
-  //   });
-  //
-  //   if (userAccount) {
-  //     const { email, userAccountType } = userAccount;
-  //
-  //     switch (userAccountType) {
-  //       case UserAccountTypeEnum.EMAIL:
-  //         throw ResConfig.Fail_400({
-  //           message: `이메일: ${email}은 ${userAccountTypeDescription[userAccountType]} 가입 회원입니다.`,
-  //         });
-  //       case UserAccountTypeEnum.GOOGLE:
-  //         throw ResConfig.Fail_400({
-  //           message: `이메일: ${email}은 ${userAccountTypeDescription[userAccountType]} 간편로그인 회원입니다.`,
-  //         });
-  //       default:
-  //         break;
-  //     }
-  //   }
-  //
-  //   return { isExist: !!userAccount, email };
-  // }
-  //
-  // async loginEmail(params: { dto: LoginEmailDto; req: Request }) {
-  //   const { dto, req } = params;
-  //   const { email, password } = dto;
-  //
-  //   const userAccount = await this.userAccountRepository.findUserAccountByEmail(email);
-  //
-  //   const isMatch = await BcryptHandler.comparePassword(password, userAccount.password as string);
-  //
-  //   if (!isMatch) {
-  //     throw ResConfig.Fail_400({ message: '비밀번호가 일치하지 않습니다.' });
-  //   }
-  //
-  //   return await this._login({ req, user: userAccount.user, userAccount, type: UserVisitTypeEnum.SIGN_IN_EMAIL });
-  // }
-  //
+  async checkEmail(dto: CheckEmailDto): Promise<IPostCheckEmailRes> {
+    const { email } = dto;
+
+    const userAccount = await this.userAccountRepository.findOne({ where: { email } });
+
+    if (userAccount) {
+      const { email, userAccountType } = userAccount;
+
+      if (userAccountType === UserAccountTypeEnum.EMAIL) {
+        return {
+          isExist: true,
+          email,
+          message: `이메일: ${email}은 ${userAccountTypeDescription[userAccountType]} 가입 회원입니다.`,
+        };
+      }
+
+      if (userAccountType === UserAccountTypeEnum.GOOGLE) {
+        return {
+          isExist: true,
+          email,
+          message: `이메일: ${email}은 ${userAccountTypeDescription[userAccountType]} 간편로그인 회원입니다.`,
+        };
+      }
+    }
+
+    return { isExist: false, email };
+  }
+
+  async loginEmail(params: { dto: LoginEmailDto; req: Request }) {
+    const { dto, req } = params;
+    const { email, password } = dto;
+
+    const userAccount = await this.userAccountRepository.findByEmail(email);
+
+    const isMatch = await BcryptHandler.comparePassword(password, userAccount.password as string);
+
+    if (!isMatch) {
+      throw new BadRequestException('비밀번호가 일치하지 않습니다.');
+    }
+
+    return await this._login({ req, user: userAccount.user, userAccount, type: UserVisitTypeEnum.SIGN_IN_EMAIL });
+  }
+
   // async loginOauth(params: { dto: LoginOauthDto; req: Request }) {
   //   const { dto, req } = params;
   //   const { userAccountType, access_token } = dto;
@@ -204,138 +206,137 @@ export class AuthService {
   //
   //   return;
   // }
-  //
-  // async logout(params: { req: Request; res: Response }) {
-  //   const { req, res } = params;
-  //   const { userSeq } = req.user;
-  //
-  //   const user = await this.userRepository.findUserByUserSeq(userSeq);
-  //
-  //   await this.userAccountRepository.update({ user }, { refreshToken: null });
-  //
-  //   await this.userPushTokenRepository.update({ user }, { pushToken: null });
-  //
-  //   await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_OUT_EMAIL, user });
-  //
-  //   const cookies = req.cookies;
-  //
-  //   for (const cookie in cookies) {
-  //     if (cookies.hasOwnProperty(cookie)) {
-  //       res.clearCookie(cookie);
-  //     }
-  //   }
-  //
-  //   return res.status(200).send({ message: '로그아웃 되었습니다.' });
-  // }
-  //
-  // async refreshToken(params: { req: Request; res: Response }) {
-  //   const { req, res } = params;
-  //
-  //   const refreshToken = req.cookies['RT'] as string;
-  //
-  //   if (!refreshToken) {
-  //     throw ResConfig.Fail_403({ message: '리프레시 토큰이 존재하지 않습니다.' });
-  //   }
-  //
-  //   const { userSeq, userAccountType } = this.jwtService.verify<IJwtToken>(
-  //     refreshToken,
-  //     this.configService.get('JWT_SECRET_KEY'),
-  //   );
-  //
-  //   const savedRefreshToken = await this.userAccountRepository.findOne({
-  //     where: { user: { userSeq }, userAccountType },
-  //   });
-  //
-  //   if (!savedRefreshToken) {
-  //     throw ResConfig.Fail_403({ message: 'DB 리프레시 토큰이 존재하지 않습니다.' });
-  //   }
-  //
-  //   if (refreshToken !== savedRefreshToken.refreshToken) {
-  //     throw ResConfig.Fail_403({ message: '리프레시 토큰이 일치하지 않습니다.' });
-  //   }
-  //
-  //   // const accessToken = await this._generateJwtToken({ userSeq, userAccountType, expiresIn: ACCESS_TOKEN_TIME });
-  //
-  //   const accessToken = await this._generateJwtToken({ userSeq, userAccountType, expiresIn: ACCESS_TOKEN_TIME });
-  //
-  //   console.log('accessToken', accessToken);
-  //
-  //   res.cookie('AT', accessToken, {
-  //     httpOnly: true,
-  //     sameSite: 'strict',
-  //     maxAge: ACCESS_TOKEN_COOKIE_TIME,
-  //   });
-  //
-  //   return res.status(200).send({});
-  // }
-  //
-  // private async _registerUserVisit(params: { req: Request; type: UserVisitTypeEnum; user: User }) {
-  //   const { req, type, user } = params;
-  //   const { headers, ip = null } = req;
-  //   const { 'user-agent': userAgent = null, referer = null } = headers;
-  //
-  //   const userVisit = this.userVisitRepository.create({ user, type, ip, userAgent, referer });
-  //
-  //   return await this.userVisitRepository.save(userVisit);
-  // }
-  //
-  // private async _generateJwtToken(params: IJwtToken) {
-  //   const { userSeq, userAccountType, expiresIn } = params;
-  //
-  //   return await this.jwtService.signAsync(
-  //     { userSeq, userAccountType },
-  //     { expiresIn, secret: this.configService.get('JWT_SECRET_KEY') },
-  //   );
-  // }
-  //
-  // private async _login(params: { req: Request; user: User; userAccount: UserAccount; type: UserVisitTypeEnum }) {
-  //   const { req, user, userAccount, type } = params;
-  //
-  //   const accessToken = await this._generateJwtToken({
-  //     userSeq: user.userSeq,
-  //     userAccountType: userAccount.userAccountType,
-  //     expiresIn: ACCESS_TOKEN_TIME,
-  //   });
-  //
-  //   const refreshToken = await this._generateJwtToken({
-  //     userSeq: user.userSeq,
-  //     userAccountType: userAccount.userAccountType,
-  //     expiresIn: REFRESH_TOKEN_TIME,
-  //   });
-  //
-  //   // res.cookie('RT', refreshToken, {
-  //   //   httpOnly: true,
-  //   //   sameSite: 'strict',
-  //   //   maxAge: REFRESH_TOKEN_COOKIE_TIME,
-  //   // });
-  //
-  //   await this.userAccountRepository.manager.transaction(async (manager) => {
-  //     await manager.update(UserAccount, { user: { userSeq: user.userSeq } }, { refreshToken: null });
-  //     await manager.update(UserAccount, { userAccountSeq: userAccount.userAccountSeq }, { refreshToken });
-  //   });
-  //
-  //   await this._registerUserVisit({ req, type, user });
-  //
-  //   // return res.status(200).send({ data: { email: userAccount.email, accessToken, refreshToken } });
-  //
-  //   return { email: userAccount.email, accessToken, refreshToken };
-  // }
-  //
-  // private async _resizingImage(params: { imageFile: File }) {
-  //   const { imageFile } = params;
-  //
-  //   const formData = new FormData();
-  //
-  //   formData.append('image', imageFile);
-  //
-  //   const resizingPicture = await firstValueFrom<AxiosResponse<{ resizedImageUrl: string }>>(
-  //     this.httpService.post(
-  //       `${this.configService.get('IMAGE_RESIZING_URL')}:${this.configService.get('IMAGE_RESIZING_PORT')}/${this.configService.get('IMAGE_RESIZING_PREFIX')}`,
-  //       formData,
-  //       { headers: { 'Content-Type': 'multipart/form-data' } },
-  //     ),
-  //   );
-  //
-  //   return resizingPicture.data.resizedImageUrl;
-  // }
+
+  async logout(params: { req: Request; res: Response }) {
+    const { req, res } = params;
+    const { userSeq } = req.user;
+
+    const user = await this.userRepository.findByUserSeq(userSeq);
+
+    await this.userAccountRepository.update({ user }, { refreshToken: null });
+
+    await this.userPushTokenRepository.update({ user }, { pushToken: null });
+
+    await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_OUT_EMAIL, user });
+
+    const cookies = req.cookies;
+
+    for (const cookie in cookies) {
+      if (cookies.hasOwnProperty(cookie)) {
+        res.clearCookie(cookie);
+      }
+    }
+
+    return res.status(200).send({ message: '로그아웃 되었습니다.' });
+  }
+
+  async refreshToken(params: { req: Request; res: Response }) {
+    const { req, res } = params;
+
+    const refreshToken = req.cookies['RT'] as string;
+
+    if (!refreshToken) {
+      // throw ResConfig.Fail_403({ message: '리프레시 토큰이 존재하지 않습니다.' });
+      throw new ForbiddenException('리프레시 토큰이 존재하지 않습니다.');
+    }
+
+    const { userSeq, userAccountType } = this.jwtService.verify<IJwtToken>(
+      refreshToken,
+      this.configService.get('JWT_SECRET_KEY'),
+    );
+
+    const savedRefreshToken = await this.userAccountRepository.findOne({
+      where: { user: { userSeq }, userAccountType },
+    });
+
+    if (!savedRefreshToken) {
+      // throw ResConfig.Fail_403({ message: 'DB 리프레시 토큰이 존재하지 않습니다.' });
+      throw new ForbiddenException('DB 리프레시 토큰이 존재하지 않습니다.');
+    }
+
+    if (refreshToken !== savedRefreshToken.refreshToken) {
+      // throw ResConfig.Fail_403({ message: '리프레시 토큰이 일치하지 않습니다.' });
+      throw new ForbiddenException('리프레시 토큰이 일치하지 않습니다.');
+    }
+
+    const accessToken = await this._generateJwtToken({ userSeq, userAccountType, expiresIn: ACCESS_TOKEN_TIME });
+
+    res.cookie('AT', accessToken, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: ACCESS_TOKEN_COOKIE_TIME,
+    });
+
+    return res.status(200).send({});
+  }
+
+  private async _registerUserVisit(params: { req: Request; type: UserVisitTypeEnum; user: User }) {
+    const { req, type, user } = params;
+    const { headers, ip = null } = req;
+    const { 'user-agent': userAgent = null, referer = null } = headers;
+
+    const userVisit = this.userVisitRepository.create({ user, type, ip, userAgent, referer });
+
+    return await this.userVisitRepository.save(userVisit);
+  }
+
+  private async _generateJwtToken(params: IJwtToken) {
+    const { userSeq, userAccountType, expiresIn } = params;
+
+    return await this.jwtService.signAsync(
+      { userSeq, userAccountType },
+      { expiresIn, secret: this.configService.get('JWT_SECRET_KEY') },
+    );
+  }
+
+  private async _login(params: { req: Request; user: User; userAccount: UserAccount; type: UserVisitTypeEnum }) {
+    const { req, user, userAccount, type } = params;
+
+    const accessToken = await this._generateJwtToken({
+      userSeq: user.userSeq,
+      userAccountType: userAccount.userAccountType,
+      expiresIn: ACCESS_TOKEN_TIME,
+    });
+
+    const refreshToken = await this._generateJwtToken({
+      userSeq: user.userSeq,
+      userAccountType: userAccount.userAccountType,
+      expiresIn: REFRESH_TOKEN_TIME,
+    });
+
+    // res.cookie('RT', refreshToken, {
+    //   httpOnly: true,
+    //   sameSite: 'strict',
+    //   maxAge: REFRESH_TOKEN_COOKIE_TIME,
+    // });
+
+    await this.userAccountRepository.manager.transaction(async (manager) => {
+      await manager.update(UserAccount, { user: { userSeq: user.userSeq } }, { refreshToken: null });
+      await manager.update(UserAccount, { userAccountSeq: userAccount.userAccountSeq }, { refreshToken });
+    });
+
+    await this._registerUserVisit({ req, type, user });
+
+    // return res.status(200).send({ data: { email: userAccount.email, accessToken, refreshToken } });
+
+    return { email: userAccount.email, accessToken, refreshToken };
+  }
+
+  private async _resizingImage(params: { imageFile: File }) {
+    const { imageFile } = params;
+
+    const formData = new FormData();
+
+    formData.append('image', imageFile);
+
+    const resizingPicture = await firstValueFrom<AxiosResponse<{ resizedImageUrl: string }>>(
+      this.httpService.post(
+        `${this.configService.get('IMAGE_RESIZING_URL')}:${this.configService.get('IMAGE_RESIZING_PORT')}/${this.configService.get('IMAGE_RESIZING_PREFIX')}`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+      ),
+    );
+
+    return resizingPicture.data.resizedImageUrl;
+  }
 }

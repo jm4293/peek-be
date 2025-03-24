@@ -1,8 +1,4 @@
-import { BadRequestException, HttpStatus } from '@nestjs/common';
-import { ForbiddenException } from '@nestjs/common/exceptions/forbidden.exception';
-import { InternalServerErrorException } from '@nestjs/common/exceptions/internal-server-error.exception';
-import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception';
-import { UnauthorizedException } from '@nestjs/common/exceptions/unauthorized.exception';
+import { HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
 
 import { ResEnum } from '@libs/constant/enum';
@@ -18,35 +14,5 @@ export class ResConfig<T = unknown> {
     const { res, statusCode, redirectUrl } = params;
 
     return res.status(HttpStatus[statusCode]).send({ redirectUrl });
-  }
-
-  static Fail_400(params: { message?: string }) {
-    const { message } = params;
-
-    return new BadRequestException({ message });
-  }
-
-  static Fail_401(params: { status: HttpStatus; message?: string }) {
-    const { message } = params;
-
-    return new UnauthorizedException();
-  }
-
-  static Fail_403(params: { message?: string }) {
-    const { message } = params;
-
-    return new ForbiddenException();
-  }
-
-  static Fail_404(params: { status: HttpStatus; message?: string }) {
-    const { message } = params;
-
-    return new NotFoundException();
-  }
-
-  static Fail_500(params: { status: HttpStatus; message?: string }) {
-    const { message } = params;
-
-    return new InternalServerErrorException({ message });
   }
 }

@@ -9,11 +9,11 @@ import { HomeService } from './home.service';
 export class HomeController {
   constructor(private readonly homeService: HomeService) {}
 
-  // @Public()
-  // @Get('recent-boards')
-  // async getRecentBoards(@Res() res: Response) {
-  //   const ret = await this.homeService.getRecentBoards();
-  //
-  //   return ResConfig.Success({ res, statusCode: 'OK', data: ret });
-  // }
+  @Public()
+  @Get('recent-boards')
+  async getRecentBoards(@Res() res: Response) {
+    const ret = await this.homeService.getRecentBoards();
+
+    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+  }
 }
