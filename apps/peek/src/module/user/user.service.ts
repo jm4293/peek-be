@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
-import { ReadUserNotificationDto, RegisterUserPushTokenDto } from '../../type/dto';
-import { ResConfig } from '../../config';
+
 import {
   UserAccountRepository,
   UserNotificationRepository,
   UserPushTokenRepository,
   UserRepository,
 } from '@libs/database/repositories';
+
+import { ResConfig } from '../../config';
+import { ReadUserNotificationDto, RegisterUserPushTokenDto } from '../../type/dto';
 
 @Injectable()
 export class UserService {

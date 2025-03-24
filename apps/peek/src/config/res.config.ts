@@ -1,9 +1,10 @@
-import { HttpStatus, BadRequestException } from '@nestjs/common';
+import { BadRequestException, HttpStatus } from '@nestjs/common';
+import { ForbiddenException } from '@nestjs/common/exceptions/forbidden.exception';
 import { InternalServerErrorException } from '@nestjs/common/exceptions/internal-server-error.exception';
 import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception';
 import { UnauthorizedException } from '@nestjs/common/exceptions/unauthorized.exception';
-import { ForbiddenException } from '@nestjs/common/exceptions/forbidden.exception';
 import { Response } from 'express';
+
 import { ResEnum } from '@libs/constant/enum';
 
 export class ResConfig<T = unknown> {

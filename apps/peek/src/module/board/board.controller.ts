@@ -1,9 +1,10 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Req, Res } from '@nestjs/common';
-import { BoardService } from './board.service';
+import { Request, Response } from 'express';
+
+import { ResConfig } from '../../config';
 import { Public } from '../../decorator';
 import { CreateBoardCommentDto, CreateBoardDto, UpdateBoardCommentDto, UpdateBoardDto } from '../../type/dto';
-import { Request, Response } from 'express';
-import { ResConfig } from '../../config';
+import { BoardService } from './board.service';
 
 @Controller('board')
 export class BoardController {

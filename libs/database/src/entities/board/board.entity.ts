@@ -9,6 +9,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
 import { BoardComment, BoardLike, User } from '@libs/database/entities';
 
 @Entity()

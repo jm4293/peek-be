@@ -1,8 +1,9 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query, Req, Res } from '@nestjs/common';
-import { UserService } from './user.service';
 import { Request, Response } from 'express';
+
 import { ResConfig } from '../../config';
 import { ReadUserNotificationDto, RegisterUserPushTokenDto } from '../../type/dto';
+import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {

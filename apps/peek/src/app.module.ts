@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { AuthGuardConfig, configModuleConfig, typeormModuleConfig } from './config';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD } from '@nestjs/core';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { AuthGuardConfig, configModuleConfig, typeormModuleConfig } from './config';
 
 /**
  * imports: 다른 모듈을 가져오기

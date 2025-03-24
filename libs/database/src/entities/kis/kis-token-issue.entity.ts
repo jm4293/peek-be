@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
 import { KisToken, User } from '@libs/database/entities';
 
 @Entity()

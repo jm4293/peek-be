@@ -1,6 +1,7 @@
 import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { StockService } from './stock.service';
 import { FileInterceptor } from '@nestjs/platform-express';
+
+import { StockService } from './stock.service';
 
 @Controller('stock')
 export class StockController {

@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { LoginDto } from '../../type/dto/auth';
+import { Response } from 'express';
+
+import { UserTypeEnum } from '@libs/constant/enum';
+
+import { UserAccountRepository } from '@libs/database/repositories';
+
 import { ResConfig } from '../../config';
 import { BcryptHandler } from '../../handler';
-import { Response } from 'express';
-import { UserAccountRepository } from '@libs/database/repositories';
-import { UserTypeEnum } from '@libs/constant/enum';
+import { LoginDto } from '../../type/dto/auth';
 
 @Injectable()
 export class AuthService {

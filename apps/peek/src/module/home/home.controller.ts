@@ -1,8 +1,9 @@
 import { Controller, Get, Res } from '@nestjs/common';
-import { HomeService } from './home.service';
-import { Public } from '../../decorator';
-import { ResConfig } from '../../config';
 import { Response } from 'express';
+
+import { ResConfig } from '../../config';
+import { Public } from '../../decorator';
+import { HomeService } from './home.service';
 
 @Controller('home')
 export class HomeController {

@@ -5,9 +5,7 @@ export const configModuleConfig: ConfigModuleOptions = {
   isGlobal: true,
   envFilePath: ['.env'],
   validationSchema: Joi.object({
-    NODE_ENV: Joi.string()
-      .valid('development', 'production', 'test')
-      .default('development'),
+    NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
 
     SERVER_PORT: Joi.number().default(42973),
 

@@ -1,8 +1,10 @@
-import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
-import { KisTokenScheduleService } from './kis-token-schedule.service';
+import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
+
 import { KisTokenRepository } from '@libs/database/repositories';
+
+import { KisTokenScheduleService } from './kis-token-schedule.service';
 
 @Module({
   imports: [HttpModule, ScheduleModule.forRoot()],

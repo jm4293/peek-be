@@ -1,8 +1,9 @@
 import { Controller, Get, Query, Req, Res } from '@nestjs/common';
-import { StockService } from './stock.service';
-import { ResConfig } from '../../config';
 import { Request, Response } from 'express';
+
+import { ResConfig } from '../../config';
 import { Public } from '../../decorator';
+import { StockService } from './stock.service';
 
 @Controller('stock')
 export class StockController {

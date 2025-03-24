@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+
 import { KisTokenIssue } from '@libs/database/entities';
 
 @Entity()

@@ -1,24 +1,27 @@
-import { Injectable } from '@nestjs/common';
-import { BcryptHandler } from '../../handler';
-import { Request, Response } from 'express';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { ResConfig } from '../../config';
 import { HttpService } from '@nestjs/axios';
-import { firstValueFrom } from 'rxjs';
-import { CheckEmailDto, CreateUserEmailDto, LoginEmailDto, LoginOauthDto } from '../../type/dto';
-import { IGetOauthGoogleTokenRes, IPostCheckEmailRes, IPostCreateUserEmailRes } from '../../type/res';
-import { IJwtToken } from '../../type/interface';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { AxiosResponse } from 'axios';
+import { Request, Response } from 'express';
+import { firstValueFrom } from 'rxjs';
+
+import { UserAccountTypeEnum, UserVisitTypeEnum, userAccountTypeDescription } from '@libs/constant/enum';
+import { ACCESS_TOKEN_COOKIE_TIME, ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from '@libs/constant/jwt';
+
+import { User, UserAccount } from '@libs/database/entities';
 import {
   UserAccountRepository,
   UserPushTokenRepository,
   UserRepository,
   UserVisitRepository,
 } from '@libs/database/repositories';
-import { User, UserAccount } from '@libs/database/entities';
-import { userAccountTypeDescription, UserAccountTypeEnum, UserVisitTypeEnum } from '@libs/constant/enum';
-import { ACCESS_TOKEN_COOKIE_TIME, ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from '@libs/constant/jwt';
+
+import { ResConfig } from '../../config';
+import { BcryptHandler } from '../../handler';
+import { CheckEmailDto, CreateUserEmailDto, LoginEmailDto, LoginOauthDto } from '../../type/dto';
+import { IJwtToken } from '../../type/interface';
+import { IGetOauthGoogleTokenRes, IPostCheckEmailRes, IPostCreateUserEmailRes } from '../../type/res';
 
 @Injectable()
 export class AuthService {

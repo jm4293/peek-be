@@ -7,7 +7,9 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
 import { UserVisitTypeEnum } from '@libs/constant/enum';
+
 import { User } from '@libs/database/entities';
 
 @Entity()

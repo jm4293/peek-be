@@ -1,8 +1,18 @@
 {
   "singleQuote": true,
   "bracketSpacing": true,
-  "jsxBracketSameLine": true,
   "trailingComma": "all",
   "tabWidth": 2,
-  "printWidth": 120
+  "printWidth": 120,
+  "importOrder": [
+    "^@apps/peek/(.*)$",
+    "^@apps/peek-admin/(.*)$",
+    "^@libs/constant/(.*)$",
+    "^@libs/database(.*)$",
+    "^[./]"
+  ],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true,
+  "importOrderParserPlugins": ["typescript", "decorators-legacy"],
+  "plugins": ["@trivago/prettier-plugin-sort-imports"]
 }

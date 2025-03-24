@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EntityManager, Repository } from 'typeorm';
+
 import { Board } from '@libs/database/entities';
 
 @Injectable()

@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { UserRepository } from '@libs/database/repositories';
+
 import { UserStatusEnum } from '@libs/constant/enum';
+
+import { UserRepository } from '@libs/database/repositories';
 
 @Injectable()
 export class UserService {

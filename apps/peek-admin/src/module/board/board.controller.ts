@@ -1,7 +1,8 @@
 import { Controller, Get, ParseIntPipe, Query, Res } from '@nestjs/common';
-import { BoardService } from './board.service';
 import { Response } from 'express';
+
 import { ResConfig } from '../../config';
+import { BoardService } from './board.service';
 
 @Controller('board')
 export class BoardController {

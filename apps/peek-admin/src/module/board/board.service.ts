@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+
 import { BoardRepository } from '@libs/database/repositories';
 
 @Injectable()

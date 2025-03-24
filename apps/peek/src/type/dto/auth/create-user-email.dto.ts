@@ -1,5 +1,6 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+
 import { IBaseUser, IBaseUserAccount } from '../../interface';
 
 export class CreateUserEmailDto implements IBaseUser, IBaseUserAccount {

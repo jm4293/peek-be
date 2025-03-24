@@ -7,6 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Response } from 'express';
+
 import { ResEnum } from '@libs/constant/enum';
 
 export class ResConfig<T = unknown> {

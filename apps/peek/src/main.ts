@@ -1,11 +1,12 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import * as cookieParser from 'cookie-parser';
-import { validationPipeConfig } from './config';
-import * as admin from 'firebase-admin';
 import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
+import * as admin from 'firebase-admin';
 import * as fs from 'fs';
+
+import { AppModule } from './app.module';
+import { validationPipeConfig } from './config';
 
 async function bootstrap() {
   // const httpsOptions = {

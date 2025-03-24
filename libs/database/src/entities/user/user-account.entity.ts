@@ -1,14 +1,16 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-  ManyToOne,
-  JoinColumn,
   Column,
+  CreateDateColumn,
   DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
+
 import { UserAccountStatusEnum, UserAccountTypeEnum } from '@libs/constant/enum';
+
 import { User } from '@libs/database/entities';
 
 @Entity()

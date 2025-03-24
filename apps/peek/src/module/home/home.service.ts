@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { SelectQueryBuilder } from 'typeorm';
-import { BoardRepository } from '@libs/database/repositories';
+
 import { Board } from '@libs/database/entities';
+import { BoardRepository } from '@libs/database/repositories';
 
 @Injectable()
 export class HomeService {

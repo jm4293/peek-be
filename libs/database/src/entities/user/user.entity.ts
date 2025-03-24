@@ -1,12 +1,15 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-  OneToMany,
   Column,
+  CreateDateColumn,
   DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
+
+import { UserStatusEnum, UserTypeEnum } from '@libs/constant/enum';
+
 import {
   Board,
   BoardComment,
@@ -16,7 +19,6 @@ import {
   UserNotification,
   UserPushToken,
 } from '@libs/database/entities';
-import { UserStatusEnum, UserTypeEnum } from '@libs/constant/enum';
 
 @Entity()
 export class User {

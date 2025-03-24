@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ResConfig } from '../../config';
-import { CreateBoardCommentDto, CreateBoardDto, UpdateBoardCommentDto, UpdateBoardDto } from '../../type/dto';
 import { Request } from 'express';
 import { SelectQueryBuilder } from 'typeorm';
-import { NotificationHandler } from '../../handler';
+
+import { Board } from '@libs/database/entities';
 import {
   BoardCommentRepository,
   BoardLikeRepository,
@@ -11,7 +10,10 @@ import {
   UserPushTokenRepository,
   UserRepository,
 } from '@libs/database/repositories';
-import { Board } from '@libs/database/entities';
+
+import { ResConfig } from '../../config';
+import { NotificationHandler } from '../../handler';
+import { CreateBoardCommentDto, CreateBoardDto, UpdateBoardCommentDto, UpdateBoardDto } from '../../type/dto';
 
 @Injectable()
 export class BoardService {

@@ -1,5 +1,6 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+
 import { UserAccountTypeEnum } from '@libs/constant/enum';
 
 export class LoginOauthDto {

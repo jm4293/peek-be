@@ -8,7 +8,9 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
 import { UserNotificationTypeEnum } from '@libs/constant/enum';
+
 import { User } from '@libs/database/entities';
 
 @Entity()

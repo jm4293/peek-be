@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
+
+import { BoardRepository } from '@libs/database/repositories';
+
 import { BoardController } from './board.controller';
 import { BoardService } from './board.service';
-import { BoardRepository } from '@libs/database/repositories';
 
 @Module({
   imports: [],
