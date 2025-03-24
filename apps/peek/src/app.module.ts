@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AuthGuardConfig, configModuleConfig, typeormModuleConfig } from './config';
+import { AuthModule } from './module';
 
 /**
  * imports: 다른 모듈을 가져오기
@@ -19,7 +20,7 @@ import { AuthGuardConfig, configModuleConfig, typeormModuleConfig } from './conf
     // HomeModule,
     // StockModule,
     // BoardModule,
-    // AuthModule,
+    AuthModule,
     // UserModule,
 
     // KisTokenScheduleModule,

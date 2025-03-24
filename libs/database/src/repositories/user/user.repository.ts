@@ -9,14 +9,14 @@ export class UserRepository extends Repository<User> {
     super(User, manager);
   }
 
-  // async createUser(dto: Pick<CreateUserEmailDto, 'nickname' | 'name' | 'policy' | 'birthdate' | 'thumbnail'>) {
-  //   const { nickname, name, policy, birthdate, thumbnail } = dto;
-  //
-  //   const user = this.create({ nickname, name, policy, birthdate, thumbnail });
-  //
-  //   return await this.save(user);
-  // }
-  //
+  async createUser(dto: { nickname: string; name: string; policy: boolean; birthdate?: string; thumbnail?: string }) {
+    const { nickname, name, policy, birthdate, thumbnail } = dto;
+
+    const user = this.create({ nickname, name, policy, birthdate, thumbnail });
+
+    return await this.save(user);
+  }
+
   // async findUserByUserSeq(userSeq: number) {
   //   const user = await this.findOne({ where: { userSeq } });
   //

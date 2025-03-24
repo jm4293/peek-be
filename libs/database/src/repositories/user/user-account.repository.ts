@@ -1,7 +1,8 @@
+import { UserAccountTypeEnum } from '@libs/constant';
 import { Injectable } from '@nestjs/common';
 import { EntityManager, Repository } from 'typeorm';
 
-import { UserAccount } from '@libs/database/entities';
+import { User, UserAccount } from '@libs/database/entities';
 
 @Injectable()
 export class UserAccountRepository extends Repository<UserAccount> {
@@ -9,16 +10,19 @@ export class UserAccountRepository extends Repository<UserAccount> {
     super(UserAccount, manager);
   }
 
-  // async createUserAccountByEmail(
-  //   dto: Pick<CreateUserEmailDto, 'email' | 'password'> & { user: User; userAccountType: UserAccountTypeEnum },
-  // ) {
-  //   const { user, userAccountType, email, password } = dto;
-  //
-  //   const userAccount = this.create({ user, userAccountType, email, password });
-  //
-  //   return await this.save(userAccount);
-  // }
-  //
+  async createUserAccountByEmail(dto: {
+    userAccountType: UserAccountTypeEnum;
+    email: string;
+    password: string;
+    user: User;
+  }) {
+    const { user, userAccountType, email, password } = dto;
+
+    const userAccount = this.create({ user, userAccountType, email, password });
+
+    return await this.save(userAccount);
+  }
+
   // async createUserAccountByOauth(
   //   dto: Pick<CreateUserEmailDto, 'email'> & { user: User; userAccountType: UserAccountTypeEnum },
   // ) {

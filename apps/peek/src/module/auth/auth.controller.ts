@@ -10,13 +10,13 @@ import { AuthService } from './auth.service';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // @Public()
-  // @Post('register-email')
-  // async register(@Body() dto: CreateUserEmailDto, @Res() res: Response) {
-  //   const ret = await this.authService.registerEmail(dto);
-  //
-  //   return ResConfig.Success({ res, statusCode: 'CREATED', data: ret });
-  // }
+  @Public()
+  @Post('register-email')
+  async register(@Body() dto: CreateUserEmailDto, @Res() res: Response) {
+    const ret = await this.authService.registerEmail(dto);
+
+    return ResConfig.Success({ res, statusCode: 'CREATED', data: ret });
+  }
   //
   // @Public()
   // @Post('check-email')

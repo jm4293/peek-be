@@ -36,31 +36,31 @@ export class AuthService {
     private readonly httpService: HttpService,
   ) {}
 
-  // async registerEmail(dto: CreateUserEmailDto): Promise<IPostCreateUserEmailRes> {
-  //   const { nickname, name, policy, birthdate, email, password } = dto;
-  //
-  //   let user: User;
-  //
-  //   const userAccount = await this.userAccountRepository.findOne({ where: { email }, relations: ['user'] });
-  //
-  //   if (userAccount) {
-  //     user = userAccount.user;
-  //   } else {
-  //     user = await this.userRepository.createUser({ nickname, name, policy, birthdate });
-  //   }
-  //
-  //   const hashedPassword = await BcryptHandler.hashPassword(password);
-  //
-  //   const newUserAccount = await this.userAccountRepository.createUserAccountByEmail({
-  //     userAccountType: UserAccountTypeEnum.EMAIL,
-  //     email,
-  //     password: hashedPassword,
-  //     user,
-  //   });
-  //
-  //   return { email: newUserAccount.email };
-  // }
-  //
+  async registerEmail(dto: CreateUserEmailDto): Promise<IPostCreateUserEmailRes> {
+    const { nickname, name, policy, birthdate, email, password } = dto;
+
+    let user: User;
+
+    const userAccount = await this.userAccountRepository.findOne({ where: { email }, relations: ['user'] });
+
+    if (userAccount) {
+      user = userAccount.user;
+    } else {
+      user = await this.userRepository.createUser({ nickname, name, policy, birthdate });
+    }
+
+    const hashedPassword = await BcryptHandler.hashPassword(password);
+
+    const newUserAccount = await this.userAccountRepository.createUserAccountByEmail({
+      userAccountType: UserAccountTypeEnum.EMAIL,
+      email,
+      password: hashedPassword,
+      user,
+    });
+
+    return { email: newUserAccount.email };
+  }
+
   // async checkEmail(dto: CheckEmailDto): Promise<IPostCheckEmailRes> {
   //   const { email } = dto;
   //
