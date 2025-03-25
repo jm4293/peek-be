@@ -1,5 +1,8 @@
-import { Controller, Get, Query, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
+
+import { Controller, Get, Param, ParseEnumPipe, ParseIntPipe, Query, Req, Res } from '@nestjs/common';
+
+import { StockKindEnum } from '@libs/constant';
 
 import { ResConfig } from '../../config';
 import { Public } from '../../decorator';
@@ -19,18 +22,22 @@ export class StockController {
 
   // 종목 코드 조회
   @Public()
-  @Get('code-list')
-  async getCodeList(@Res() res: Response) {
-    const ret = await this.kisService.getCodeList();
+  @Get()
+  async getCodeList(@Query('kind') kind: StockKindEnum, @Query('text') text: string, @Res() res: Response) {
+    const ret = await this.kisService.getCodeList({ kind, text: text?.trim() });
 
     return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
   // 종목 상세 조회
   @Public()
-  @Get('code-detail')
-  async getCodeDetail(@Query('code') code: string, @Res() res: Response) {
-    const ret = await this.kisService.getCodeDetail({ code });
+  @Get(':code')
+  async getCodeDetail(
+    @Param('code', ParseIntPipe) code: number,
+    @Query('kind', new ParseEnumPipe(StockKindEnum)) kind: StockKindEnum,
+    @Res() res: Response,
+  ) {
+    const ret = await this.kisService.getCodeDetail({ code, kind });
 
     return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }

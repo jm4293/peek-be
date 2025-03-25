@@ -1,13 +1,21 @@
-import { HttpService } from '@nestjs/axios';
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
-import { firstValueFrom } from 'rxjs';
+import { FindOptionsOrder, Like } from 'typeorm';
 
-import { KisToken } from '@libs/database/entities';
-import { KisTokenIssueRepository, KisTokenRepository, UserRepository } from '@libs/database/repositories';
+import { HttpService } from '@nestjs/axios';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
-import { ResConfig } from '../../config';
+import { StockKindEnum } from '@libs/constant';
+
+import { KOSPICode, KisToken } from '@libs/database/entities';
+
+import {
+  KOSDAQCodeRepository,
+  KOSPICodeRepository,
+  KisTokenIssueRepository,
+  KisTokenRepository,
+  UserRepository,
+} from '@libs/database/repositories';
 
 @Injectable()
 export class StockService {
@@ -17,6 +25,8 @@ export class StockService {
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
 
+    private readonly kospiCodeRepository: KOSPICodeRepository,
+    private readonly kosdaqCodeRepository: KOSDAQCodeRepository,
     private readonly kisTokenRepository: KisTokenRepository,
     private readonly kisTokenIssueRepository: KisTokenIssueRepository,
     private readonly userRepository: UserRepository,
@@ -38,49 +48,53 @@ export class StockService {
     return { kisToken: kisToken.accessToken };
   }
 
-  async getCodeList() {
-    const ret: any = await firstValueFrom(
-      this.httpService.get('http://api.seibro.or.kr/openapi/service/StockSvc/getKDRSecnInfo', {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        params: {
-          serviceKey: `${this.configService.get('DATA_GO_KR_STOCK_CODE_SERVICE_KEY')}`,
-          caltotMartTpcd: '12',
-        },
-      }),
-    );
+  async getCodeList(params: { kind: StockKindEnum; text: string }) {
+    const { kind, text } = params;
 
-    return ret.data;
-  }
+    let whereCondition = {};
+    let orderCondition: FindOptionsOrder<KOSPICode> = { companyName: 'ASC' };
 
-  async getCodeDetail(params: { code: string }) {
-    const { code } = params;
-
-    const kisToken = await this._getKisToken();
-
-    const ret = await firstValueFrom(
-      this.httpService.get(`${this.configService.get('KIS_APP_URL')}/uapi/domestic-stock/v1/quotations/inquire-price`, {
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-          Authorization: `Bearer ${kisToken.accessToken}`,
-          appkey: this.configService.get('KIS_APP_KEY'),
-          appsecret: this.configService.get('KIS_APP_SECRET'),
-          tr_id: 'FHKST01010100',
-          custtype: 'P',
-        },
-        params: {
-          FID_COND_MRKT_DIV_CODE: 'J',
-          FID_INPUT_ISCD: code,
-        },
-      }),
-    );
-
-    if (ret.status !== 200) {
-      throw new BadRequestException('종목 조회에 실패하였습니다.');
+    if (text) {
+      whereCondition = { companyName: Like(`%${text}%`) };
     }
 
-    return ret.data;
+    let stocks = [];
+    let total = 0;
+
+    if (!kind) {
+      const [kospiStocks, kospiTotal] = await this.kospiCodeRepository.findAndCount({
+        where: whereCondition,
+        order: orderCondition,
+      });
+
+      const [kosdaqStocks, kosdaqTotal] = await this.kosdaqCodeRepository.findAndCount({
+        where: whereCondition,
+        order: orderCondition,
+      });
+
+      stocks = [...kospiStocks, ...kosdaqStocks].sort((a, b) => a.companyName.localeCompare(b.companyName));
+      total = kospiTotal + kosdaqTotal;
+    } else {
+      const repository = kind === StockKindEnum.KOSPI ? this.kospiCodeRepository : this.kosdaqCodeRepository;
+
+      const [resultStocks, resultTotal] = await repository.findAndCount({
+        where: whereCondition,
+        order: orderCondition,
+      });
+
+      stocks = resultStocks;
+      total = resultTotal;
+    }
+
+    return { stocks, total };
+  }
+
+  async getCodeDetail(params: { code: number; kind: StockKindEnum }) {
+    const { code, kind } = params;
+
+    const repository = kind === StockKindEnum.KOSPI ? this.kospiCodeRepository : this.kosdaqCodeRepository;
+
+    return await repository.findOne({ where: { code } });
   }
 
   private async _getKisToken() {
