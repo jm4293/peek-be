@@ -13,6 +13,7 @@ export const typeormModuleConfig: TypeOrmModuleAsyncOptions = {
     // entities: [__dirname + '../../database/entity/**/*.entity{.ts,.js}'],
     entities: ['dist/**/*.entity{.ts,.js}'],
     synchronize: configService.get('NODE_ENV') !== 'production',
+    logging: true, // MySQL 로그를 남기기 위해 logging 옵션을 true로 설정
   }),
   inject: [ConfigService],
 };

@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 
@@ -71,7 +71,7 @@ async function bootstrap() {
   // Swagger 설정 끝
 
   await app.listen(configService.get('SERVER_PORT') as string, () => {
-    console.log(`서비스 서버: ${configService.get('SERVER_PORT')}`);
+    console.info(`서비스 서버: ${configService.get('SERVER_PORT')}`);
   });
 }
 bootstrap();
