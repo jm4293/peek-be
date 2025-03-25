@@ -5,10 +5,12 @@
   "tabWidth": 2,
   "printWidth": 120,
   "importOrder": [
+    "^@nestjs/(.*)$",
     "^@apps/peek/(.*)$",
     "^@apps/peek-admin/(.*)$",
-    "^@libs/constant/(.*)$",
-    "^@libs/database(.*)$",
+    "^@libs/constant(.*)$",
+    "^@libs/database/entities(.*)$",
+    "^@libs/database/repositories(.*)$",
     "^[./]"
   ],
   "importOrderSeparation": true,
