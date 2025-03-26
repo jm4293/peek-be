@@ -1,5 +1,6 @@
-import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
+
+import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 
 import { ResConfig } from '../../config';
 import { Public } from '../../decorator';
@@ -34,13 +35,13 @@ export class AuthController {
     return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
-  // @Public()
-  // @Post('login-oauth')
-  // async loginOauth(@Body() dto: LoginOauthDto, @Req() req: Request, @Res() res: Response) {
-  //   const ret = await this.authService.loginOauth({ dto, req });
-  //
-  //   return ResConfig.Success({ res, statusCode: 'OK', data: ret });
-  // }
+  @Public()
+  @Post('login-oauth')
+  async loginOauth(@Body() dto: LoginOauthDto, @Req() req: Request, @Res() res: Response) {
+    const ret = await this.authService.loginOauth({ dto, req });
+
+    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+  }
 
   @Post('logout')
   async logout(@Req() req: Request, @Res() res: Response) {

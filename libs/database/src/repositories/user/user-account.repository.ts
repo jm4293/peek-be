@@ -1,7 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
 import { EntityManager, Repository } from 'typeorm';
 
-import { UserAccount } from '@libs/database/entities';
+import { BadRequestException, Injectable } from '@nestjs/common';
+
+import { UserAccountTypeEnum } from '@libs/constant';
+
+import { User, UserAccount } from '@libs/database/entities';
 
 @Injectable()
 export class UserAccountRepository extends Repository<UserAccount> {
@@ -22,15 +25,13 @@ export class UserAccountRepository extends Repository<UserAccount> {
   //   return await this.save(userAccount);
   // }
 
-  // async createUserAccountByOauth(
-  //   dto: Pick<CreateUserEmailDto, 'email'> & { user: User; userAccountType: UserAccountTypeEnum },
-  // ) {
-  //   const { user, userAccountType, email } = dto;
-  //
-  //   const userAccount = this.create({ user, userAccountType, email });
-  //
-  //   return await this.save(userAccount);
-  // }
+  async createUserAccountByOauth(dto: { email: string; user: User; userAccountType: UserAccountTypeEnum }) {
+    const { user, userAccountType, email } = dto;
+
+    const userAccount = this.create({ user, userAccountType, email });
+
+    return await this.save(userAccount);
+  }
 
   async findByEmail(email: string) {
     const userAccount = await this.findOne({ where: { email }, relations: ['user'] });
