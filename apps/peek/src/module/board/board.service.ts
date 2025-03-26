@@ -1,8 +1,12 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import { SelectQueryBuilder } from 'typeorm';
 
+import { BadRequestException, Injectable } from '@nestjs/common';
+
+import { UserNotificationTypeEnum } from '@libs/constant';
+
 import { Board, BoardComment } from '@libs/database/entities';
+
 import {
   BoardCommentRepository,
   BoardLikeRepository,
@@ -11,7 +15,6 @@ import {
   UserRepository,
 } from '@libs/database/repositories';
 
-import { ResConfig } from '../../config';
 import { NotificationHandler } from '../../handler';
 import { CreateBoardCommentDto, CreateBoardDto, UpdateBoardCommentDto, UpdateBoardDto } from '../../type/dto';
 
@@ -194,16 +197,16 @@ export class BoardService {
 
     await this.boardCommentRepository.save(boardComment);
 
-    // if (board.user.userSeq !== user.userSeq) {
-    //   const userPushToken = await this.userPushTokenRepository.getUserPushTokenByUserSeq(board.user.userSeq);
-    //
-    //   await this.notificationHandler.sendPushNotification({
-    //     pushToken: String(userPushToken.pushToken),
-    //     message: `${user.nickname}님이 ${board.title} 게시물에 댓글을 달았습니다.`,
-    //     userNotificationType: UserNotificationTypeEnum.BOARD_COMMENT,
-    //     userSeq: board.user.userSeq,
-    //   });
-    // }
+    if (board.user.userSeq !== user.userSeq) {
+      const userPushToken = await this.userPushTokenRepository.getUserPushTokenByUserSeq(board.user.userSeq);
+
+      await this.notificationHandler.sendPushNotification({
+        pushToken: String(userPushToken.pushToken),
+        message: `${user.nickname}님이 ${board.title} 게시물에 댓글을 달았습니다.`,
+        userNotificationType: UserNotificationTypeEnum.BOARD_COMMENT,
+        userSeq: board.user.userSeq,
+      });
+    }
   }
 
   async updateBoardComment(params: {

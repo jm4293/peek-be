@@ -10,12 +10,12 @@ import { StockService } from './stock.service';
 
 @Controller('stock')
 export class StockController {
-  constructor(private readonly kisService: StockService) {}
+  constructor(private readonly stockService: StockService) {}
 
   // 토큰
   @Get('oauth-token')
   async getOuathToken(@Req() req: Request, @Res() res: Response) {
-    const ret = await this.kisService.getOuathToken({ req });
+    const ret = await this.stockService.getOuathToken({ req });
 
     return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
@@ -24,7 +24,7 @@ export class StockController {
   @Public()
   @Get()
   async getCodeList(@Query('kind') kind: StockKindEnum, @Query('text') text: string, @Res() res: Response) {
-    const ret = await this.kisService.getCodeList({ kind, text: text?.trim() });
+    const ret = await this.stockService.getCodeList({ kind, text: text?.trim() });
 
     return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
@@ -37,7 +37,7 @@ export class StockController {
     @Query('kind', new ParseEnumPipe(StockKindEnum)) kind: StockKindEnum,
     @Res() res: Response,
   ) {
-    const ret = await this.kisService.getCodeDetail({ code, kind });
+    const ret = await this.stockService.getCodeDetail({ code, kind });
 
     return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
