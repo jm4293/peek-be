@@ -50,13 +50,17 @@ export class StockController {
 
   @Post('upload/kospi')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadKOSPI(@UploadedFile() file: Express.Multer.File) {
+  async uploadKOSPI(@UploadedFile() file: Express.Multer.File, @Res() res: Response) {
     await this.stockService.uploadStock({ file, dataType: 'KOSPI' });
+
+    return ResConfig.Success({ res, statusCode: 'OK' });
   }
 
   @Post('upload/kosdaq')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadKODDAQ(@UploadedFile() file: Express.Multer.File) {
+  async uploadKODDAQ(@UploadedFile() file: Express.Multer.File, @Res() res: Response) {
     await this.stockService.uploadStock({ file, dataType: 'KOSDAQ' });
+
+    return ResConfig.Success({ res, statusCode: 'OK' });
   }
 }

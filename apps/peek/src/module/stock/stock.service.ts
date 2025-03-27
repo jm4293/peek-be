@@ -52,47 +52,26 @@ export class StockService {
     let whereCondition = {};
     let orderCondition: FindOptionsOrder<StockCompany> = { companyName: 'ASC' };
 
-    if (text) {
-      whereCondition = { companyName: Like(`%${text}%`) };
+    if (kind) {
+      whereCondition = { ...whereCondition, marketType: kind };
     }
 
-    let stocks = [];
-    let total = 0;
+    if (text) {
+      whereCondition = { ...whereCondition, companyName: Like(`%${text}%`) };
+    }
 
-    // if (!kind) {
-    //   const [kospiStocks, kospiTotal] = await this.stockRepository.findAndCount({
-    //     where: whereCondition,
-    //     order: orderCondition,
-    //   });
-    //
-    //   const [kosdaqStocks, kosdaqTotal] = await this.stockRepository.findAndCount({
-    //     where: whereCondition,
-    //     order: orderCondition,
-    //   });
-    //
-    //   stocks = [...kospiStocks, ...kosdaqStocks].sort((a, b) => a.companyName.localeCompare(b.companyName));
-    //   total = kospiTotal + kosdaqTotal;
-    // } else {
-    //   const repository = kind === StockKindEnum.KOSPI ? this.stockRepository : this.stockRepository;
-    //
-    //   const [resultStocks, resultTotal] = await repository.findAndCount({
-    //     where: whereCondition,
-    //     order: orderCondition,
-    //   });
-    //
-    //   stocks = resultStocks;
-    //   total = resultTotal;
-    // }
+    const [stocks, total] = await this.stockRepository.findAndCount({
+      where: whereCondition,
+      order: orderCondition,
+    });
 
     return { stocks, total };
   }
 
   async getCodeDetail(params: { code: number; kind: StockKindEnum }) {
-    const { code, kind } = params;
+    const { code } = params;
 
-    // const repository = kind === StockKindEnum.KOSPI ? this.stockRepository : this.stockRepository;
-
-    // return await repository.findOne({ where: { code } });
+    return await this.stockRepository.findOne({ where: { code } });
   }
 
   private async _getKisToken() {
