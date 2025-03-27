@@ -7,13 +7,12 @@ import { ConfigService } from '@nestjs/config';
 
 import { StockKindEnum } from '@libs/constant';
 
-import { KOSPICode, KisToken } from '@libs/database/entities';
+import { KisToken, StockCompany } from '@libs/database/entities';
 
 import {
-  KOSDAQCodeRepository,
-  KOSPICodeRepository,
   KisTokenIssueRepository,
   KisTokenRepository,
+  StockCompanyRepository,
   UserRepository,
 } from '@libs/database/repositories';
 
@@ -25,8 +24,7 @@ export class StockService {
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
 
-    private readonly kospiCodeRepository: KOSPICodeRepository,
-    private readonly kosdaqCodeRepository: KOSDAQCodeRepository,
+    private readonly stockRepository: StockCompanyRepository,
     private readonly kisTokenRepository: KisTokenRepository,
     private readonly kisTokenIssueRepository: KisTokenIssueRepository,
     private readonly userRepository: UserRepository,
@@ -52,7 +50,7 @@ export class StockService {
     const { kind, text } = params;
 
     let whereCondition = {};
-    let orderCondition: FindOptionsOrder<KOSPICode> = { companyName: 'ASC' };
+    let orderCondition: FindOptionsOrder<StockCompany> = { companyName: 'ASC' };
 
     if (text) {
       whereCondition = { companyName: Like(`%${text}%`) };
@@ -61,30 +59,30 @@ export class StockService {
     let stocks = [];
     let total = 0;
 
-    if (!kind) {
-      const [kospiStocks, kospiTotal] = await this.kospiCodeRepository.findAndCount({
-        where: whereCondition,
-        order: orderCondition,
-      });
-
-      const [kosdaqStocks, kosdaqTotal] = await this.kosdaqCodeRepository.findAndCount({
-        where: whereCondition,
-        order: orderCondition,
-      });
-
-      stocks = [...kospiStocks, ...kosdaqStocks].sort((a, b) => a.companyName.localeCompare(b.companyName));
-      total = kospiTotal + kosdaqTotal;
-    } else {
-      const repository = kind === StockKindEnum.KOSPI ? this.kospiCodeRepository : this.kosdaqCodeRepository;
-
-      const [resultStocks, resultTotal] = await repository.findAndCount({
-        where: whereCondition,
-        order: orderCondition,
-      });
-
-      stocks = resultStocks;
-      total = resultTotal;
-    }
+    // if (!kind) {
+    //   const [kospiStocks, kospiTotal] = await this.stockRepository.findAndCount({
+    //     where: whereCondition,
+    //     order: orderCondition,
+    //   });
+    //
+    //   const [kosdaqStocks, kosdaqTotal] = await this.stockRepository.findAndCount({
+    //     where: whereCondition,
+    //     order: orderCondition,
+    //   });
+    //
+    //   stocks = [...kospiStocks, ...kosdaqStocks].sort((a, b) => a.companyName.localeCompare(b.companyName));
+    //   total = kospiTotal + kosdaqTotal;
+    // } else {
+    //   const repository = kind === StockKindEnum.KOSPI ? this.stockRepository : this.stockRepository;
+    //
+    //   const [resultStocks, resultTotal] = await repository.findAndCount({
+    //     where: whereCondition,
+    //     order: orderCondition,
+    //   });
+    //
+    //   stocks = resultStocks;
+    //   total = resultTotal;
+    // }
 
     return { stocks, total };
   }
@@ -92,9 +90,9 @@ export class StockService {
   async getCodeDetail(params: { code: number; kind: StockKindEnum }) {
     const { code, kind } = params;
 
-    const repository = kind === StockKindEnum.KOSPI ? this.kospiCodeRepository : this.kosdaqCodeRepository;
+    // const repository = kind === StockKindEnum.KOSPI ? this.stockRepository : this.stockRepository;
 
-    return await repository.findOne({ where: { code } });
+    // return await repository.findOne({ where: { code } });
   }
 
   private async _getKisToken() {

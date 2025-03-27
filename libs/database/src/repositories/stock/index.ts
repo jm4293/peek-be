@@ -1,2 +1,1 @@
-export * from './kosdaq-code.repository';
-export * from './kospi-code.repository';
+export * from './stock-company.repository';

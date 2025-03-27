@@ -1,2 +1,1 @@
-export * from './kosdaq-code.entity';
-export * from './kospi-code.entity';
+export * from './stock-company.entity';

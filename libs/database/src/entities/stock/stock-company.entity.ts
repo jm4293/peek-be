@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity()
-export class KOSPICode {
+export class StockCompany {
   @PrimaryGeneratedColumn()
   stockCodeSeq: number;
 

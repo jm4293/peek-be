@@ -2,10 +2,9 @@ import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 
 import {
-  KOSDAQCodeRepository,
-  KOSPICodeRepository,
   KisTokenIssueRepository,
   KisTokenRepository,
+  StockCompanyRepository,
   UserRepository,
 } from '@libs/database/repositories';
 
@@ -15,15 +14,7 @@ import { StockService } from './stock.service';
 @Module({
   imports: [HttpModule],
   controllers: [StockController],
-  providers: [
-    StockService,
-
-    KOSPICodeRepository,
-    KOSDAQCodeRepository,
-    KisTokenRepository,
-    KisTokenIssueRepository,
-    UserRepository,
-  ],
+  providers: [StockService, StockCompanyRepository, KisTokenRepository, KisTokenIssueRepository, UserRepository],
   exports: [],
 })
 export class StockModule {}
