@@ -1,28 +1,67 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
 import dayjs from 'dayjs';
+import { FindOptionsOrder, Like } from 'typeorm';
 import * as XLSX from 'xlsx';
 
-import { KOSDAQCode, KOSPICode } from '@libs/database/entities';
-import { KOSDAQCodeRepository, KOSPICodeRepository } from '@libs/database/repositories';
+import { BadRequestException, Injectable } from '@nestjs/common';
+
+import { StockKindEnum } from '@libs/constant';
+
+import { StockCompany } from '@libs/database/entities';
+
+import { StockCompanyRepository } from '@libs/database/repositories';
+
+import { PageQueryDto } from '../../type/dto/pagenation';
 
 @Injectable()
 export class StockService {
-  constructor(
-    private readonly kospiCodeRepository: KOSPICodeRepository,
-    private readonly kosdaqCodeRepository: KOSDAQCodeRepository,
-  ) {}
+  constructor(private readonly stockRepository: StockCompanyRepository) {}
 
-  async uploadFile(params: { file: Express.Multer.File; dataType: 'KOSPI' | 'KOSDAQ' }) {
-    const { file, dataType } = params;
+  async getCodeList(params: { pageQuery: PageQueryDto; kind: StockKindEnum; text: string }) {
+    const { pageQuery, kind, text } = params;
+    const { count, page } = pageQuery;
 
-    this.isCheckXLSXFile(file);
+    let whereCondition = {};
+    let orderCondition: FindOptionsOrder<StockCompany> = { companyName: 'ASC' };
 
-    const arr = this.parseXLSXFile(file);
+    if (kind) {
+      whereCondition = { ...whereCondition, marketType: kind };
+    }
 
-    await this.saveStockCodes({ arr, dataType });
+    if (text) {
+      whereCondition = { ...whereCondition, companyName: Like(`%${text}%`) };
+    }
+
+    const [stocks, total] = await this.stockRepository.findAndCount({
+      where: whereCondition,
+      order: orderCondition,
+      take: count,
+      skip: (page - 1) * count,
+    });
+
+    return { stocks, total };
   }
 
-  private isCheckXLSXFile(file: Express.Multer.File) {
+  async getCodeDetail(params: { code: number }) {
+    const { code } = params;
+
+    return await this.stockRepository.findOne({ where: { code } });
+  }
+
+  async deleteStock() {
+    await this.stockRepository.delete({});
+  }
+
+  async uploadStock(params: { file: Express.Multer.File; dataType: 'KOSPI' | 'KOSDAQ' }) {
+    const { file, dataType } = params;
+
+    this._isCheckXLSXFile(file);
+
+    const arr = this._parseXLSXFile(file);
+
+    await this._saveStockCodes({ arr, dataType });
+  }
+
+  private _isCheckXLSXFile(file: Express.Multer.File) {
     const ret = file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
     if (!ret) {
@@ -30,7 +69,7 @@ export class StockService {
     }
   }
 
-  private parseXLSXFile(file: Express.Multer.File) {
+  private _parseXLSXFile(file: Express.Multer.File) {
     const workbook = XLSX.read(file.buffer, { type: 'buffer' });
     const sheetName = '유가증권';
     const worksheet = workbook.Sheets[sheetName];
@@ -66,7 +105,7 @@ export class StockService {
     return arr;
   }
 
-  private async saveStockCodes(params: { arr: any[]; dataType: 'KOSPI' | 'KOSDAQ' }) {
+  private async _saveStockCodes(params: { arr: any[]; dataType: 'KOSPI' | 'KOSDAQ' }) {
     const { arr, dataType } = params;
 
     const excelDateToJSDate = (serial: number) => {
@@ -77,7 +116,7 @@ export class StockService {
 
     if (dataType === 'KOSPI') {
       const entities = arr.map((row) => {
-        const entity = new KOSPICode();
+        const entity = new StockCompany();
 
         entity.companyName = row[0] as string;
         entity.code = row[1] as number;
@@ -86,17 +125,17 @@ export class StockService {
         entity.listingAt = excelDateToJSDate(row[4]);
         entity.ceo = row[6] as string;
         entity.homePage = row[7] as string;
-        entity.marketType = 'kospi';
+        entity.marketType = 'KOSPI';
 
         return entity;
       });
 
-      await this.kospiCodeRepository.save(entities);
+      await this.stockRepository.save(entities);
     }
 
     if (dataType === 'KOSDAQ') {
       const entities = arr.map((row) => {
-        const entity = new KOSDAQCode();
+        const entity = new StockCompany();
 
         entity.companyName = row[0] as string;
         entity.code = row[1] as number;
@@ -105,12 +144,12 @@ export class StockService {
         entity.listingAt = excelDateToJSDate(row[4]);
         entity.ceo = row[6] as string;
         entity.homePage = row[7] as string;
-        entity.marketType = 'kosdaq';
+        entity.marketType = 'KOSDAQ';
 
         return entity;
       });
 
-      await this.kosdaqCodeRepository.save(entities);
+      await this.stockRepository.save(entities);
     }
   }
 }
