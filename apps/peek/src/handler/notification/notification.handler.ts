@@ -1,10 +1,12 @@
+import * as admin from 'firebase-admin';
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as admin from 'firebase-admin';
 
 import { UserNotificationTypeEnum } from '@libs/constant/enum';
 
 import { UserNotification } from '@libs/database/entities';
+
 import { UserNotificationRepository } from '@libs/database/repositories';
 
 @Injectable()
@@ -23,7 +25,7 @@ export class NotificationHandler {
     const { pushToken, message, userNotificationType, userSeq } = params;
 
     try {
-      await admin.messaging().send({ token: pushToken, notification: { title: 'PEEK 알림', body: message } });
+      // await admin.messaging().send({ token: pushToken, notification: { title: 'PEEK 알림', body: message } });
 
       const userNotification = this.userNotificationRepository.create({
         userNotificationType,
