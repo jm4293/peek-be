@@ -10,6 +10,12 @@
 
 #### database
 
+#### AWS
+
+![image](https://github.com/user-attachments/assets/462c05ec-caa0-4447-9324-9074efc24913)
+
+
+
 ---
 
 ```text
