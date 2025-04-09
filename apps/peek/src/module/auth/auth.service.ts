@@ -128,7 +128,7 @@ export class AuthService {
 
         const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
 
-        const resizingPicture = await this._resizingImage({ imageFile: file });
+        const resizingPicture = await this._resizingImage({ imageFile: file, width: 100, height: 100 });
 
         const userAccount = await this.userAccountRepository.findOne({
           where: { email, userAccountType: UserAccountTypeEnum.GOOGLE },
@@ -324,16 +324,23 @@ export class AuthService {
     return { email: userAccount.email, accessToken, refreshToken };
   }
 
-  private async _resizingImage(params: { imageFile: File }) {
-    const { imageFile } = params;
+  private async _resizingImage(params: { imageFile: File; width: number; height: number }) {
+    const { imageFile, width, height } = params;
 
     const formData = new FormData();
 
     formData.append('image', imageFile);
+    formData.append('width', width.toString());
+    formData.append('height', height.toString());
 
     const resizingPicture = await firstValueFrom<AxiosResponse<{ resizedImageUrl: string }>>(
+      // this.httpService.post(
+      //   `${this.configService.get('IMAGE_RESIZING_URL')}:${this.configService.get('IMAGE_RESIZING_PORT')}/${this.configService.get('IMAGE_RESIZING_PREFIX')}`,
+      //   formData,
+      //   { headers: { 'Content-Type': 'multipart/form-data' } },
+      // ),
       this.httpService.post(
-        `${this.configService.get('IMAGE_RESIZING_URL')}:${this.configService.get('IMAGE_RESIZING_PORT')}/${this.configService.get('IMAGE_RESIZING_PREFIX')}`,
+        `${this.configService.get('IMAGE_RESIZING_URL')}/${this.configService.get('IMAGE_RESIZING_PREFIX')}/upload`,
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } },
       ),
