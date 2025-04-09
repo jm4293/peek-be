@@ -1,9 +1,10 @@
-import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
+
+import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 import { validationPipeConfig } from './config';
@@ -20,7 +21,7 @@ async function bootstrap() {
   );
   const configService = app.get(ConfigService);
 
-  app.setGlobalPrefix('api');
+  // app.setGlobalPrefix('api');
 
   app.enableCors({
     origin: [
