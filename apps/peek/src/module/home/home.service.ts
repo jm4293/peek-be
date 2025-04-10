@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
 import { SelectQueryBuilder } from 'typeorm';
 
+import { Injectable } from '@nestjs/common';
+
 import { Board } from '@libs/database/entities';
+
 import { BoardRepository } from '@libs/database/repositories';
 
 @Injectable()

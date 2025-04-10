@@ -1,5 +1,6 @@
-import { Controller, Get, Res } from '@nestjs/common';
 import { Response } from 'express';
+
+import { Controller, Get, Res } from '@nestjs/common';
 
 import { ResConfig } from '../../config';
 import { Public } from '../../decorator';

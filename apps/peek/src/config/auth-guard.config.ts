@@ -1,8 +1,9 @@
+import { Request } from 'express';
+
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
 
 import { IJwtToken } from '../type/interface';
 

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { UserNotification } from '@libs/database/entities';
+
 import {
   BoardCommentRepository,
   BoardLikeRepository,

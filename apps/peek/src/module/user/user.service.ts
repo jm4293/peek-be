@@ -1,5 +1,6 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
 import { Request } from 'express';
+
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import {
   UserAccountRepository,

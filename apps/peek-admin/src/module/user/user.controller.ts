@@ -1,5 +1,6 @@
-import { Controller, Delete, Get, Param, ParseIntPipe, Patch, Put, Query, Res } from '@nestjs/common';
 import { Response } from 'express';
+
+import { Controller, Delete, Get, Param, ParseIntPipe, Patch, Put, Query, Res } from '@nestjs/common';
 
 import { ResConfig } from '../../config';
 import { UserService } from './user.service';
