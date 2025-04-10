@@ -10,12 +10,17 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import { StockKindEnum } from '@libs/constant';
+
 import { BoardComment, BoardLike, User } from '@libs/database/entities';
 
 @Entity()
 export class Board {
   @PrimaryGeneratedColumn()
   boardSeq: number;
+
+  @Column({ type: 'enum', enum: StockKindEnum })
+  marketType: StockKindEnum;
 
   @Column({ type: 'varchar', length: 255 })
   title: string;

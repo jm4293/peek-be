@@ -1,6 +1,21 @@
 import { Request, Response } from 'express';
 
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseEnumPipe,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
+
+import { StockKindEnum } from '@libs/constant';
 
 import { ResConfig } from '../../config';
 import { Public } from '../../decorator';
@@ -14,8 +29,13 @@ export class BoardController {
   // 게시판
   @Public()
   @Get()
-  async getBoardList(@Query('pageParam', ParseIntPipe) pageParam: number, @Req() req: Request, @Res() res: Response) {
-    const ret = await this.boardService.getBoardList({ pageParam });
+  async getBoardList(
+    @Query('pageParam', ParseIntPipe) pageParam: number,
+    @Query('marketType', new ParseEnumPipe(StockKindEnum, { optional: true })) marketType: StockKindEnum,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    const ret = await this.boardService.getBoardList({ pageParam, marketType });
 
     return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }

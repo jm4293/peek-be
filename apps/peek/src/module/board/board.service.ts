@@ -3,7 +3,7 @@ import { SelectQueryBuilder } from 'typeorm';
 
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { UserNotificationTypeEnum } from '@libs/constant';
+import { StockKindEnum, UserNotificationTypeEnum } from '@libs/constant';
 
 import { Board, BoardComment } from '@libs/database/entities';
 
@@ -30,10 +30,10 @@ export class BoardService {
   ) {}
 
   // 게시판
-  async getBoardList(params: { pageParam: number }) {
-    const { pageParam } = params;
+  async getBoardList(params: { pageParam: number; marketType: StockKindEnum }) {
+    const { pageParam, marketType } = params;
 
-    const LIMIT = 1;
+    const LIMIT = 5;
 
     const queryBuilder: SelectQueryBuilder<Board> = this.boardRepository
       .createQueryBuilder('board')
@@ -42,7 +42,13 @@ export class BoardService {
       .loadRelationCountAndMap('board.commentCount', 'board.boardComments', 'boardComments', (qb) =>
         qb.andWhere('boardComments.isDeleted = :isDeleted', { isDeleted: false }),
       )
-      .where('board.isDeleted = :isDeleted', { isDeleted: false })
+      .where('board.isDeleted = :isDeleted', { isDeleted: false });
+
+    if (marketType) {
+      queryBuilder.andWhere('board.marketType = :marketType', { marketType });
+    }
+
+    queryBuilder
       .orderBy('board.createdAt', 'DESC')
       .skip((pageParam - 1) * LIMIT)
       .take(LIMIT);
@@ -139,7 +145,7 @@ export class BoardService {
 
     await this.boardRepository.findByBoardSeq(boardSeq);
 
-    const LIMIT = 1;
+    const LIMIT = 5;
 
     const [boardComments, total] = await this.boardCommentRepository.findAndCount({
       where: { board: { boardSeq }, isDeleted: false },
