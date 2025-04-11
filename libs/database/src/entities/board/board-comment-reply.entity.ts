@@ -5,17 +5,16 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Board, BoardCommentReply, User } from '@libs/database/entities';
+import { BoardComment, User } from '@libs/database/entities';
 
 @Entity()
-export class BoardComment {
+export class BoardCommentReply {
   @PrimaryGeneratedColumn()
-  boardCommentSeq: number;
+  boardCommentReplySeq: number;
 
   @Column({ type: 'varchar', length: 255 })
   content: string;
@@ -36,10 +35,7 @@ export class BoardComment {
   @JoinColumn({ name: 'userSeq' })
   user: User;
 
-  @ManyToOne(() => Board, (board) => board.boardComments)
-  @JoinColumn({ name: 'boardSeq' })
-  board: Board;
-
-  @OneToMany(() => BoardCommentReply, (boardCommentReply) => boardCommentReply.boardCommentReplySeq)
-  boardCommentReplies: BoardCommentReply[];
+  @ManyToOne(() => BoardComment, (boardComment) => boardComment.boardCommentReplies)
+  @JoinColumn({ name: 'boardCommentSeq' })
+  boardComment: BoardComment;
 }
