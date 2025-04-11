@@ -9,3 +9,7 @@ export interface IBaseBoard {
 export interface IBaseBoardComment {
   content: string;
 }
+
+export interface IBaseBoardCommentReply {
+  content: string;
+}

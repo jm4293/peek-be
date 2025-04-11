@@ -1,3 +1,4 @@
 export enum UserNotificationTypeEnum {
   BOARD_COMMENT = 'BOARD_COMMENT',
+  BOARD_COMMENT_REPLY = 'BOARD_COMMENT_REPLY',
 }

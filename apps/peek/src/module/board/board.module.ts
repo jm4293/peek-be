@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserNotification } from '@libs/database/entities';
 
 import {
+  BoardCommentReplyRepository,
   BoardCommentRepository,
   BoardLikeRepository,
   BoardRepository,
@@ -24,6 +25,7 @@ import { BoardService } from './board.service';
 
     BoardRepository,
     BoardCommentRepository,
+    BoardCommentReplyRepository,
     BoardLikeRepository,
     UserRepository,
     UserPushTokenRepository,

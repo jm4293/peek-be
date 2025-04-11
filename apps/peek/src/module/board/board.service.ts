@@ -8,6 +8,7 @@ import { StockKindEnum, UserNotificationTypeEnum } from '@libs/constant';
 import { Board, BoardComment } from '@libs/database/entities';
 
 import {
+  BoardCommentReplyRepository,
   BoardCommentRepository,
   BoardLikeRepository,
   BoardRepository,
@@ -23,6 +24,7 @@ export class BoardService {
   constructor(
     private readonly boardRepository: BoardRepository,
     private readonly boardCommentRepository: BoardCommentRepository,
+    private readonly boardCommentReplyRepository: BoardCommentReplyRepository,
     private readonly boardLikeRepository: BoardLikeRepository,
     private readonly userRepository: UserRepository,
     private readonly userPushTokenRepository: UserPushTokenRepository,
@@ -152,7 +154,7 @@ export class BoardService {
       order: { createdAt: 'ASC' },
       skip: (pageParam - 1) * LIMIT,
       take: LIMIT,
-      relations: ['user'],
+      relations: ['user', 'boardCommentReplies'],
     });
 
     const isMineBoardComments = boardComments.map((boardComment) => {
@@ -204,11 +206,11 @@ export class BoardService {
     await this.boardCommentRepository.save(boardComment);
 
     if (board.user.userSeq !== user.userSeq) {
-      const userPushToken = await this.userPushTokenRepository.getUserPushTokenByUserSeq(board.user.userSeq);
+      // const userPushToken = await this.userPushTokenRepository.getUserPushTokenByUserSeq(board.user.userSeq);
 
       await this.notificationHandler.sendPushNotification({
-        pushToken: String(userPushToken.pushToken),
-        message: `${user.nickname}님이 ${board.title} 게시물에 댓글을 달았습니다.`,
+        pushToken: null,
+        message: `${user.nickname}님이 ${board.title} 게시물에 댓글을 하였습니다.`,
         userNotificationType: UserNotificationTypeEnum.BOARD_COMMENT,
         userSeq: board.user.userSeq,
       });
@@ -249,6 +251,58 @@ export class BoardService {
     }
 
     await this.boardCommentRepository.update({ boardCommentSeq }, { isDeleted: true, deletedAt: new Date() });
+  }
+
+  // 게시판 댓글 답장
+  async createBoardCommentReply(params: {
+    boardSeq: number;
+    boardCommentSeq: number;
+    dto: CreateBoardCommentDto;
+    req: Request;
+  }) {
+    const { boardSeq, boardCommentSeq, dto, req } = params;
+    const { userSeq } = req.user;
+    const { content } = dto;
+
+    const user = await this.userRepository.findByUserSeq(userSeq);
+    const board = await this.boardRepository.findByBoardSeq(boardSeq);
+    const boardComment = await this.boardCommentRepository.findByBoardCommentSeq(boardCommentSeq);
+
+    const boardCommentReply = this.boardCommentReplyRepository.create({ content, user, boardComment });
+
+    await this.boardCommentReplyRepository.save(boardCommentReply);
+
+    if (boardComment.user.userSeq !== user.userSeq) {
+      // const userPushToken = await this.userPushTokenRepository.getUserPushTokenByUserSeq(parentBoardComment.user.userSeq);
+
+      await this.notificationHandler.sendPushNotification({
+        pushToken: null,
+        message: `${user.nickname}님이 ${board.title} 댓글에 답장을 하였습니다.`,
+        userNotificationType: UserNotificationTypeEnum.BOARD_COMMENT_REPLY,
+        userSeq: boardComment.user.userSeq,
+      });
+    }
+  }
+
+  async deleteBoardCommentReply(params: {
+    boardSeq: number;
+    boardCommentSeq: number;
+    boardCommentReplySeq: number;
+    req: Request;
+  }) {
+    const { boardSeq, boardCommentSeq, boardCommentReplySeq, req } = params;
+    const { userSeq } = req.user;
+
+    await this.boardRepository.findByBoardSeq(boardSeq);
+    const user = await this.userRepository.findByUserSeq(userSeq);
+    await this.boardCommentRepository.findByBoardCommentSeq(boardCommentSeq);
+    const boardCommentReply = await this.boardCommentReplyRepository.findByBoardCommentReplySeq(boardCommentReplySeq);
+
+    if (boardCommentReply.user.userSeq !== user.userSeq) {
+      throw new BadRequestException('댓글 답장 작성자만 삭제할 수 있습니다.');
+    }
+
+    await this.boardCommentReplyRepository.update({ boardCommentReplySeq }, { isDeleted: true, deletedAt: new Date() });
   }
 
   // 게시판 좋아요(찜)

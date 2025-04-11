@@ -17,7 +17,7 @@ export class NotificationHandler {
   ) {}
 
   async sendPushNotification(params: {
-    pushToken: string;
+    pushToken: string | null;
     message: string;
     userNotificationType: UserNotificationTypeEnum;
     userSeq: number;

@@ -19,7 +19,13 @@ import { StockKindEnum } from '@libs/constant';
 
 import { ResConfig } from '../../config';
 import { Public } from '../../decorator';
-import { CreateBoardCommentDto, CreateBoardDto, UpdateBoardCommentDto, UpdateBoardDto } from '../../type/dto';
+import {
+  CreateBoardCommentDto,
+  CreateBoardCommentReplyDto,
+  CreateBoardDto,
+  UpdateBoardCommentDto,
+  UpdateBoardDto,
+} from '../../type/dto';
 import { BoardService } from './board.service';
 
 @Controller('board')
@@ -143,7 +149,35 @@ export class BoardController {
     return ResConfig.Success({ res, statusCode: 'OK' });
   }
 
+  // 게시판 댓글 답장
+  @Post(':boardSeq/comment/:boardCommentSeq/reply')
+  async createBoardCommentReply(
+    @Param('boardSeq', ParseIntPipe) boardSeq: number,
+    @Param('boardCommentSeq', ParseIntPipe) boardCommentSeq: number,
+    @Body() dto: CreateBoardCommentReplyDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    await this.boardService.createBoardCommentReply({ boardSeq, boardCommentSeq, dto, req });
+
+    return ResConfig.Success({ res, statusCode: 'CREATED' });
+  }
+
+  @Delete(':boardSeq/comment/:boardCommentSeq/reply/:boardCommentReplySeq')
+  async deleteBoardCommentReply(
+    @Param('boardSeq', ParseIntPipe) boardSeq: number,
+    @Param('boardCommentSeq', ParseIntPipe) boardCommentSeq: number,
+    @Param('boardCommentReplySeq', ParseIntPipe) boardCommentReplySeq: number,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    await this.boardService.deleteBoardCommentReply({ boardSeq, boardCommentSeq, boardCommentReplySeq, req });
+
+    return ResConfig.Success({ res, statusCode: 'OK' });
+  }
+
   // 게시판 좋아요(찜)
+  @Public()
   @Post(':boardSeq/like')
   async createBoardLike(@Param('boardSeq', ParseIntPipe) boardSeq: number, @Req() req: Request, @Res() res: Response) {
     await this.boardService.boardLike({ boardSeq, req });
