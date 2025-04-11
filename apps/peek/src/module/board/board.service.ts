@@ -149,13 +149,17 @@ export class BoardService {
 
     const LIMIT = 5;
 
-    const [boardComments, total] = await this.boardCommentRepository.findAndCount({
-      where: { board: { boardSeq }, isDeleted: false },
-      order: { createdAt: 'ASC' },
-      skip: (pageParam - 1) * LIMIT,
-      take: LIMIT,
-      relations: ['user', 'boardCommentReplies'],
-    });
+    const queryBuilder = this.boardCommentRepository
+      .createQueryBuilder('boardComment')
+      .leftJoinAndSelect('boardComment.user', 'user')
+      .leftJoinAndSelect('boardComment.boardCommentReplies', 'boardCommentReplies')
+      .where('boardComment.boardSeq = :boardSeq', { boardSeq })
+      .andWhere('boardComment.isDeleted = :isDeleted', { isDeleted: false })
+      .orderBy('boardComment.createdAt', 'ASC')
+      .skip((pageParam - 1) * LIMIT)
+      .take(LIMIT);
+
+    const [boardComments, total] = await queryBuilder.getManyAndCount();
 
     const isMineBoardComments = boardComments.map((boardComment) => {
       const isMine = boardComment.user.userSeq === user?.userSeq;

@@ -40,6 +40,6 @@ export class BoardComment {
   @JoinColumn({ name: 'boardSeq' })
   board: Board;
 
-  @OneToMany(() => BoardCommentReply, (boardCommentReply) => boardCommentReply.boardCommentReplySeq)
+  @OneToMany(() => BoardCommentReply, (boardCommentReply) => boardCommentReply.boardComment)
   boardCommentReplies: BoardCommentReply[];
 }
