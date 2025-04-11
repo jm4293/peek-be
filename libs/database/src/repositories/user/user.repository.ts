@@ -10,10 +10,10 @@ export class UserRepository extends Repository<User> {
     super(User, manager);
   }
 
-  async createUser(dto: { nickname: string; name: string; policy: boolean; birthdate?: string; thumbnail?: string }) {
-    const { nickname, name, policy, birthdate, thumbnail } = dto;
+  async createUser(dto: { nickname: string; name: string; policy: boolean; birthday?: string; thumbnail?: string }) {
+    const { nickname, name, policy, birthday, thumbnail } = dto;
 
-    const user = this.create({ nickname, name, policy, birthdate, thumbnail });
+    const user = this.create({ nickname, name, policy, birthday, thumbnail });
 
     return await this.save(user);
   }

@@ -39,7 +39,7 @@ export class AuthService {
   ) {}
 
   async registerEmail(dto: CreateUserEmailDto): Promise<IPostCreateUserEmailRes> {
-    const { nickname, name, policy, birthdate, email, password } = dto;
+    const { nickname, name, policy, birthday, email, password } = dto;
 
     let user: User;
 
@@ -48,7 +48,7 @@ export class AuthService {
     if (userAccount) {
       user = userAccount.user;
     } else {
-      user = await this.userRepository.createUser({ nickname, name, policy, birthdate });
+      user = await this.userRepository.createUser({ nickname, name, policy, birthday });
     }
 
     const hashedPassword = await BcryptHandler.hashPassword(password);
@@ -180,7 +180,7 @@ export class AuthService {
             nickname: name,
             name,
             policy: true,
-            birthdate: undefined,
+            birthday: undefined,
             thumbnail: resizingPicture,
           });
 

@@ -42,4 +42,14 @@ export class UserAccountRepository extends Repository<UserAccount> {
 
     return userAccount;
   }
+
+  async findByUserSeq(userSeq: number) {
+    const userAccount = await this.findOne({ where: { user: { userSeq } }, relations: ['user'] });
+
+    if (!userAccount) {
+      throw new BadRequestException('사용자 계정이 존재하지 않습니다.');
+    }
+
+    return userAccount;
+  }
 }

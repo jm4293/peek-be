@@ -1,4 +1,4 @@
-export interface IBaseUser {
+export interface IBaseAuth {
   nickname: string;
   name: string;
   policy: boolean;
@@ -6,15 +6,7 @@ export interface IBaseUser {
   thumbnail?: string;
 }
 
-export interface IBaseUserAccount {
+export interface IBaseAuthAccount {
   email: string;
   password?: string;
-}
-
-export interface IUpdateUser {
-  userSeq: number;
-  nickname: string;
-  name: string;
-  birthdate: Date | null;
-  thumbnail: string | null;
 }

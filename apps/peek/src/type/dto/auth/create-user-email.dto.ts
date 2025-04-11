@@ -1,10 +1,9 @@
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-import { IBaseUser, IBaseUserAccount } from '../../interface';
+import { IBaseAuth, IBaseAuthAccount } from '../../interface';
 
-export class CreateUserEmailDto implements IBaseUser, IBaseUserAccount {
-  // BaseUserInterface 속성
+export class CreateUserEmailDto implements IBaseAuth, IBaseAuthAccount {
   @Transform(({ value }) => value.trim())
   @IsString()
   @IsNotEmpty()
@@ -22,14 +21,13 @@ export class CreateUserEmailDto implements IBaseUser, IBaseUserAccount {
   @Transform(({ value }) => value.trim())
   @IsString()
   @IsOptional()
-  birthdate?: string;
+  birthday?: string;
 
   @Transform(({ value }) => value.trim())
   @IsString()
   @IsOptional()
   thumbnail?: string;
 
-  // BaseUserAccountInterface 속성
   @Transform(({ value }) => value.trim())
   @IsString()
   @IsNotEmpty()

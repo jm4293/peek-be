@@ -9,7 +9,13 @@ import {
   UserRepository,
 } from '@libs/database/repositories';
 
-import { ReadUserNotificationDto, RegisterUserPushTokenDto } from '../../type/dto';
+import { BcryptHandler } from '../../handler';
+import {
+  ReadUserNotificationDto,
+  RegisterUserPushTokenDto,
+  UpdateUserDto,
+  UpdateUserPasswordDto,
+} from '../../type/dto';
 
 @Injectable()
 export class UserService {
@@ -40,6 +46,40 @@ export class UserService {
     const { nickname, name, thumbnail } = user;
 
     return { email, nickname, name, thumbnail, userAccountType };
+  }
+
+  async updateUser(params: { dto: UpdateUserDto; req: Request }) {
+    const { dto, req } = params;
+    const { userSeq } = req.user;
+
+    const user = await this.userRepository.findByUserSeq(userSeq);
+
+    user.nickname = dto.nickname;
+    user.name = dto.name;
+    user.birthday = dto.birthday;
+    user.thumbnail = dto.thumbnailUrl;
+
+    await this.userRepository.save(user);
+  }
+
+  async updatePassword(params: { dto: UpdateUserPasswordDto; req: Request }) {
+    const { dto, req } = params;
+    const { password, newPassword } = dto;
+    const { userSeq } = req.user;
+
+    await this.userRepository.findByUserSeq(userSeq);
+
+    const userAccount = await this.userAccountRepository.findByUserSeq(userSeq);
+
+    const isMatch = await BcryptHandler.comparePassword(password, userAccount.password as string);
+
+    if (!isMatch) {
+      throw new BadRequestException('비밀번호가 일치하지 않습니다.');
+    }
+
+    userAccount.password = await BcryptHandler.hashPassword(newPassword);
+
+    await this.userAccountRepository.save(userAccount);
   }
 
   async registerPushToken(params: { dto: RegisterUserPushTokenDto; req: Request }) {

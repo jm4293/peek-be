@@ -45,7 +45,7 @@ export class User {
   policy: boolean;
 
   @Column({ type: 'varchar', length: 10, nullable: true })
-  birthdate: Date | null;
+  birthday: string | null;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   thumbnail: string | null;
