@@ -153,6 +153,7 @@ export class BoardService {
       .createQueryBuilder('boardComment')
       .leftJoinAndSelect('boardComment.user', 'user')
       .leftJoinAndSelect('boardComment.boardCommentReplies', 'boardCommentReplies')
+      .leftJoinAndSelect('boardCommentReplies.user', 'replyUser')
       .where('boardComment.boardSeq = :boardSeq', { boardSeq })
       .andWhere('boardComment.isDeleted = :isDeleted', { isDeleted: false })
       .orderBy('boardComment.createdAt', 'ASC')
@@ -161,16 +162,22 @@ export class BoardService {
 
     const [boardComments, total] = await queryBuilder.getManyAndCount();
 
-    const isMineBoardComments = boardComments.map((boardComment) => {
+    const checkedIsMine = boardComments.map((boardComment) => {
       const isMine = boardComment.user.userSeq === user?.userSeq;
 
-      return { ...boardComment, isMine };
+      const boardCommentReplies = boardComment.boardCommentReplies.map((boardCommentReply) => {
+        const isMine = boardCommentReply.user.userSeq === user?.userSeq;
+
+        return { ...boardCommentReply, isMine };
+      });
+
+      return { ...boardComment, isMine, boardCommentReplies };
     });
 
     const hasNextPage = pageParam * LIMIT < total;
     const nextPage = hasNextPage ? pageParam + 1 : null;
 
-    return { boardComments: isMineBoardComments, total, nextPage };
+    return { boardComments: checkedIsMine, total, nextPage };
   }
 
   async getMyBoardCommentList(params: { pageParam: number; req: Request }) {
@@ -258,18 +265,13 @@ export class BoardService {
   }
 
   // 게시판 댓글 답장
-  async createBoardCommentReply(params: {
-    boardSeq: number;
-    boardCommentSeq: number;
-    dto: CreateBoardCommentDto;
-    req: Request;
-  }) {
-    const { boardSeq, boardCommentSeq, dto, req } = params;
+  async createBoardCommentReply(params: { boardCommentSeq: number; dto: CreateBoardCommentDto; req: Request }) {
+    const { boardCommentSeq, dto, req } = params;
     const { userSeq } = req.user;
     const { content } = dto;
 
     const user = await this.userRepository.findByUserSeq(userSeq);
-    const board = await this.boardRepository.findByBoardSeq(boardSeq);
+
     const boardComment = await this.boardCommentRepository.findByBoardCommentSeq(boardCommentSeq);
 
     const boardCommentReply = this.boardCommentReplyRepository.create({ content, user, boardComment });
@@ -281,24 +283,19 @@ export class BoardService {
 
       await this.notificationHandler.sendPushNotification({
         pushToken: null,
-        message: `${user.nickname}님이 ${board.title} 댓글에 답장을 하였습니다.`,
+        message: `${user.nickname}님이 ${boardComment.content} 댓글에 답장을 하였습니다.`,
         userNotificationType: UserNotificationTypeEnum.BOARD_COMMENT_REPLY,
         userSeq: boardComment.user.userSeq,
       });
     }
   }
 
-  async deleteBoardCommentReply(params: {
-    boardSeq: number;
-    boardCommentSeq: number;
-    boardCommentReplySeq: number;
-    req: Request;
-  }) {
-    const { boardSeq, boardCommentSeq, boardCommentReplySeq, req } = params;
+  async deleteBoardCommentReply(params: { boardCommentSeq: number; boardCommentReplySeq: number; req: Request }) {
+    const { boardCommentSeq, boardCommentReplySeq, req } = params;
     const { userSeq } = req.user;
 
-    await this.boardRepository.findByBoardSeq(boardSeq);
     const user = await this.userRepository.findByUserSeq(userSeq);
+
     await this.boardCommentRepository.findByBoardCommentSeq(boardCommentSeq);
     const boardCommentReply = await this.boardCommentReplyRepository.findByBoardCommentReplySeq(boardCommentReplySeq);
 

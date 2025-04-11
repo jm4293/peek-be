@@ -150,28 +150,26 @@ export class BoardController {
   }
 
   // 게시판 댓글 답장
-  @Post(':boardSeq/comment/:boardCommentSeq/reply')
+  @Post(':boardCommentSeq/reply')
   async createBoardCommentReply(
-    @Param('boardSeq', ParseIntPipe) boardSeq: number,
     @Param('boardCommentSeq', ParseIntPipe) boardCommentSeq: number,
     @Body() dto: CreateBoardCommentReplyDto,
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    await this.boardService.createBoardCommentReply({ boardSeq, boardCommentSeq, dto, req });
+    await this.boardService.createBoardCommentReply({ boardCommentSeq, dto, req });
 
     return ResConfig.Success({ res, statusCode: 'CREATED' });
   }
 
-  @Delete(':boardSeq/comment/:boardCommentSeq/reply/:boardCommentReplySeq')
+  @Delete(':boardCommentSeq/reply/:boardCommentReplySeq')
   async deleteBoardCommentReply(
-    @Param('boardSeq', ParseIntPipe) boardSeq: number,
     @Param('boardCommentSeq', ParseIntPipe) boardCommentSeq: number,
     @Param('boardCommentReplySeq', ParseIntPipe) boardCommentReplySeq: number,
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    await this.boardService.deleteBoardCommentReply({ boardSeq, boardCommentSeq, boardCommentReplySeq, req });
+    await this.boardService.deleteBoardCommentReply({ boardCommentSeq, boardCommentReplySeq, req });
 
     return ResConfig.Success({ res, statusCode: 'OK' });
   }
