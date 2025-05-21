@@ -3,7 +3,7 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateCol
 @Entity()
 export class StockCompany {
   @PrimaryGeneratedColumn()
-  stockCodeSeq: number;
+  id: number;
 
   @Column({ type: 'int', nullable: true })
   code: number;

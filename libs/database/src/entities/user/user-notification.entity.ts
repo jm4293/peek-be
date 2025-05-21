@@ -16,7 +16,7 @@ import { User } from '@libs/database/entities';
 @Entity()
 export class UserNotification {
   @PrimaryGeneratedColumn()
-  userNotificationSeq: number;
+  id: number;
 
   @Column({ type: 'enum', enum: UserNotificationTypeEnum })
   userNotificationType: UserNotificationTypeEnum;
@@ -33,13 +33,9 @@ export class UserNotification {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
-  @Column({ type: 'boolean', default: false })
-  isDeleted: boolean;
-
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
   @ManyToOne(() => User, (user) => user.userNotifications)
-  @JoinColumn({ name: 'userSeq' })
   user: User;
 }

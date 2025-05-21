@@ -13,7 +13,7 @@ import { KisToken, User } from '@libs/database/entities';
 @Entity()
 export class KisTokenIssue {
   @PrimaryGeneratedColumn()
-  kisTokenIssueSeq: number;
+  id: number;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   ip: string | null;
@@ -30,13 +30,9 @@ export class KisTokenIssue {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
-  @ManyToOne(() => KisToken, (kisToken) => kisToken.tokeniseIssues, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'kisTokenSeq' })
+  @ManyToOne(() => KisToken, (kisToken) => kisToken.kisTokenIssues, { onDelete: 'CASCADE' })
   kisToken: KisToken;
 
   @ManyToOne(() => User, (user) => user.kisTokenIssues, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userSeq' })
   user: User;
 }

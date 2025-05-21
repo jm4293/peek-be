@@ -10,13 +10,13 @@ export class BoardCommentReplyRepository extends Repository<BoardCommentReply> {
     super(BoardCommentReply, manager);
   }
 
-  async findByBoardCommentReplySeq(boardCommentReplySeq: number) {
-    const boardCommentReply = await this.findOne({ where: { boardCommentReplySeq }, relations: ['user'] });
+  async findById(id: number) {
+    const ret = await this.findOne({ where: { id }, relations: ['user'] });
 
-    if (!boardCommentReply) {
+    if (!ret) {
       throw new BadRequestException('댓글이 존재하지 않습니다.');
     }
 
-    return boardCommentReply;
+    return ret;
   }
 }

@@ -16,7 +16,7 @@ import { User } from '@libs/database/entities';
 @Entity()
 export class UserAccount {
   @PrimaryGeneratedColumn()
-  userAccountSeq: number;
+  id: number;
 
   @Column({ type: 'enum', enum: UserAccountStatusEnum, default: UserAccountStatusEnum.ACTIVE })
   status: UserAccountStatusEnum;
@@ -39,13 +39,9 @@ export class UserAccount {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
-  @Column({ type: 'boolean', default: false })
-  isDeleted: boolean;
-
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
   @ManyToOne(() => User, (user) => user.userAccounts, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userSeq' })
   user: User;
 }

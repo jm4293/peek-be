@@ -25,31 +25,31 @@ export class UserAccountRepository extends Repository<UserAccount> {
   //   return await this.save(userAccount);
   // }
 
-  async createUserAccountByOauth(dto: { email: string; user: User; userAccountType: UserAccountTypeEnum }) {
-    const { user, userAccountType, email } = dto;
+  // async createUserAccountByOauth(dto: { email: string; user: User; userAccountType: UserAccountTypeEnum }) {
+  //   const { user, userAccountType, email } = dto;
 
-    const userAccount = this.create({ user, userAccountType, email });
+  //   const userAccount = this.create({ user, userAccountType, email });
 
-    return await this.save(userAccount);
+  //   return await this.save(userAccount);
+  // }
+
+  async findById(id: number) {
+    const ret = await this.findOne({ where: { id }, relations: ['user'] });
+
+    if (!ret) {
+      throw new BadRequestException('사용자 계정이 존재하지 않습니다.');
+    }
+
+    return ret;
   }
 
   async findByEmail(email: string) {
-    const userAccount = await this.findOne({ where: { email }, relations: ['user'] });
+    const ret = await this.findOne({ where: { email }, relations: ['user'] });
 
-    if (!userAccount) {
+    if (!ret) {
       throw new BadRequestException('사용자 계정이 존재하지 않습니다.');
     }
 
-    return userAccount;
-  }
-
-  async findByUserSeq(userSeq: number) {
-    const userAccount = await this.findOne({ where: { user: { userSeq } }, relations: ['user'] });
-
-    if (!userAccount) {
-      throw new BadRequestException('사용자 계정이 존재하지 않습니다.');
-    }
-
-    return userAccount;
+    return ret;
   }
 }

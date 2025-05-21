@@ -10,17 +10,17 @@ export class BoardRepository extends Repository<Board> {
     super(Board, manager);
   }
 
-  async findByBoardSeq(boardSeq: number) {
-    const board = await this.findOne({ where: { boardSeq }, relations: ['user'] });
+  async findById(id: number) {
+    const ret = await this.findOne({ where: { id }, relations: ['user'] });
 
-    if (!board) {
+    if (!ret) {
       throw new BadRequestException('게시물이 존재하지 않습니다.');
     }
 
-    return board;
+    return ret;
   }
 
-  async increaseBoardViewCount(boardSeq: number) {
-    await this.increment({ boardSeq }, 'viewCount', 1);
+  async increaseViewCount(id: number) {
+    await this.increment({ id }, 'viewCount', 1);
   }
 }

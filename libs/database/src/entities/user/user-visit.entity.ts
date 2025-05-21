@@ -15,7 +15,7 @@ import { User } from '@libs/database/entities';
 @Entity()
 export class UserVisit {
   @PrimaryGeneratedColumn()
-  userVisitSeq: number;
+  userVisitId: number;
 
   @Column({ type: 'enum', enum: UserVisitTypeEnum })
   type: UserVisitTypeEnum;
@@ -36,6 +36,5 @@ export class UserVisit {
   updatedAt: Date;
 
   @ManyToOne(() => User, (user) => user.userAccounts, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userSeq' })
   user: User;
 }

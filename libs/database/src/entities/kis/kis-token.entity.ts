@@ -5,7 +5,7 @@ import { KisTokenIssue } from '@libs/database/entities';
 @Entity()
 export class KisToken {
   @PrimaryGeneratedColumn()
-  kisTokenSeq: number;
+  id: number;
 
   @Column({ type: 'varchar', length: 512 })
   accessToken: string;
@@ -26,5 +26,5 @@ export class KisToken {
   updatedAt: Date;
 
   @OneToMany(() => KisTokenIssue, (kisTokenIssue) => kisTokenIssue.kisToken)
-  tokeniseIssues: KisTokenIssue[];
+  kisTokenIssues: KisTokenIssue[];
 }

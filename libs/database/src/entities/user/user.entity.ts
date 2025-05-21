@@ -23,13 +23,9 @@ import {
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
-  userSeq: number;
+  id: number;
 
-  @Column({
-    type: 'enum',
-    enum: UserStatusEnum,
-    default: UserStatusEnum.ACTIVE,
-  })
+  @Column({ type: 'enum', enum: UserStatusEnum, default: UserStatusEnum.ACTIVE })
   status: UserStatusEnum;
 
   @Column({ type: 'enum', enum: UserTypeEnum, default: UserTypeEnum.USER })
@@ -55,9 +51,6 @@ export class User {
 
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
-
-  @Column({ type: 'boolean', default: false })
-  isDeleted: boolean;
 
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;

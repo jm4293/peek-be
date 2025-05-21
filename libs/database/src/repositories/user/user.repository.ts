@@ -10,21 +10,21 @@ export class UserRepository extends Repository<User> {
     super(User, manager);
   }
 
-  async createUser(dto: { nickname: string; name: string; policy: boolean; birthday?: string; thumbnail?: string }) {
-    const { nickname, name, policy, birthday, thumbnail } = dto;
+  // async createUser(dto: { nickname: string; name: string; policy: boolean; birthday?: string; thumbnail?: string }) {
+  //   const { nickname, name, policy, birthday, thumbnail } = dto;
+  //
+  //   const user = this.create({ nickname, name, policy, birthday, thumbnail });
+  //
+  //   return await this.save(user);
+  // }
 
-    const user = this.create({ nickname, name, policy, birthday, thumbnail });
+  async findById(id: number) {
+    const ret = await this.findOne({ where: { id } });
 
-    return await this.save(user);
-  }
-
-  async findByUserSeq(userSeq: number) {
-    const user = await this.findOne({ where: { userSeq } });
-
-    if (!user) {
+    if (!ret) {
       throw new BadRequestException('사용자 정보가 존재하지 않습니다.');
     }
 
-    return user;
+    return ret;
   }
 }

@@ -3,7 +3,6 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -17,7 +16,7 @@ import { BoardComment, BoardLike, User } from '@libs/database/entities';
 @Entity()
 export class Board {
   @PrimaryGeneratedColumn()
-  boardSeq: number;
+  id: number;
 
   @Column({ type: 'enum', enum: StockKindEnum })
   marketType: StockKindEnum;
@@ -37,14 +36,10 @@ export class Board {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
-  @Column({ type: 'boolean', default: false })
-  isDeleted: boolean;
-
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
   @ManyToOne(() => User, (user) => user.boards)
-  @JoinColumn({ name: 'userSeq' })
   user: User;
 
   @OneToMany(() => BoardComment, (boardComment) => boardComment.board)
@@ -52,7 +47,4 @@ export class Board {
 
   @OneToMany(() => BoardLike, (boardLike) => boardLike.board)
   boardLikes: BoardLike[];
-
-  // 게시판 좋아요 여부
-  isLiked?: boolean;
 }

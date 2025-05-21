@@ -1,19 +1,11 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  OneToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { User } from '@libs/database/entities';
 
 @Entity()
 export class UserPushToken {
   @PrimaryGeneratedColumn()
-  userPushTokenSeq: number;
+  id: number;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   pushToken: string | null;
@@ -27,7 +19,6 @@ export class UserPushToken {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
-  @OneToOne(() => User, (user) => user.userPushTokens)
-  @JoinColumn({ name: 'userSeq' })
+  @ManyToOne(() => User, (user) => user.userPushTokens)
   user: User;
 }
