@@ -32,46 +32,46 @@ export class StockService {
 
   // 토큰
   async getOuathToken(params: { req: Request }) {
-    const { req } = params;
-    const { headers, ip = null, user } = req;
-    const { 'user-agent': userAgent = null, referer = null } = headers;
-    const { userSeq } = user;
-
-    await this.userRepository.findByUserSeq(userSeq);
-
-    const kisToken = await this._getKisToken();
-
-    await this.kisTokenIssueRepository.save({ userSeq, kisTokenSeq: kisToken.kisTokenSeq, ip, userAgent, referer });
-
-    return { kisToken: kisToken.accessToken };
+    //   const { req } = params;
+    //   const { headers, ip = null, user } = req;
+    //   const { 'user-agent': userAgent = null, referer = null } = headers;
+    //   const { userSeq } = user;
+    //
+    //   await this.userRepository.findByUserSeq(userSeq);
+    //
+    //   const kisToken = await this._getKisToken();
+    //
+    //   await this.kisTokenIssueRepository.save({ userSeq, kisTokenSeq: kisToken.kisTokenSeq, ip, userAgent, referer });
+    //
+    //   return { kisToken: kisToken.accessToken };
   }
 
   async getCodeList(params: { kind: StockKindEnum; text: string }) {
-    const { kind, text } = params;
-
-    let whereCondition = {};
-    let orderCondition: FindOptionsOrder<StockCompany> = { companyName: 'ASC' };
-
-    if (kind) {
-      whereCondition = { ...whereCondition, marketType: kind };
-    }
-
-    if (text) {
-      whereCondition = { ...whereCondition, companyName: Like(`%${text}%`) };
-    }
-
-    const [stocks, total] = await this.stockRepository.findAndCount({
-      where: whereCondition,
-      order: orderCondition,
-    });
-
-    return { stocks, total };
+    // const { kind, text } = params;
+    //
+    // let whereCondition = {};
+    // let orderCondition: FindOptionsOrder<StockCompany> = { companyName: 'ASC' };
+    //
+    // if (kind) {
+    //   whereCondition = { ...whereCondition, marketType: kind };
+    // }
+    //
+    // if (text) {
+    //   whereCondition = { ...whereCondition, companyName: Like(`%${text}%`) };
+    // }
+    //
+    // const [stocks, total] = await this.stockRepository.findAndCount({
+    //   where: whereCondition,
+    //   order: orderCondition,
+    // });
+    //
+    // return { stocks, total };
   }
 
   async getCodeDetail(params: { code: number; kind: StockKindEnum }) {
-    const { code } = params;
-
-    return await this.stockRepository.findOne({ where: { code } });
+    // const { code } = params;
+    //
+    // return await this.stockRepository.findOne({ where: { code } });
   }
 
   private async _getKisToken() {

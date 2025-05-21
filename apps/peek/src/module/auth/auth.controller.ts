@@ -43,14 +43,17 @@ export class AuthController {
     return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
-  @Post('logout')
-  async logout(@Req() req: Request, @Res() res: Response) {
-    return await this.authService.logout({ req, res });
-  }
-
   @Public()
   @Post('refresh-token')
   async refreshToken(@Req() req: Request, @Res() res: Response) {
     return await this.authService.refreshToken({ req, res });
+  }
+
+  @Post('logout')
+  async logout(@Req() req: Request, @Res() res: Response) {
+    const { userId } = req.user;
+
+    // return await this.authService.logout({ req, res });
+    return await this.authService.logout(userId);
   }
 }

@@ -26,14 +26,14 @@ export class NotificationHandler {
 
     try {
       // await admin.messaging().send({ token: pushToken, notification: { title: 'PEEK 알림', body: message } });
-
-      const userNotification = this.userNotificationRepository.create({
-        userNotificationType,
-        message,
-        user: { userSeq },
-      });
-
-      await this.userNotificationRepository.save(userNotification);
+      //
+      // const userNotification = this.userNotificationRepository.create({
+      //   userNotificationType,
+      //   message,
+      //   user: { userSeq },
+      // });
+      //
+      // await this.userNotificationRepository.save(userNotification);
     } catch (error) {
       console.error('Error sending push notification:', error);
     }

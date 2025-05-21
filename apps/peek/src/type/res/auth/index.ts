@@ -9,12 +9,5 @@ export interface IGetOauthGoogleTokenRes {
   picture: string;
 }
 
-export interface IPostCheckEmailRes {
-  email: string;
-  isExist: boolean;
-  message?: string;
-}
-
-export interface IPostCreateUserEmailRes {
-  email: string;
-}
+export * from './check-email.res';
+export * from './create-user-email.res';
