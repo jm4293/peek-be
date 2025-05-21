@@ -9,10 +9,10 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
-  configService.get('NODE_ENV') === 'development' && app.setGlobalPrefix('api');
+  // configService.get('NODE_ENV') === 'development' && app.setGlobalPrefix('api');
 
   app.enableCors({
-    origin: ['http://localhost:29980'],
+    origin: ['http://localhost:31180'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
