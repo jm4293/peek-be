@@ -21,7 +21,7 @@
     "paths": {
       "@libs/constant": ["libs/constant/src"],
       "@libs/constant/*": ["libs/constant/src/*"],
-      "@app/database": ["libs/database/src"],
+      "@libs/database": ["libs/database/src"],
       "@libs/database/*": ["libs/database/src/*"]
     }
   }
