@@ -16,7 +16,13 @@ import { AuthService } from './auth.service';
 @Module({
   imports: [JwtModule.registerAsync(jwtModuleConfig), HttpModule],
   controllers: [AuthController],
-  providers: [AuthService, UserRepository, UserAccountRepository, UserPushTokenRepository, UserVisitRepository],
+  providers: [
+    AuthService,
+    UserRepository,
+    UserAccountRepository,
+    UserVisitRepository,
+    // UserPushTokenRepository,
+  ],
   exports: [JwtModule],
 })
 export class AuthModule {}

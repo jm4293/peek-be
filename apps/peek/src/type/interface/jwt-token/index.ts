@@ -1,7 +1,7 @@
 import { UserAccountTypeEnum } from '@libs/constant/enum';
 
 export interface IJwtToken {
-  userId: number;
+  id: number;
   // userAccountType: UserAccountTypeEnum;
   // expiresIn?: number;
 }

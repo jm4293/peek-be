@@ -1,37 +1,30 @@
-import { AxiosResponse } from 'axios';
-import { Request, Response } from 'express';
-import { firstValueFrom } from 'rxjs';
+import { Request } from 'express';
+import { EntityManager } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { ForbiddenException } from '@nestjs/common/exceptions/forbidden.exception';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 import { UserAccountTypeEnum, UserVisitTypeEnum, userAccountTypeDescription } from '@libs/constant/enum';
-import { ACCESS_TOKEN_COOKIE_TIME, ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from '@libs/constant/jwt';
+import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from '@libs/constant/jwt';
 
 import { User, UserAccount } from '@libs/database/entities';
 
-import {
-  UserAccountRepository,
-  UserPushTokenRepository,
-  UserRepository,
-  UserVisitRepository,
-} from '@libs/database/repositories';
+import { UserAccountRepository, UserRepository, UserVisitRepository } from '@libs/database/repositories';
 
 import { BcryptHandler } from '../../handler';
 import { CheckEmailDto, CreateUserEmailDto, LoginEmailDto, LoginOauthDto } from '../../type/dto';
 import { IJwtToken } from '../../type/interface';
-import { ICheckEmailRes, ICreateUserEmailRes, IGetOauthGoogleTokenRes } from '../../type/res';
+import { ICheckEmailRes, ICreateUserEmailRes } from '../../type/res';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly userAccountRepository: UserAccountRepository,
-    private readonly userPushTokenRepository: UserPushTokenRepository,
     private readonly userVisitRepository: UserVisitRepository,
+    // private readonly userPushTokenRepository: UserPushTokenRepository,
 
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -41,34 +34,28 @@ export class AuthService {
   async registerEmail(dto: CreateUserEmailDto): Promise<ICreateUserEmailRes> {
     const { nickname, name, policy, birthday, email, password } = dto;
 
-    let user: User;
+    return await this.userAccountRepository.manager.transaction(async (manager) => {
+      const user = await this._createUser({ nickname, name, policy, birthday }, manager);
 
-    const userAccount = await this.userAccountRepository.findByEmail(email);
+      const hashedPassword = await BcryptHandler.hashPassword(password);
 
-    if (userAccount) {
-      user = userAccount.user;
-    } else {
-      user = await this._createUser({ nickname, name, policy, birthday });
-    }
+      const newUserAccount = manager.create(UserAccount, {
+        user,
+        userAccountType: UserAccountTypeEnum.EMAIL,
+        email,
+        password: hashedPassword,
+      });
 
-    const hashedPassword = await BcryptHandler.hashPassword(password);
+      await manager.save(UserAccount, newUserAccount);
 
-    const newUserAccount = this.userAccountRepository.create({
-      user,
-      userAccountType: UserAccountTypeEnum.EMAIL,
-      email,
-      password: hashedPassword,
+      return { email: newUserAccount.email };
     });
-
-    await this.userAccountRepository.save(newUserAccount);
-
-    return { email: newUserAccount.email };
   }
 
   async checkEmail(dto: CheckEmailDto): Promise<ICheckEmailRes> {
     const { email } = dto;
 
-    const userAccount = await this.userAccountRepository.findByEmail(email);
+    const userAccount = await this.userAccountRepository.findOne({ where: { email } });
 
     if (userAccount) {
       const { email, userAccountType } = userAccount;
@@ -93,7 +80,7 @@ export class AuthService {
     return { isExist: false, email };
   }
 
-  async loginEmail(params: { dto: LoginEmailDto; req: Request }) {
+  async login(params: { dto: LoginEmailDto; req: Request }) {
     const { dto, req } = params;
     const { email, password } = dto;
 
@@ -105,7 +92,7 @@ export class AuthService {
       throw new BadRequestException('비밀번호가 일치하지 않습니다.');
     }
 
-    return await this._login({ req, user: userAccount.user, userAccount, type: UserVisitTypeEnum.SIGN_IN_EMAIL });
+    return await this._login({ req, type: UserVisitTypeEnum.SIGN_IN_EMAIL, user: userAccount.user, userAccount });
   }
 
   async loginOauth(params: { dto: LoginOauthDto; req: Request }) {
@@ -191,109 +178,72 @@ export class AuthService {
     //   return;
   }
 
-  async logout(userId: number) {
-    // const { req, res } = params;
-    // const { userSeq } = req.user;
+  async logout(params: { req: Request }) {
+    const { req } = params;
+    const { id } = req.userAccount;
 
-    const user = await this.userRepository.findById(userId);
+    await this.userAccountRepository.update({ id }, { refreshToken: null });
 
-    await this.userAccountRepository.update({ user }, { refreshToken: null });
-
-    await this.userPushTokenRepository.update({ user }, { pushToken: null });
-
-    // await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_OUT_EMAIL, user });
-
-    // const cookies = req.cookies;
-
-    // for (const cookie in cookies) {
-    //   if (cookies.hasOwnProperty(cookie)) {
-    //     res.clearCookie(cookie);
-    //   }
-    // }
-
-    // return res.status(200).send({ message: '로그아웃 되었습니다.' });
+    await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_OUT_EMAIL, userAccountId: id });
   }
 
-  async refreshToken(params: { req: Request; res: Response }) {
-    // const { req, res } = params;
-    //
-    // const refreshToken = req.cookies['RT'] as string;
-    //
-    // if (!refreshToken) {
-    //   throw new ForbiddenException('리프레시 토큰이 존재하지 않습니다.');
-    // }
-    //
-    // const { userSeq, userAccountType } = this.jwtService.verify<IJwtToken>(
-    //   refreshToken,
-    //   this.configService.get('JWT_SECRET_KEY'),
-    // );
-    //
-    // const savedRefreshToken = await this.userAccountRepository.findOne({
-    //   where: { user: { userSeq }, userAccountType },
-    // });
-    //
-    // if (!savedRefreshToken) {
-    //   throw new ForbiddenException('DB 리프레시 토큰이 존재하지 않습니다.');
-    // }
-    //
-    // if (refreshToken !== savedRefreshToken.refreshToken) {
-    //   throw new ForbiddenException('리프레시 토큰이 일치하지 않습니다.');
-    // }
-    //
-    // const accessToken = await this._generateJwtToken({ userSeq, userAccountType, expiresIn: ACCESS_TOKEN_TIME });
-    //
-    // res.cookie('AT', accessToken, {
-    //   httpOnly: true,
-    //   sameSite: 'strict',
-    //   maxAge: ACCESS_TOKEN_COOKIE_TIME,
-    // });
-    //
-    // return res.status(200).send({});
+  async refreshToken(params: { req: Request }) {
+    const { req } = params;
+
+    const refreshToken = req.cookies['refreshToken'] as string;
+
+    if (!refreshToken) {
+      throw new ForbiddenException('리프레시 토큰이 존재하지 않습니다.');
+    }
+
+    const { id } = this.jwtService.verify<IJwtToken>(refreshToken, this.configService.get('JWT_SECRET_KEY'));
+
+    const userAccount = await this.userAccountRepository.findOne({ where: { id } });
+
+    if (!userAccount) {
+      throw new ForbiddenException('사용자 계정이 존재하지 않습니다.');
+    }
+
+    if (refreshToken !== userAccount.refreshToken) {
+      throw new ForbiddenException('리프레시 토큰이 일치하지 않습니다.');
+    }
+
+    const accessToken = await this._generateJwtToken({ id: userAccount.id }, ACCESS_TOKEN_TIME);
+
+    return { accessToken };
   }
 
-  private async _registerUserVisit(params: { req: Request; type: UserVisitTypeEnum; user: User }) {
-    const { req, type, user } = params;
+  private async _registerUserVisit(params: { req: Request; type: UserVisitTypeEnum; userAccountId: number }) {
+    const { req, type, userAccountId } = params;
     const { headers, ip = null } = req;
     const { 'user-agent': userAgent = null, referer = null } = headers;
 
-    const userVisit = this.userVisitRepository.create({ user, type, ip, userAgent, referer });
+    const userVisit = this.userVisitRepository.create({ userAccountId, type, ip, userAgent, referer });
 
     return await this.userVisitRepository.save(userVisit);
   }
 
-  private async _generateJwtToken(params: IJwtToken) {
-    // const { userSeq, userAccountType, expiresIn } = params;
-    //
-    // return await this.jwtService.signAsync(
-    //   { userSeq, userAccountType },
-    //   { expiresIn, secret: this.configService.get('JWT_SECRET_KEY') },
-    // );
+  private async _generateJwtToken(params: IJwtToken, expiresIn: number) {
+    const { id } = params;
+
+    return await this.jwtService.signAsync({ id }, { expiresIn, secret: this.configService.get('JWT_SECRET_KEY') });
   }
 
-  private async _login(params: { req: Request; user: User; userAccount: UserAccount; type: UserVisitTypeEnum }) {
-    // const { req, user, userAccount, type } = params;
-    //
-    // const accessToken = await this._generateJwtToken({
-    //   userSeq: user.userSeq,
-    //   userAccountType: userAccount.userAccountType,
-    //   expiresIn: ACCESS_TOKEN_TIME,
-    // });
-    //
-    // const refreshToken = await this._generateJwtToken({
-    //   userSeq: user.userSeq,
-    //   userAccountType: userAccount.userAccountType,
-    //   expiresIn: REFRESH_TOKEN_TIME,
-    // });
-    //
-    // await this.userAccountRepository.manager.transaction(async (manager) => {
-    //   await manager.update(UserAccount, { user: { userSeq: user.userSeq } }, { refreshToken: null });
-    //   await manager.update(UserAccount, { userAccountSeq: userAccount.userAccountSeq }, { refreshToken });
-    // });
-    //
-    // await this._registerUserVisit({ req, type, user });
-    //
-    // // return res.status(200).send({ data: { email: userAccount.email, accessToken, refreshToken } });
-    // return { email: userAccount.email, accessToken, refreshToken };
+  private async _login(params: { req: Request; type: UserVisitTypeEnum; user: User; userAccount: UserAccount }) {
+    const { req, type, user, userAccount } = params;
+
+    const accessToken = await this._generateJwtToken({ id: userAccount.id }, ACCESS_TOKEN_TIME);
+
+    const refreshToken = await this._generateJwtToken({ id: userAccount.id }, REFRESH_TOKEN_TIME);
+
+    await this.userAccountRepository.manager.transaction(async (manager) => {
+      await manager.update(UserAccount, { userId: user.id }, { refreshToken: null });
+      await manager.update(UserAccount, { id: userAccount.id }, { refreshToken });
+    });
+
+    await this._registerUserVisit({ req, type, userAccountId: userAccount.id });
+
+    return { accessToken, refreshToken };
   }
 
   private async _resizingImage(params: { imageFile: File; width: number; height: number }) {
@@ -321,17 +271,20 @@ export class AuthService {
     // return resizingPicture.data.resizedImageUrl;
   }
 
-  private async _createUser(params: {
-    nickname: string;
-    name: string;
-    policy: boolean;
-    birthday?: string;
-    thumbnail?: string;
-  }) {
+  private async _createUser(
+    params: {
+      nickname: string;
+      name: string;
+      policy: boolean;
+      birthday?: string;
+      thumbnail?: string;
+    },
+    manager: EntityManager,
+  ) {
     const { nickname, name, policy, birthday, thumbnail } = params;
 
-    const user = this.userRepository.create({ nickname, name, policy, birthday, thumbnail });
+    const user = manager.create(User, { nickname, name, policy, birthday, thumbnail });
 
-    return await this.userRepository.save(user);
+    return await manager.save(User, user);
   }
 }

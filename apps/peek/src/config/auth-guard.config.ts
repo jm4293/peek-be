@@ -24,7 +24,7 @@ export class AuthGuardConfig implements CanActivate {
 
     if (token) {
       try {
-        request['user'] = this.jwtService.verify<IJwtToken>(token, {
+        request['userAccount'] = this.jwtService.verify<IJwtToken>(token, {
           secret: this.configService.get('JWT_SECRET_KEY'),
         });
       } catch (e) {
@@ -39,14 +39,15 @@ export class AuthGuardConfig implements CanActivate {
     return true;
   }
 
-  // private _extractTokenFromHeader(request: Request): string | undefined {
-  //   const [type, token] = request.headers['authorization']?.split(' ') ?? [];
-  //   return type === 'Bearer' ? token : undefined;
-  // }
-
   private _extractTokenFromHeader(request: Request): string | undefined {
-    const token = request.cookies['AT'];
+    const [type, token] = request.headers['authorization']?.split(' ') ?? [];
 
-    return token ? token : undefined;
+    return type === 'Bearer' ? token : undefined;
   }
+
+  // private _extractTokenFromHeader(request: Request): string | undefined {
+  //   const token = request.cookies['AT'];
+  //
+  //   return token ? token : undefined;
+  // }
 }

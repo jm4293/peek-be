@@ -5,13 +5,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 import { UserAccountStatusEnum, UserAccountTypeEnum } from '@libs/constant/enum';
 
-import { User } from '@libs/database/entities';
+import { User, UserVisit } from '@libs/database/entities';
 
 @Entity()
 export class UserAccount {
@@ -42,6 +43,13 @@ export class UserAccount {
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
-  @ManyToOne(() => User, (user) => user.userAccounts, { onDelete: 'CASCADE' })
+  @Column()
+  userId: number;
+
+  @ManyToOne(() => User, (user) => user.userAccounts)
+  @JoinColumn({ name: 'userId' })
   user: User;
+
+  @OneToMany(() => UserVisit, (userVisit) => userVisit.userAccount)
+  userVisits: UserVisit[];
 }

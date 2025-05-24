@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 
 import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 
+import { REFRESH_TOKEN_COOKIE_TIME } from '@libs/constant';
+
 import { ResConfig } from '../../config';
 import { Public } from '../../decorator';
 import { CheckEmailDto, CreateUserEmailDto, LoginEmailDto, LoginOauthDto } from '../../type/dto';
@@ -12,27 +14,18 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
-  @Post('register-email')
-  async register(@Body() dto: CreateUserEmailDto, @Res() res: Response) {
-    const ret = await this.authService.registerEmail(dto);
+  @Post('login')
+  async login(@Body() dto: LoginEmailDto, @Req() req: Request, @Res() res: Response) {
+    const { accessToken, refreshToken } = await this.authService.login({ dto, req });
 
-    return ResConfig.Success({ res, statusCode: 'CREATED', data: ret });
-  }
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      // secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: REFRESH_TOKEN_COOKIE_TIME,
+    });
 
-  @Public()
-  @Post('check-email')
-  async checkEmail(@Body() dto: CheckEmailDto, @Res() res: Response) {
-    const ret = await this.authService.checkEmail(dto);
-
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
-  }
-
-  @Public()
-  @Post('login-email')
-  async loginEmail(@Body() dto: LoginEmailDto, @Req() req: Request, @Res() res: Response) {
-    const ret = await this.authService.loginEmail({ dto, req });
-
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    return ResConfig.Success({ res, statusCode: 'OK', data: { accessToken } });
   }
 
   @Public()
@@ -44,16 +37,41 @@ export class AuthController {
   }
 
   @Public()
+  @Post('check-email')
+  async checkEmail(@Body() dto: CheckEmailDto, @Res() res: Response) {
+    const ret = await this.authService.checkEmail(dto);
+
+    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+  }
+
+  @Public()
+  @Post('register')
+  async register(@Body() dto: CreateUserEmailDto, @Res() res: Response) {
+    const ret = await this.authService.registerEmail(dto);
+
+    return ResConfig.Success({ res, statusCode: 'CREATED', data: ret });
+  }
+
+  @Public()
   @Post('refresh-token')
   async refreshToken(@Req() req: Request, @Res() res: Response) {
-    return await this.authService.refreshToken({ req, res });
+    const { accessToken } = await this.authService.refreshToken({ req });
+
+    return ResConfig.Success({ res, statusCode: 'OK', data: { accessToken } });
   }
 
   @Post('logout')
   async logout(@Req() req: Request, @Res() res: Response) {
-    const { userId } = req.user;
+    await this.authService.logout({ req });
 
-    // return await this.authService.logout({ req, res });
-    return await this.authService.logout(userId);
+    const cookies = req.cookies;
+
+    for (const cookie in cookies) {
+      if (cookies.hasOwnProperty(cookie)) {
+        res.clearCookie(cookie);
+      }
+    }
+
+    return ResConfig.Success({ res, statusCode: 'OK', message: '로그아웃 되었습니다.' });
   }
 }

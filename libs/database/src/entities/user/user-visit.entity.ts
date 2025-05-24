@@ -10,12 +10,12 @@ import {
 
 import { UserVisitTypeEnum } from '@libs/constant/enum';
 
-import { User } from '@libs/database/entities';
+import { User, UserAccount } from '@libs/database/entities';
 
 @Entity()
 export class UserVisit {
   @PrimaryGeneratedColumn()
-  userVisitId: number;
+  id: number;
 
   @Column({ type: 'enum', enum: UserVisitTypeEnum })
   type: UserVisitTypeEnum;
@@ -35,6 +35,10 @@ export class UserVisit {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
-  @ManyToOne(() => User, (user) => user.userAccounts, { onDelete: 'CASCADE' })
-  user: User;
+  @Column()
+  userAccountId: number;
+
+  @ManyToOne(() => UserAccount, (userAccount) => userAccount.userVisits)
+  @JoinColumn({ name: 'userAccountId' })
+  userAccount: UserAccount;
 }
