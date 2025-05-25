@@ -2,12 +2,7 @@ import { Request } from 'express';
 
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import {
-  UserAccountRepository,
-  UserNotificationRepository,
-  UserPushTokenRepository,
-  UserRepository,
-} from '@libs/database/repositories';
+import { UserAccountRepository, UserRepository } from '@libs/database/repositories';
 
 import { BcryptHandler } from '../../handler';
 import {
@@ -22,30 +17,14 @@ export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly userAccountRepository: UserAccountRepository,
-    private readonly userPushTokenRepository: UserPushTokenRepository,
-    private readonly userNotificationRepository: UserNotificationRepository,
+    // private readonly userPushTokenRepository: UserPushTokenRepository,
+    // private readonly userNotificationRepository: UserNotificationRepository,
   ) {}
 
   async getMyInfo(req: Request) {
-    // if (!req.user) {
-    //   throw new BadRequestException();
-    // }
-    //
-    // const { userSeq, userAccountType } = req.user;
-    //
-    // const userAccount = await this.userAccountRepository.findOne({
-    //   where: { user: { userSeq }, userAccountType },
-    //   relations: ['user'],
-    // });
-    //
-    // if (!userAccount) {
-    //   throw new Error('사용자 계정이 존재하지 않습니다.');
-    // }
-    //
-    // const { email, user } = userAccount;
-    // const { nickname, name, thumbnail } = user;
-    //
-    // return { email, nickname, name, thumbnail, userAccountType };
+    const { id } = req.userAccount;
+
+    return await this.userAccountRepository.findById(id);
   }
 
   async updateUser(params: { dto: UpdateUserDto; req: Request }) {

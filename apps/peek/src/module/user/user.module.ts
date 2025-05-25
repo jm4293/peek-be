@@ -13,7 +13,13 @@ import { UserService } from './user.service';
 @Module({
   imports: [],
   controllers: [UserController],
-  providers: [UserService, UserRepository, UserAccountRepository, UserPushTokenRepository, UserNotificationRepository],
+  providers: [
+    UserService,
+    UserRepository,
+    UserAccountRepository,
+    // UserPushTokenRepository,
+    UserNotificationRepository,
+  ],
   exports: [],
 })
 export class UserModule {}

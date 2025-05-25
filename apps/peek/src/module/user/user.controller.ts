@@ -19,7 +19,16 @@ export class UserController {
   async getMyInfo(@Req() req: Request, @Res() res: Response) {
     const ret = await this.userService.getMyInfo(req);
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    return ResConfig.Success({
+      res,
+      statusCode: 'OK',
+      data: {
+        email: ret.email,
+        name: ret.user.name,
+        nickname: ret.user.nickname,
+        thumbnail: ret.user.thumbnail,
+      },
+    });
   }
 
   // 유저 정보 수정
@@ -40,9 +49,9 @@ export class UserController {
 
   @Post('push-token')
   async registerPushToken(@Body() dto: RegisterUserPushTokenDto, @Req() req: Request, @Res() res: Response) {
-    await this.userService.registerPushToken({ dto, req });
-
-    return ResConfig.Success({ res, statusCode: 'OK' });
+    // await this.userService.registerPushToken({ dto, req });
+    //
+    // return ResConfig.Success({ res, statusCode: 'OK' });
   }
 
   // 알림
@@ -52,23 +61,23 @@ export class UserController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    const ret = await this.userService.getNotificationList({ pageParam, req });
-
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    // const ret = await this.userService.getNotificationList({ pageParam, req });
+    //
+    // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
   @Post('notification/read')
   async readNotification(@Body() dto: ReadUserNotificationDto, @Req() req: Request, @Res() res: Response) {
-    await this.userService.readNotification({ dto, req });
-
-    return ResConfig.Success({ res, statusCode: 'OK' });
+    // await this.userService.readNotification({ dto, req });
+    //
+    // return ResConfig.Success({ res, statusCode: 'OK' });
   }
 
   @Post('notification/read-all')
   async readAllNotification(@Req() req: Request, @Res() res: Response) {
-    await this.userService.readAllNotification(req);
-
-    return ResConfig.Success({ res, statusCode: 'OK' });
+    // await this.userService.readAllNotification(req);
+    //
+    // return ResConfig.Success({ res, statusCode: 'OK' });
   }
 
   @Delete('notification/:userNotificationSeq')
@@ -77,8 +86,8 @@ export class UserController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    await this.userService.deleteNotification({ userNotificationSeq, req });
-
-    return ResConfig.Success({ res, statusCode: 'OK' });
+    // await this.userService.deleteNotification({ userNotificationSeq, req });
+    //
+    // return ResConfig.Success({ res, statusCode: 'OK' });
   }
 }
