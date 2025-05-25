@@ -10,14 +10,14 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Board, BoardCommentReply, User } from '@libs/database/entities';
+import { BoardArticle, User } from '@libs/database/entities';
 
 @Entity()
 export class BoardComment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'text' })
   content: string;
 
   @CreateDateColumn({ type: 'timestamp' })
@@ -29,12 +29,29 @@ export class BoardComment {
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
+  @Column()
+  boardArticleId: number;
+
+  @ManyToOne(() => BoardArticle, (boardArticle) => boardArticle.comments)
+  @JoinColumn({ name: 'boardArticleId' })
+  boardArticle: BoardArticle;
+
+  @Column()
+  userId: number;
+
   @ManyToOne(() => User, (user) => user.boardComments)
+  @JoinColumn({ name: 'userId' })
   user: User;
 
-  @ManyToOne(() => Board, (board) => board.boardComments)
-  board: Board;
+  //
 
-  @OneToMany(() => BoardCommentReply, (boardCommentReply) => boardCommentReply.boardComment)
-  boardCommentReplies: BoardCommentReply[];
+  @Column({ type: 'int', nullable: true })
+  parentCommentId: number | null;
+
+  @ManyToOne(() => BoardComment, (comment) => comment.replies, { nullable: true })
+  @JoinColumn({ name: 'parentCommentId' })
+  parentComment: BoardComment | null;
+
+  @OneToMany(() => BoardComment, (comment) => comment.parentComment)
+  replies: BoardComment[];
 }

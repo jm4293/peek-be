@@ -3,21 +3,25 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-import { BoardComment, User } from '@libs/database/entities';
+import { StockCategoryEnum } from '@libs/constant';
+
+import { Board } from '@libs/database/entities';
 
 @Entity()
-export class BoardCommentReply {
+export class BoardCategory {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ type: 'varchar', length: 255 })
-  content: string;
+  name: string;
+
+  @Column({ type: 'enum', enum: StockCategoryEnum })
+  category: StockCategoryEnum;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
@@ -28,9 +32,6 @@ export class BoardCommentReply {
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
-  @ManyToOne(() => User, (user) => user.boardComments)
-  user: User;
-
-  @ManyToOne(() => BoardComment, (boardComment) => boardComment.boardCommentReplies)
-  boardComment: BoardComment;
+  @OneToMany(() => Board, (board) => board.boardCategory)
+  boards: Board[];
 }

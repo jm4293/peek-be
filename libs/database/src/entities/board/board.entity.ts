@@ -3,32 +3,24 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-import { StockKindEnum } from '@libs/constant';
+import { BoardTypeEnum } from '@libs/constant/enum/board';
 
-import { BoardComment, BoardLike, User } from '@libs/database/entities';
+import { BoardArticle, BoardCategory, BoardLike } from '@libs/database/entities';
 
 @Entity()
 export class Board {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'enum', enum: StockKindEnum })
-  marketType: StockKindEnum;
-
-  @Column({ type: 'varchar', length: 255 })
-  title: string;
-
-  @Column({ type: 'text' })
-  content: string;
-
-  @Column({ type: 'int', default: 0 })
-  viewCount: number;
+  @Column({ type: 'enum', enum: BoardTypeEnum })
+  type: BoardTypeEnum;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
@@ -39,12 +31,16 @@ export class Board {
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
-  @ManyToOne(() => User, (user) => user.boards)
-  user: User;
-
-  @OneToMany(() => BoardComment, (boardComment) => boardComment.board)
-  boardComments: BoardComment[];
+  @OneToMany(() => BoardArticle, (boardArticle) => boardArticle.board)
+  boardArticles: BoardArticle[];
 
   @OneToMany(() => BoardLike, (boardLike) => boardLike.board)
   boardLikes: BoardLike[];
+
+  @Column()
+  boardCategoryId: number;
+
+  @ManyToOne(() => BoardCategory, (boardCategory) => boardCategory.boards)
+  @JoinColumn({ name: 'boardCategoryId' })
+  boardCategory: BoardCategory;
 }

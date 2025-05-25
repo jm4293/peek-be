@@ -43,13 +43,13 @@ export class UserAccount {
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
+  @OneToMany(() => UserVisit, (userVisit) => userVisit.userAccount)
+  userVisits: UserVisit[];
+
   @Column()
   userId: number;
 
   @ManyToOne(() => User, (user) => user.userAccounts)
   @JoinColumn({ name: 'userId' })
   user: User;
-
-  @OneToMany(() => UserVisit, (userVisit) => userVisit.userAccount)
-  userVisits: UserVisit[];
 }

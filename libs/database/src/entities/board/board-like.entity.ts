@@ -1,4 +1,4 @@
-import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 import { Board, User } from '@libs/database/entities';
 
@@ -7,12 +7,20 @@ export class BoardLike {
   @PrimaryColumn()
   id: number;
 
-  // @PrimaryColumn()
-  // userSeq: number;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  guestIp: string | null;
+
+  @Column()
+  boardId: number;
 
   @ManyToOne(() => Board, (board) => board.boardLikes)
+  @JoinColumn({ name: 'boardId' })
   board: Board;
 
-  @ManyToOne(() => User, (user) => user.boardLikes)
-  user: User;
+  @Column()
+  userId: number;
+
+  @ManyToOne(() => User, (user) => user.boardLikes, { nullable: true })
+  @JoinColumn({ name: 'userId' })
+  user: User | null;
 }

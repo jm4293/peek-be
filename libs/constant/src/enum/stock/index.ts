@@ -1,1 +1,1 @@
-export * from './stock-kind.enum';
+export * from './stock-category.enum';

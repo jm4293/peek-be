@@ -12,6 +12,7 @@ import { UserStatusEnum, UserTypeEnum } from '@libs/constant/enum';
 
 import {
   Board,
+  BoardArticle,
   BoardComment,
   BoardLike,
   KisTokenIssue,
@@ -61,14 +62,23 @@ export class User {
   @OneToMany(() => UserNotification, (userNotification) => userNotification.user)
   userNotifications: UserNotification[];
 
-  @OneToMany(() => Board, (board) => board.user)
-  boards: Board[];
+  @OneToMany(() => BoardArticle, (boardArticle) => boardArticle.user)
+  boardArticles: BoardArticle[];
 
   @OneToMany(() => BoardComment, (boardComment) => boardComment.user)
   boardComments: BoardComment[];
 
   @OneToMany(() => BoardLike, (boardLike) => boardLike.user)
   boardLikes: BoardLike[];
+
+  // @OneToMany(() => Board, (board) => board.user)
+  // boards: Board[];
+  //
+  // @OneToMany(() => BoardComment, (boardComment) => boardComment.user)
+  // boardComments: BoardComment[];
+  //
+  // @OneToMany(() => BoardLike, (boardLike) => boardLike.user)
+  // boardLikes: BoardLike[];
 
   @OneToMany(() => UserPushToken, (userPushToken) => userPushToken.user)
   userPushTokens: UserPushToken[];
