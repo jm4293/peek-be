@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -26,18 +27,21 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'enum', enum: UserStatusEnum, default: UserStatusEnum.ACTIVE })
-  status: UserStatusEnum;
-
-  @Column({ type: 'enum', enum: UserTypeEnum, default: UserTypeEnum.USER })
-  type: UserTypeEnum;
-
   @Column({ type: 'varchar', length: 255 })
   nickname: string;
 
   @Column({ type: 'varchar', length: 255 })
   name: string;
 
+  @Exclude()
+  @Column({ type: 'enum', enum: UserStatusEnum, default: UserStatusEnum.ACTIVE })
+  status: UserStatusEnum;
+
+  @Exclude()
+  @Column({ type: 'enum', enum: UserTypeEnum, default: UserTypeEnum.USER })
+  type: UserTypeEnum;
+
+  @Exclude()
   @Column({ type: 'boolean' })
   policy: boolean;
 
@@ -50,9 +54,11 @@ export class User {
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
+  @Exclude()
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
+  @Exclude()
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 

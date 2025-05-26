@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -18,6 +19,7 @@ export class UserNotification {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Exclude()
   @Column({ type: 'enum', enum: UserNotificationTypeEnum })
   userNotificationType: UserNotificationTypeEnum;
 
@@ -30,12 +32,19 @@ export class UserNotification {
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
+  @Exclude()
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
+  @Exclude()
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
+  @Exclude()
+  @Column()
+  userId: number;
+
   @ManyToOne(() => User, (user) => user.userNotifications)
+  @JoinColumn({ name: 'userId' })
   user: User;
 }

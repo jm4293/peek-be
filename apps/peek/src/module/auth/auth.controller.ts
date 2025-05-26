@@ -1,10 +1,9 @@
 import { Request, Response } from 'express';
 
-import { Body, Controller, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
 
 import { REFRESH_TOKEN_COOKIE_TIME } from '@libs/constant';
 
-import { ResConfig } from '../../config';
 import { Public } from '../../decorator';
 import { CheckEmailDto, CreateUserEmailDto, LoginEmailDto, LoginOauthDto } from '../../type/dto';
 import { AuthService } from './auth.service';
@@ -25,39 +24,45 @@ export class AuthController {
       maxAge: REFRESH_TOKEN_COOKIE_TIME,
     });
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: { accessToken } });
+    return res.status(200).json({ accessToken });
   }
 
   @Public()
   @Post('login-oauth')
   async loginOauth(@Body() dto: LoginOauthDto, @Req() req: Request, @Res() res: Response) {
-    const ret = await this.authService.loginOauth({ dto, req });
-
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    // const ret = await this.authService.loginOauth({ dto, req });
+    //
+    // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
   @Public()
   @Post('check-email')
-  async checkEmail(@Body() dto: CheckEmailDto, @Res() res: Response) {
-    const ret = await this.authService.checkEmail(dto);
+  @HttpCode(200)
+  async checkEmail(@Body() dto: CheckEmailDto) {
+    // const ret = await this.authService.checkEmail(dto);
+    //
+    // return { ...ret };
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    return await this.authService.checkEmail(dto);
   }
 
   @Public()
   @Post('register')
-  async register(@Body() dto: CreateUserEmailDto, @Res() res: Response) {
-    const ret = await this.authService.registerEmail(dto);
+  async register(@Body() dto: CreateUserEmailDto) {
+    // const ret = await this.authService.registerEmail(dto);
+    //
+    // return { ...ret };
 
-    return ResConfig.Success({ res, statusCode: 'CREATED', data: ret });
+    return await this.authService.registerEmail(dto);
   }
 
   @Public()
   @Post('refresh-token')
-  async refreshToken(@Req() req: Request, @Res() res: Response) {
+  @HttpCode(200)
+  async refreshToken(@Req() req: Request) {
     const { accessToken } = await this.authService.refreshToken({ req });
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: { accessToken } });
+    return { accessToken };
   }
 
   @Post('logout')
@@ -72,6 +77,6 @@ export class AuthController {
       }
     }
 
-    return ResConfig.Success({ res, statusCode: 'OK', message: '로그아웃 되었습니다.' });
+    return res.status(200).json();
   }
 }

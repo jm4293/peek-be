@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -16,36 +17,49 @@ import { User, UserVisit } from '@libs/database/entities';
 
 @Entity()
 export class UserAccount {
+  constructor(partial?: Partial<UserAccount>) {
+    if (partial) {
+      return Object.assign(this, partial);
+    }
+  }
+
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column({ type: 'enum', enum: UserAccountStatusEnum, default: UserAccountStatusEnum.ACTIVE })
-  status: UserAccountStatusEnum;
-
-  @Column({ type: 'enum', enum: UserAccountTypeEnum })
-  userAccountType: UserAccountTypeEnum;
 
   @Column({ type: 'varchar', length: 255 })
   email: string;
 
+  @Exclude()
+  @Column({ type: 'enum', enum: UserAccountStatusEnum, default: UserAccountStatusEnum.ACTIVE })
+  status: UserAccountStatusEnum;
+
+  @Exclude()
+  @Column({ type: 'enum', enum: UserAccountTypeEnum })
+  userAccountType: UserAccountTypeEnum;
+
+  @Exclude()
   @Column({ type: 'varchar', length: 255, nullable: true })
   password: string | null;
 
+  @Exclude()
   @Column({ type: 'varchar', length: 255, nullable: true })
   refreshToken: string | null;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
+  @Exclude()
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
+  @Exclude()
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
   @OneToMany(() => UserVisit, (userVisit) => userVisit.userAccount)
   userVisits: UserVisit[];
 
+  @Exclude()
   @Column()
   userId: number;
 
