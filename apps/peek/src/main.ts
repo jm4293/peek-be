@@ -2,8 +2,9 @@ import cookieParser from 'cookie-parser';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 
+import { ClassSerializerInterceptor } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
@@ -22,6 +23,10 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   // configService.get('NODE_ENV') === 'development' && app.setGlobalPrefix('api');
+
+  // 전역 인터셉터 설정
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  // 전역 인터셉터 설정 끝
 
   app.enableCors({
     origin: ['http://localhost:31180'],
