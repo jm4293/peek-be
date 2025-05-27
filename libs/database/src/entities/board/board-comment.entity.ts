@@ -10,7 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { BoardArticle, User } from '@libs/database/entities';
+import { Board, UserAccount } from '@libs/database/entities';
 
 @Entity()
 export class BoardComment {
@@ -30,18 +30,18 @@ export class BoardComment {
   deletedAt: Date | null;
 
   @Column()
-  boardArticleId: number;
+  boardId: number;
 
-  @ManyToOne(() => BoardArticle, (boardArticle) => boardArticle.comments)
-  @JoinColumn({ name: 'boardArticleId' })
-  boardArticle: BoardArticle;
+  @ManyToOne(() => Board, (board) => board.comments)
+  @JoinColumn({ name: 'boardId' })
+  board: Board;
 
   @Column()
-  userId: number;
+  userAccountId: number;
 
-  @ManyToOne(() => User, (user) => user.boardComments)
-  @JoinColumn({ name: 'userId' })
-  user: User;
+  @ManyToOne(() => UserAccount, (userAccount) => userAccount.boardComments)
+  @JoinColumn({ name: 'userAccountId' })
+  userAccount: UserAccount;
 
   //
 

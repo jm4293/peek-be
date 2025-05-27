@@ -13,7 +13,7 @@ import {
 
 import { UserAccountStatusEnum, UserAccountTypeEnum } from '@libs/constant/enum';
 
-import { User, UserVisit } from '@libs/database/entities';
+import { BoardArticle, BoardComment, BoardLike, User, UserVisit } from '@libs/database/entities';
 
 @Entity()
 export class UserAccount {
@@ -56,9 +56,6 @@ export class UserAccount {
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
-  @OneToMany(() => UserVisit, (userVisit) => userVisit.userAccount)
-  userVisits: UserVisit[];
-
   @Exclude()
   @Column()
   userId: number;
@@ -66,4 +63,16 @@ export class UserAccount {
   @ManyToOne(() => User, (user) => user.userAccounts)
   @JoinColumn({ name: 'userId' })
   user: User;
+
+  @OneToMany(() => UserVisit, (userVisit) => userVisit.userAccount)
+  userVisits: UserVisit[];
+
+  @OneToMany(() => BoardArticle, (boardArticle) => boardArticle.userAccount)
+  boardArticles: BoardArticle[];
+
+  @OneToMany(() => BoardComment, (boardComment) => boardComment.userAccount)
+  boardComments: BoardComment[];
+
+  @OneToMany(() => BoardLike, (boardLike) => boardLike.userAccount)
+  boardLikes: BoardLike[];
 }

@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
-import { Board, User } from '@libs/database/entities';
+import { Board, UserAccount } from '@libs/database/entities';
 
 @Entity()
 export class BoardLike {
@@ -18,9 +18,9 @@ export class BoardLike {
   board: Board;
 
   @Column()
-  userId: number;
+  userAccountId: number;
 
-  @ManyToOne(() => User, (user) => user.boardLikes, { nullable: true })
-  @JoinColumn({ name: 'userId' })
-  user: User | null;
+  @ManyToOne(() => UserAccount, (userAccount) => userAccount.boardLikes, { nullable: true })
+  @JoinColumn({ name: 'userAccountId' })
+  userAccount: UserAccount | null;
 }

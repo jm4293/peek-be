@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -5,12 +6,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Board, BoardComment, User } from '@libs/database/entities';
+import { Board, UserAccount } from '@libs/database/entities';
 
 @Entity()
 export class BoardArticle {
@@ -32,26 +33,27 @@ export class BoardArticle {
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
+  @Exclude()
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
+  @Exclude()
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
-  @OneToMany(() => BoardComment, (boardComment) => boardComment.boardArticle)
-  comments: BoardComment[];
-
+  @Exclude()
   @Column()
   boardId: number;
 
-  @ManyToOne(() => Board, (board) => board.boardArticles)
+  @OneToOne(() => Board, (board) => board.boardArticle)
   @JoinColumn({ name: 'boardId' })
   board: Board;
 
+  @Exclude()
   @Column()
-  userId: number;
+  userAccountId: number;
 
-  @ManyToOne(() => User, (user) => user.boardArticles)
-  @JoinColumn({ name: 'userId' })
-  user: User;
+  @ManyToOne(() => UserAccount, (userAccount) => userAccount.boardArticles)
+  @JoinColumn({ name: 'userAccountId' })
+  userAccount: UserAccount;
 }

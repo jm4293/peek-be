@@ -6,13 +6,14 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 import { BoardTypeEnum } from '@libs/constant/enum/board';
 
-import { BoardArticle, BoardCategory, BoardLike } from '@libs/database/entities';
+import { BoardArticle, BoardCategory, BoardComment, BoardLike } from '@libs/database/entities';
 
 @Entity()
 export class Board {
@@ -31,8 +32,11 @@ export class Board {
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
-  @OneToMany(() => BoardArticle, (boardArticle) => boardArticle.board)
-  boardArticles: BoardArticle[];
+  @OneToOne(() => BoardArticle, (boardArticle) => boardArticle.board)
+  boardArticle: BoardArticle;
+
+  @OneToMany(() => BoardComment, (boardComment) => boardComment.board)
+  comments: BoardComment[];
 
   @OneToMany(() => BoardLike, (boardLike) => boardLike.board)
   boardLikes: BoardLike[];
