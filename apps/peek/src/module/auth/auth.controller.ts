@@ -24,12 +24,12 @@ export class AuthController {
       maxAge: REFRESH_TOKEN_COOKIE_TIME,
     });
 
-    return res.status(200).json({ accessToken });
+    res.status(200).json({ accessToken });
   }
 
   @Public()
   @Post('login-oauth')
-  async loginOauth(@Body() dto: LoginOauthDto, @Req() req: Request, @Res() res: Response) {
+  async loginOauth(@Body() dto: LoginOauthDto) {
     // const ret = await this.authService.loginOauth({ dto, req });
     //
     // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
