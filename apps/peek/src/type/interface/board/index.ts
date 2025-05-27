@@ -1,7 +1,7 @@
-import { StockKindEnum } from '@libs/constant';
+import { StockCategoryEnum } from '@libs/constant';
 
 export interface IBaseBoard {
-  marketType: StockKindEnum;
+  category: StockCategoryEnum;
   title: string;
   content: string;
 }

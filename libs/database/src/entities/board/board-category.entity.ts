@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -17,18 +18,17 @@ export class BoardCategory {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  name: string;
-
   @Column({ type: 'enum', enum: StockCategoryEnum })
   category: StockCategoryEnum;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
+  @Exclude()
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
+  @Exclude()
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 

@@ -5,7 +5,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { StockKindEnum } from '@libs/constant';
+import { StockCategoryEnum } from '@libs/constant';
 
 import { KisToken, StockCompany } from '@libs/database/entities';
 
@@ -46,7 +46,7 @@ export class StockService {
     //   return { kisToken: kisToken.accessToken };
   }
 
-  async getCodeList(params: { kind: StockKindEnum; text: string }) {
+  async getCodeList(params: { kind: StockCategoryEnum; text: string }) {
     // const { kind, text } = params;
     //
     // let whereCondition = {};
@@ -68,7 +68,7 @@ export class StockService {
     // return { stocks, total };
   }
 
-  async getCodeDetail(params: { code: number; kind: StockKindEnum }) {
+  async getCodeDetail(params: { code: number; kind: StockCategoryEnum }) {
     // const { code } = params;
     //
     // return await this.stockRepository.findOne({ where: { code } });

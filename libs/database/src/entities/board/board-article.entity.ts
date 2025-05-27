@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -32,15 +33,18 @@ export class BoardArticle {
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
+  @Exclude()
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
+  @Exclude()
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
   @OneToMany(() => BoardComment, (boardComment) => boardComment.boardArticle)
   comments: BoardComment[];
 
+  @Exclude()
   @Column()
   boardId: number;
 
@@ -48,6 +52,7 @@ export class BoardArticle {
   @JoinColumn({ name: 'boardId' })
   board: Board;
 
+  @Exclude()
   @Column()
   userId: number;
 

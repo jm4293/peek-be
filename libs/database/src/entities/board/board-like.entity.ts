@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 import { Board, User } from '@libs/database/entities';
@@ -7,9 +8,11 @@ export class BoardLike {
   @PrimaryColumn()
   id: number;
 
+  @Exclude()
   @Column({ type: 'varchar', length: 255, nullable: true })
   guestIp: string | null;
 
+  @Exclude()
   @Column()
   boardId: number;
 
@@ -17,6 +20,7 @@ export class BoardLike {
   @JoinColumn({ name: 'boardId' })
   board: Board;
 
+  @Exclude()
   @Column()
   userId: number;
 

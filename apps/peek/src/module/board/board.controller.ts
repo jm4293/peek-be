@@ -15,7 +15,7 @@ import {
   Res,
 } from '@nestjs/common';
 
-import { StockKindEnum } from '@libs/constant';
+import { StockCategoryEnum } from '@libs/constant';
 
 import { ResConfig } from '../../config';
 import { Public } from '../../decorator';

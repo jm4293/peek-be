@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 
-import { StockKindEnum } from '@libs/constant';
+import { StockCategoryEnum } from '@libs/constant';
 
 import { ResConfig } from '../../config';
 import { PageQueryDto } from '../../type/dto/pagenation';
@@ -27,7 +27,7 @@ export class StockController {
   @Get()
   async getCodeList(
     @Query() pageQuery: PageQueryDto,
-    @Query('kind') kind: StockKindEnum,
+    @Query('kind') kind: StockCategoryEnum,
     @Query('text') text: string,
     @Res() res: Response,
   ) {

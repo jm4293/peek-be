@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx';
 
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { StockKindEnum } from '@libs/constant';
+import { StockCategoryEnum } from '@libs/constant';
 
 import { StockCompany } from '@libs/database/entities';
 
@@ -16,7 +16,7 @@ import { PageQueryDto } from '../../type/dto/pagenation';
 export class StockService {
   constructor(private readonly stockRepository: StockCompanyRepository) {}
 
-  async getCodeList(params: { pageQuery: PageQueryDto; kind: StockKindEnum; text: string }) {
+  async getCodeList(params: { pageQuery: PageQueryDto; kind: StockCategoryEnum; text: string }) {
     // const { pageQuery, kind, text } = params;
     // const { count, page } = pageQuery;
     //

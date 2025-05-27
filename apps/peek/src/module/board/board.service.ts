@@ -1,22 +1,24 @@
 import { Request } from 'express';
-import { SelectQueryBuilder } from 'typeorm';
+import { DataSource, SelectQueryBuilder } from 'typeorm';
 
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
 
-import { StockKindEnum, UserNotificationTypeEnum } from '@libs/constant';
+import { StockCategoryEnum, UserNotificationTypeEnum } from '@libs/constant';
 
-import { Board, BoardComment } from '@libs/database/entities';
+import { Board, BoardArticle, BoardComment } from '@libs/database/entities';
 
 import {
-  BoardCommentReplyRepository,
+  BoardArticleRepository,
+  BoardCategoryRepository,
   BoardCommentRepository,
   BoardLikeRepository,
   BoardRepository,
+  UserAccountRepository,
   UserPushTokenRepository,
   UserRepository,
 } from '@libs/database/repositories';
 
-import { NotificationHandler } from '../../handler';
 import {
   CreateBoardCommentDto,
   CreateBoardDto,
@@ -29,12 +31,17 @@ import {
 export class BoardService {
   constructor(
     private readonly boardRepository: BoardRepository,
+    private readonly boardArticleRepository: BoardArticleRepository,
+    private readonly boardCategoryRepository: BoardCategoryRepository,
     private readonly boardCommentRepository: BoardCommentRepository,
-    private readonly boardCommentReplyRepository: BoardCommentReplyRepository,
     private readonly boardLikeRepository: BoardLikeRepository,
+
     private readonly userRepository: UserRepository,
+    private readonly userAccountRepository: UserAccountRepository,
     private readonly userPushTokenRepository: UserPushTokenRepository,
-    private readonly notificationHandler: NotificationHandler,
+    // private readonly notificationHandler: NotificationHandler,
+
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   // 게시판
@@ -109,13 +116,35 @@ export class BoardService {
   }
 
   async createBoard(params: { dto: CreateBoardDto; req: Request }) {
-    // const { dto, req } = params;
-    // const { userSeq } = req.user;
-    //
+    const { dto, req } = params;
+    const { id } = req.userAccount;
+
+    await this.userAccountRepository.findById(id);
+
+    await this.dataSource.transaction(async (manager) => {
+      // const boardArticle = this.boardArticleRepository.create({
+      //   title: dto.title,
+      //   content: dto.content,
+      // });
+
+      // const ttt = await this.boardArticleRepository.save(boardArticle);
+
+      const boardArticle = manager.getRepository(BoardArticle).create({
+        title: dto.title,
+        content: dto.content,
+      });
+
+      await manager.getRepository(BoardArticle).save(boardArticle);
+
+      return;
+    });
+
     // const user = await this.userRepository.findByUserSeq(userSeq);
     // const board = this.boardRepository.create({ ...dto, user });
     //
     // await this.boardRepository.save(board);
+
+    return;
   }
 
   async updateBoard(params: { boardSeq: number; dto: UpdateBoardDto; req: Request }) {

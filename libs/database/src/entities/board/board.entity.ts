@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -25,9 +26,11 @@ export class Board {
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
+  @Exclude()
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
+  @Exclude()
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
@@ -37,6 +40,7 @@ export class Board {
   @OneToMany(() => BoardLike, (boardLike) => boardLike.board)
   boardLikes: BoardLike[];
 
+  @Exclude()
   @Column()
   boardCategoryId: number;
 
