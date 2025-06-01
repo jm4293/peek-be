@@ -18,25 +18,27 @@ export class AuthGuardConfig implements CanActivate {
   async canActivate(context: ExecutionContext) {
     const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler());
 
+    if (isPublic) {
+      return true;
+    }
+
     const request = context.switchToHttp().getRequest<Request>();
 
     const token = this._extractTokenFromHeader(request);
 
-    if (token) {
-      try {
-        request['userAccount'] = this.jwtService.verify<IJwtToken>(token, {
-          secret: this.configService.get('JWT_SECRET_KEY'),
-        });
-      } catch (e) {
-        if (!isPublic) {
-          throw new UnauthorizedException('유효하지 않은 토큰입니다.');
-        }
-      }
-    } else if (!isPublic) {
-      throw new UnauthorizedException('토큰이 존재하지 않습니다.');
+    if (!token) {
+      throw new UnauthorizedException('토큰이 없습니다. 로그인이 필요합니다.');
     }
 
-    return true;
+    try {
+      request['userAccount'] = this.jwtService.verify<IJwtToken>(token, {
+        secret: this.configService.get('JWT_SECRET_KEY'),
+      });
+
+      return true;
+    } catch (error) {
+      throw new UnauthorizedException('유효하지 않은 토큰입니다.');
+    }
   }
 
   private _extractTokenFromHeader(request: Request): string | undefined {
@@ -44,10 +46,4 @@ export class AuthGuardConfig implements CanActivate {
 
     return type === 'Bearer' ? token : undefined;
   }
-
-  // private _extractTokenFromHeader(request: Request): string | undefined {
-  //   const token = request.cookies['AT'];
-  //
-  //   return token ? token : undefined;
-  // }
 }
