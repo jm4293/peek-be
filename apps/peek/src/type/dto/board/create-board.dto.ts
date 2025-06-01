@@ -1,23 +1,8 @@
-import { Transform } from 'class-transformer';
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty } from 'class-validator';
 
-import { StockKindEnum } from '@libs/constant';
+import { BaseBoardDto } from './base-board.dto';
 
-import { IBaseBoard } from '../../interface';
-
-export class CreateBoardDto implements IBaseBoard {
-  @Transform(({ value }) => value.trim())
-  @IsEnum(StockKindEnum)
+export class CreateBoardDto extends BaseBoardDto {
   @IsNotEmpty()
-  marketType: StockKindEnum;
-
-  @Transform(({ value }) => value.trim())
-  @IsString()
-  @IsNotEmpty()
-  title: string;
-
-  @Transform(({ value }) => value.trim())
-  @IsString()
-  @IsNotEmpty()
-  content: string;
+  categoryId: number;
 }

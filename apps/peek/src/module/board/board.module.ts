@@ -4,10 +4,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserNotification } from '@libs/database/entities';
 
 import {
-  BoardCommentReplyRepository,
+  BoardArticleRepository,
+  BoardCategoryRepository,
   BoardCommentRepository,
   BoardLikeRepository,
   BoardRepository,
+  UserAccountRepository,
   UserNotificationRepository,
   UserPushTokenRepository,
   UserRepository,
@@ -18,20 +20,24 @@ import { BoardController } from './board.controller';
 import { BoardService } from './board.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserNotification])],
+  // imports: [TypeOrmModule.forFeature([UserNotification])],
+  imports: [],
   controllers: [BoardController],
   providers: [
     BoardService,
 
     BoardRepository,
+    BoardArticleRepository,
+    BoardCategoryRepository,
     BoardCommentRepository,
-    BoardCommentReplyRepository,
     BoardLikeRepository,
+
     UserRepository,
+    UserAccountRepository,
     UserPushTokenRepository,
     UserNotificationRepository,
 
-    NotificationHandler,
+    // NotificationHandler,
   ],
   exports: [],
 })

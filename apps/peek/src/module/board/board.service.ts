@@ -1,22 +1,25 @@
 import { Request } from 'express';
-import { SelectQueryBuilder } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
 
-import { StockKindEnum, UserNotificationTypeEnum } from '@libs/constant';
+import { BoardTypeEnum } from '@libs/constant/enum/board';
 
-import { Board, BoardComment } from '@libs/database/entities';
+import { Board, BoardArticle, BoardCategory, BoardComment, UserAccount } from '@libs/database/entities';
 
 import {
-  BoardCommentReplyRepository,
+  BoardArticleRepository,
+  BoardCategoryRepository,
   BoardCommentRepository,
   BoardLikeRepository,
   BoardRepository,
+  UserAccountRepository,
   UserPushTokenRepository,
   UserRepository,
 } from '@libs/database/repositories';
 
-import { NotificationHandler } from '../../handler';
+import { LIST_LIMIT } from '../../constant/list';
 import {
   CreateBoardCommentDto,
   CreateBoardDto,
@@ -29,44 +32,65 @@ import {
 export class BoardService {
   constructor(
     private readonly boardRepository: BoardRepository,
+    private readonly boardArticleRepository: BoardArticleRepository,
+    private readonly boardCategoryRepository: BoardCategoryRepository,
     private readonly boardCommentRepository: BoardCommentRepository,
-    private readonly boardCommentReplyRepository: BoardCommentReplyRepository,
     private readonly boardLikeRepository: BoardLikeRepository,
+
     private readonly userRepository: UserRepository,
+    private readonly userAccountRepository: UserAccountRepository,
     private readonly userPushTokenRepository: UserPushTokenRepository,
-    private readonly notificationHandler: NotificationHandler,
+    // private readonly notificationHandler: NotificationHandler,
+
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
+  // 게시판 카테고리
+  async getBoardCategoryList() {
+    return await this.boardCategoryRepository.find();
+  }
+
   // 게시판
+  async getBoardDetail(boardId: number) {
+    const board = await this.boardRepository.findOne({
+      where: { id: boardId, deletedAt: null },
+      relations: ['category', 'userAccount', 'userAccount.user', 'article'],
+    });
+
+    if (!board) {
+      throw new BadRequestException('게시글을 찾을 수 없습니다.');
+    }
+
+    await this.boardRepository.increaseViewCount(boardId);
+
+    return board;
+  }
+
   async getBoardList(params: GetBoardListDto) {
-    // const { pageParam, marketType } = params;
-    //
-    // const LIMIT = 10;
-    //
-    // const queryBuilder: SelectQueryBuilder<Board> = this.boardRepository
-    //   .createQueryBuilder('board')
-    //   .leftJoinAndSelect('board.user', 'user')
-    //   .loadRelationCountAndMap('board.likeCount', 'board.boardLikes')
-    //   .loadRelationCountAndMap('board.commentCount', 'board.boardComments', 'boardComments', (qb) =>
-    //     qb.andWhere('boardComments.isDeleted = :isDeleted', { isDeleted: false }),
-    //   )
-    //   .where('board.isDeleted = :isDeleted', { isDeleted: false });
-    //
-    // if (marketType) {
-    //   queryBuilder.andWhere('board.marketType = :marketType', { marketType });
+    const { pageParam, category } = params;
+
+    const queryBuilder = this.boardRepository
+      .createQueryBuilder('board')
+      .leftJoinAndSelect('board.category', 'category')
+      .leftJoinAndSelect('board.userAccount', 'userAccount')
+      .leftJoinAndSelect('userAccount.user', 'user')
+      .loadRelationCountAndMap('board.commentCount', 'board.comments')
+      .loadRelationCountAndMap('board.likeCount', 'board.likes')
+      .where('board.deletedAt IS NULL')
+      .orderBy('board.createdAt', 'DESC')
+      .skip((pageParam - 1) * LIST_LIMIT)
+      .take(LIST_LIMIT);
+
+    // if (category) {
+    //   queryBuilder.andWhere('board.category = :category', { category: StockCategoryEnum[category] });
     // }
-    //
-    // queryBuilder
-    //   .orderBy('board.createdAt', 'DESC')
-    //   .skip((pageParam - 1) * LIMIT)
-    //   .take(LIMIT);
-    //
-    // const [boards, total] = await queryBuilder.getManyAndCount();
-    //
-    // const hasNextPage = pageParam * LIMIT < total;
-    // const nextPage = hasNextPage ? pageParam + 1 : null;
-    //
-    // return { boards, total, nextPage };
+
+    const [boards, total] = await queryBuilder.getManyAndCount();
+
+    const hasNextPage = pageParam * LIST_LIMIT < total;
+    const nextPage = hasNextPage ? pageParam + 1 : null;
+
+    return { boards, total, nextPage };
   }
 
   async getMyBoardList(params: { pageParam: number; req: Request }) {
@@ -95,55 +119,77 @@ export class BoardService {
     // return { boards, total, nextPage };
   }
 
-  async getBoardDetail(params: { boardSeq: number; req: Request }) {
-    // const { boardSeq, req } = params;
-    // const { user } = req;
-    //
-    // const board = await this.boardRepository.findByBoardSeq(boardSeq);
-    //
-    // await this.boardRepository.increaseBoardViewCount(boardSeq);
-    //
-    // const isMine = board.user.userSeq === user?.userSeq;
-    //
-    // return { board, isMine };
-  }
-
   async createBoard(params: { dto: CreateBoardDto; req: Request }) {
-    // const { dto, req } = params;
-    // const { userSeq } = req.user;
-    //
-    // const user = await this.userRepository.findByUserSeq(userSeq);
-    // const board = this.boardRepository.create({ ...dto, user });
-    //
-    // await this.boardRepository.save(board);
+    const { dto, req } = params;
+    const { categoryId, title, content } = dto;
+    const { accountId } = req.userAccount;
+
+    await this.userAccountRepository.findById(accountId);
+
+    await this.boardCategoryRepository.findById(categoryId);
+
+    await this.dataSource.transaction(async (manager) => {
+      const board = manager.getRepository(Board).create({
+        type: BoardTypeEnum.GENERAL,
+        title,
+        boardCategoryId: categoryId,
+        userAccountId: accountId,
+      });
+
+      const savedBoard = await manager.getRepository(Board).save(board);
+
+      const boardArticle = manager.getRepository(BoardArticle).create({
+        content,
+        boardId: savedBoard.id,
+      });
+
+      await manager.getRepository(BoardArticle).save(boardArticle);
+    });
   }
 
-  async updateBoard(params: { boardSeq: number; dto: UpdateBoardDto; req: Request }) {
-    // const { boardSeq, dto, req } = params;
-    // const { userSeq } = req.user;
-    //
-    // const user = await this.userRepository.findByUserSeq(userSeq);
-    // const board = await this.boardRepository.findByBoardSeq(boardSeq);
-    //
-    // if (board.user.userSeq !== user.userSeq) {
-    //   throw new BadRequestException('게시물 작성자만 수정할 수 있습니다.');
-    // }
-    //
-    // await this.boardRepository.update({ boardSeq }, dto);
+  async updateBoard(params: { boardId: number; dto: UpdateBoardDto; req: Request }) {
+    const { boardId, dto, req } = params;
+    const { accountId } = req.userAccount;
+
+    await this._checkBoard({ accountId, boardId });
+
+    await this.dataSource.transaction(async (manager) => {
+      const { title, content } = dto;
+
+      await manager.getRepository(Board).update({ id: boardId }, { title });
+
+      await manager.getRepository(BoardArticle).update({ boardId }, { content });
+    });
   }
 
-  async deleteBoard(params: { boardSeq: number; req: Request }) {
-    // const { boardSeq, req } = params;
-    // const { userSeq } = req.user;
-    //
-    // const user = await this.userRepository.findByUserSeq(userSeq);
-    // const board = await this.boardRepository.findByBoardSeq(boardSeq);
-    //
-    // if (board.user.userSeq !== user.userSeq) {
-    //   throw new BadRequestException('게시물 작성자만 삭제할 수 있습니다.');
-    // }
-    //
-    // await this.boardRepository.update({ boardSeq }, { isDeleted: true, deletedAt: new Date() });
+  async deleteBoard(params: { boardId: number; req: Request }) {
+    const { boardId, req } = params;
+    const { accountId } = req.userAccount;
+
+    await this._checkBoard({ accountId, boardId });
+
+    await this.dataSource.transaction(async (manager) => {
+      await manager.getRepository(Board).update({ id: boardId }, { deletedAt: new Date() });
+
+      await manager.getRepository(BoardArticle).update({ boardId }, { deletedAt: new Date() });
+    });
+  }
+
+  async _checkBoard(params: { accountId: number; boardId: number }) {
+    const { accountId, boardId } = params;
+
+    await this.userAccountRepository.findById(accountId);
+
+    const board = await this.boardRepository.findOne({
+      where: { id: boardId, deletedAt: null },
+      relations: ['userAccount'],
+    });
+
+    if (accountId !== board.userAccount.id) {
+      throw new BadRequestException('게시물 작성자만 수정할 수 있습니다.');
+    }
+
+    await this.boardArticleRepository.findByBoardId(boardId);
   }
 
   // 게시판 댓글
