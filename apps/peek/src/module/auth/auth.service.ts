@@ -16,7 +16,6 @@ import { UserAccountRepository, UserRepository, UserVisitRepository } from '@lib
 import { BcryptHandler } from '../../handler';
 import { CheckEmailDto, CreateUserEmailDto, LoginEmailDto, LoginOauthDto } from '../../type/dto';
 import { IJwtToken } from '../../type/interface';
-import { ICheckEmailRes, ICreateUserEmailRes } from '../../type/res';
 
 @Injectable()
 export class AuthService {
@@ -31,7 +30,7 @@ export class AuthService {
     private readonly httpService: HttpService,
   ) {}
 
-  async registerEmail(dto: CreateUserEmailDto): Promise<ICreateUserEmailRes> {
+  async registerEmail(dto: CreateUserEmailDto) {
     const { nickname, name, policy, birthday, email, password } = dto;
 
     return await this.userAccountRepository.manager.transaction(async (manager) => {
@@ -52,7 +51,7 @@ export class AuthService {
     });
   }
 
-  async checkEmail(dto: CheckEmailDto): Promise<ICheckEmailRes> {
+  async checkEmail(dto: CheckEmailDto) {
     const { email } = dto;
 
     const userAccount = await this.userAccountRepository.findOne({ where: { email } });
@@ -180,25 +179,25 @@ export class AuthService {
 
   async logout(params: { req: Request }) {
     const { req } = params;
-    const { id } = req.userAccount;
+    const { accountId } = req.userAccount;
 
-    await this.userAccountRepository.update({ id }, { refreshToken: null });
+    await this.userAccountRepository.update({ id: accountId }, { refreshToken: null });
 
-    await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_OUT_EMAIL, userAccountId: id });
+    await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_OUT_EMAIL, userAccountId: accountId });
   }
 
   async refreshToken(params: { req: Request }) {
     const { req } = params;
 
-    const refreshToken = req.cookies['refreshToken'] as string;
+    const refreshToken = req.cookies['__rt__'] as string;
 
     if (!refreshToken) {
       throw new ForbiddenException('리프레시 토큰이 존재하지 않습니다.');
     }
 
-    const { id } = this.jwtService.verify<IJwtToken>(refreshToken, this.configService.get('JWT_SECRET_KEY'));
+    const { accountId } = this.jwtService.verify<IJwtToken>(refreshToken, this.configService.get('JWT_SECRET_KEY'));
 
-    const userAccount = await this.userAccountRepository.findOne({ where: { id } });
+    const userAccount = await this.userAccountRepository.findOne({ where: { id: accountId } });
 
     if (!userAccount) {
       throw new ForbiddenException('사용자 계정이 존재하지 않습니다.');
@@ -208,7 +207,7 @@ export class AuthService {
       throw new ForbiddenException('리프레시 토큰이 일치하지 않습니다.');
     }
 
-    const accessToken = await this._generateJwtToken({ id: userAccount.id }, ACCESS_TOKEN_TIME);
+    const accessToken = await this._generateJwtToken({ accountId: userAccount.id }, ACCESS_TOKEN_TIME);
 
     return { accessToken };
   }
@@ -224,17 +223,20 @@ export class AuthService {
   }
 
   private async _generateJwtToken(params: IJwtToken, expiresIn: number) {
-    const { id } = params;
+    const { accountId } = params;
 
-    return await this.jwtService.signAsync({ id }, { expiresIn, secret: this.configService.get('JWT_SECRET_KEY') });
+    return await this.jwtService.signAsync(
+      { accountId },
+      { expiresIn, secret: this.configService.get('JWT_SECRET_KEY') },
+    );
   }
 
   private async _login(params: { req: Request; type: UserVisitTypeEnum; user: User; userAccount: UserAccount }) {
     const { req, type, user, userAccount } = params;
 
-    const accessToken = await this._generateJwtToken({ id: userAccount.id }, ACCESS_TOKEN_TIME);
+    const accessToken = await this._generateJwtToken({ accountId: userAccount.id }, ACCESS_TOKEN_TIME);
 
-    const refreshToken = await this._generateJwtToken({ id: userAccount.id }, REFRESH_TOKEN_TIME);
+    const refreshToken = await this._generateJwtToken({ accountId: userAccount.id }, REFRESH_TOKEN_TIME);
 
     await this.userAccountRepository.manager.transaction(async (manager) => {
       await manager.update(UserAccount, { userId: user.id }, { refreshToken: null });

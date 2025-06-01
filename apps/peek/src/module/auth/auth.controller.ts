@@ -17,7 +17,7 @@ export class AuthController {
   async login(@Body() dto: LoginEmailDto, @Req() req: Request, @Res() res: Response) {
     const { accessToken, refreshToken } = await this.authService.login({ dto, req });
 
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie('__rt__', refreshToken, {
       httpOnly: true,
       // secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -39,10 +39,6 @@ export class AuthController {
   @Post('check-email')
   @HttpCode(200)
   async checkEmail(@Body() dto: CheckEmailDto) {
-    // const ret = await this.authService.checkEmail(dto);
-    //
-    // return { ...ret };
-
     return await this.authService.checkEmail(dto);
   }
 

@@ -1,9 +1,7 @@
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-import { IBaseAuth, IBaseAuthAccount } from '../../interface';
-
-export class CreateUserEmailDto implements IBaseAuth, IBaseAuthAccount {
+export class CreateUserEmailDto {
   @Transform(({ value }) => value.trim())
   @IsString()
   @IsNotEmpty()
@@ -21,12 +19,12 @@ export class CreateUserEmailDto implements IBaseAuth, IBaseAuthAccount {
   @Transform(({ value }) => value.trim())
   @IsString()
   @IsOptional()
-  birthday?: string;
+  birthday: string;
 
   @Transform(({ value }) => value.trim())
   @IsString()
   @IsOptional()
-  thumbnail?: string;
+  thumbnail: string;
 
   @Transform(({ value }) => value.trim())
   @IsString()

@@ -39,18 +39,18 @@ export class UserController {
   @Put()
   @HttpCode(200)
   async updateUser(@Body() dto: UpdateUserDto, @Req() req: Request) {
-    await this.userService.updateUser({ dto, req });
-
-    return;
+    // await this.userService.updateUser({ dto, req });
+    //
+    // return;
   }
 
   // 유저 비밀번호 수정
   @Patch('password')
   @HttpCode(200)
   async updatePassword(@Body() dto: UpdateUserPasswordDto, @Req() req: Request) {
-    await this.userService.updatePassword({ dto, req });
-
-    return;
+    // await this.userService.updatePassword({ dto, req });
+    //
+    // return;
   }
 
   @Post('push-token')

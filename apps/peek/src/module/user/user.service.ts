@@ -22,9 +22,9 @@ export class UserService {
   ) {}
 
   async getMyInfo(req: Request) {
-    const { id } = req.userAccount;
+    const { accountId } = req.userAccount;
 
-    return await this.userAccountRepository.findById(id);
+    return await this.userAccountRepository.findById(accountId);
   }
 
   async updateUser(params: { dto: UpdateUserDto; req: Request }) {

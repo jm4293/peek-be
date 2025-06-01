@@ -1,9 +1,7 @@
 import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-import { IUpdateUser } from '../../interface';
-
-export class UpdateUserDto implements IUpdateUser {
+export class UpdateUserDto {
   @Transform(({ value }) => value.trim())
   @IsString()
   @IsNotEmpty()
