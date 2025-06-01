@@ -11,7 +11,7 @@ export class BoardCommentRepository extends Repository<BoardComment> {
   }
 
   async findById(id: number) {
-    const ret = await this.findOne({ where: { id }, relations: ['user'] });
+    const ret = await this.findOne({ where: { id } });
 
     if (!ret) {
       throw new BadRequestException('댓글이 존재하지 않습니다.');

@@ -5,30 +5,21 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Board, UserAccount } from '@libs/database/entities';
+import { Board } from '@libs/database/entities';
 
 @Entity()
 export class BoardArticle {
+  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  title: string;
-
   @Column({ type: 'text' })
   content: string;
-
-  @Column({ type: 'int', default: 0 })
-  viewCount: number;
-
-  @Column({ type: 'int', default: 0 })
-  commentCount: number;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
@@ -45,15 +36,7 @@ export class BoardArticle {
   @Column()
   boardId: number;
 
-  @OneToOne(() => Board, (board) => board.boardArticle)
+  @OneToOne(() => Board, (board) => board.article)
   @JoinColumn({ name: 'boardId' })
   board: Board;
-
-  @Exclude()
-  @Column()
-  userAccountId: number;
-
-  @ManyToOne(() => UserAccount, (userAccount) => userAccount.boardArticles)
-  @JoinColumn({ name: 'userAccountId' })
-  userAccount: UserAccount;
 }

@@ -1,5 +1,5 @@
 export enum BoardTypeEnum {
-  GENERAL = 'GENERAL',
-  NOTICE = 'NOTICE',
-  EMERGENCY = 'EMERGENCY',
+  GENERAL = 1,
+  NOTICE = 2,
+  EMERGENCY = 3,
 }

@@ -11,7 +11,7 @@ export class BoardRepository extends Repository<Board> {
   }
 
   async findById(id: number) {
-    const ret = await this.findOne({ where: { id }, relations: ['user'] });
+    const ret = await this.findOne({ where: { id } });
 
     if (!ret) {
       throw new BadRequestException('게시물이 존재하지 않습니다.');

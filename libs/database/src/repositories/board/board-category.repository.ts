@@ -1,6 +1,6 @@
 import { EntityManager, Repository } from 'typeorm';
 
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { BoardCategory } from '@libs/database/entities';
 
@@ -8,5 +8,15 @@ import { BoardCategory } from '@libs/database/entities';
 export class BoardCategoryRepository extends Repository<BoardCategory> {
   constructor(manager: EntityManager) {
     super(BoardCategory, manager);
+  }
+
+  findById(id: number): Promise<BoardCategory> {
+    const ret = this.findOne({ where: { id } });
+
+    if (!ret) {
+      throw new BadRequestException('게시판 카테고리가 존재하지 않습니다.');
+    }
+
+    return ret;
   }
 }
