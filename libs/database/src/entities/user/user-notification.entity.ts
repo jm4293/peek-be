@@ -16,6 +16,7 @@ import { User } from '@libs/database/entities';
 
 @Entity()
 export class UserNotification {
+  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 

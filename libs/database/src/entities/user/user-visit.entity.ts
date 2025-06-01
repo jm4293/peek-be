@@ -15,6 +15,7 @@ import { User, UserAccount } from '@libs/database/entities';
 
 @Entity()
 export class UserVisit {
+  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 

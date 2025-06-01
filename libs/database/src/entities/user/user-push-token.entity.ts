@@ -13,6 +13,7 @@ import { User } from '@libs/database/entities';
 
 @Entity()
 export class UserPushToken {
+  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 

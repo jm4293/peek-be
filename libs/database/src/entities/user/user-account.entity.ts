@@ -13,7 +13,7 @@ import {
 
 import { UserAccountStatusEnum, UserAccountTypeEnum } from '@libs/constant/enum';
 
-import { BoardArticle, BoardComment, BoardLike, User, UserVisit } from '@libs/database/entities';
+import { Board, BoardArticle, BoardComment, BoardLike, User, UserVisit } from '@libs/database/entities';
 
 @Entity()
 export class UserAccount {
@@ -23,6 +23,7 @@ export class UserAccount {
     }
   }
 
+  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -67,8 +68,8 @@ export class UserAccount {
   @OneToMany(() => UserVisit, (userVisit) => userVisit.userAccount)
   userVisits: UserVisit[];
 
-  @OneToMany(() => BoardArticle, (boardArticle) => boardArticle.userAccount)
-  boardArticles: BoardArticle[];
+  @OneToMany(() => Board, (board) => board.userAccount)
+  boards: Board[];
 
   @OneToMany(() => BoardComment, (boardComment) => boardComment.userAccount)
   boardComments: BoardComment[];
