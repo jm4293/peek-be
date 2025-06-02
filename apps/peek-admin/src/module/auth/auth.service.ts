@@ -36,11 +36,11 @@ export class AuthService {
       throw new BadRequestException('어드민 계정이 아닙니다.');
     }
 
-    // const isMatch = await BcryptHandler.comparePassword(password, adminAccount.password as string);
-    //
-    // if (!isMatch) {
-    //   throw new BadRequestException('비밀번호가 일치하지 않습니다.');
-    // }
+    const isMatch = await BcryptHandler.comparePassword(password, adminAccount.password as string);
+
+    if (!isMatch) {
+      throw new BadRequestException('비밀번호가 일치하지 않습니다.');
+    }
 
     await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_IN_EMAIL, userAccountId: userAccount.id });
 
