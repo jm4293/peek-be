@@ -1,25 +1,37 @@
 import { Response } from 'express';
 
-import { Controller, Get, ParseIntPipe, Query, Res } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Put, Query, Res } from '@nestjs/common';
 
 import { ResConfig } from '../../config';
+import { GetBoardDto, GetBoardListDto } from '../../type/dto';
 import { BoardService } from './board.service';
 
 @Controller('board')
 export class BoardController {
   constructor(private readonly boardService: BoardService) {}
 
-  @Get()
-  async getBoards(@Query('pageParam', ParseIntPipe) pageParam: number, @Res() res: Response) {
-    const ret = await this.boardService.getBoards({ pageParam });
+  @Get(':boardId')
+  async getBoard(@Param() param: GetBoardDto, @Res() res: Response) {
+    const { boardId } = param;
+
+    const ret = await this.boardService.getBoard(boardId);
 
     return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
-  @Get(':boardSeq')
-  async getBoard(@Query('boardSeq', ParseIntPipe) boardSeq: number, @Res() res: Response) {
-    const ret = await this.boardService.getBoard(boardSeq);
+  @Get()
+  async getBoardList(@Query() query: GetBoardListDto, @Res() res: Response) {
+    const [users, total] = await this.boardService.getBoardList(query);
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    return ResConfig.Success({ res, statusCode: 'OK', data: { users, total } });
+  }
+
+  @Delete(':boardSeq')
+  async deleteBoard(@Param() param: GetBoardDto, @Res() res: Response) {
+    const { boardId } = param;
+
+    await this.boardService.deleteBoard(boardId);
+
+    return ResConfig.Success({ res, statusCode: 'OK' });
   }
 }

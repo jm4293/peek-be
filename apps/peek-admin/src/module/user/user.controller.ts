@@ -3,44 +3,47 @@ import { Response } from 'express';
 import { Controller, Delete, Get, Param, ParseIntPipe, Patch, Put, Query, Res } from '@nestjs/common';
 
 import { ResConfig } from '../../config';
+import { GetUserDto, GetUserListDto } from '../../type/dto';
 import { UserService } from './user.service';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get()
-  async getUsers(@Query('pageParam', ParseIntPipe) pageParam: number, @Res() res: Response) {
-    const ret = await this.userService.getUsers({ pageParam });
+  @Get(':userId')
+  async getUser(@Param() param: GetUserDto, @Res() res: Response) {
+    const { userId } = param;
+
+    const ret = await this.userService.getUser(userId);
 
     return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
-  @Get(':userSeq')
-  async getUser(@Param('userSeq', ParseIntPipe) userSeq: number, @Res() res: Response) {
-    const ret = await this.userService.getUser(userSeq);
+  @Get()
+  async getUsers(@Query() query: GetUserListDto, @Res() res: Response) {
+    const [users, total] = await this.userService.getUsers(query);
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    return ResConfig.Success({ res, statusCode: 'OK', data: { users, total } });
   }
 
   @Put(':userSeq')
   async updateUser(@Param('userSeq', ParseIntPipe) userSeq: number, @Res() res: Response) {
-    await this.userService.updateUser(userSeq);
-
-    return ResConfig.Success({ res, statusCode: 'OK' });
+    // await this.userService.updateUser(userSeq);
+    //
+    // return ResConfig.Success({ res, statusCode: 'OK' });
   }
 
   @Patch(':userSeq/pause')
   async pauseUser(@Param('userSeq', ParseIntPipe) userSeq: number, @Res() res: Response) {
-    await this.userService.pauseUser(userSeq);
-
-    return ResConfig.Success({ res, statusCode: 'OK' });
+    // await this.userService.pauseUser(userSeq);
+    //
+    // return ResConfig.Success({ res, statusCode: 'OK' });
   }
 
   @Delete(':userSeq')
   async deleteUser(@Param('userSeq', ParseIntPipe) userSeq: number, @Res() res: Response) {
-    await this.userService.deleteUser(userSeq);
-
-    return ResConfig.Success({ res, statusCode: 'OK' });
+    // await this.userService.deleteUser(userSeq);
+    //
+    // return ResConfig.Success({ res, statusCode: 'OK' });
   }
 }

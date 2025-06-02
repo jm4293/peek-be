@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Board } from '@libs/database/entities';
+import { Board, StockCompany } from '@libs/database/entities';
 
 @Entity()
 export class BoardCategory {
@@ -41,4 +41,7 @@ export class BoardCategory {
 
   @OneToMany(() => Board, (board) => board.category)
   boards: Board[];
+
+  @OneToMany(() => StockCompany, (stockCompany) => stockCompany.category)
+  stockCompanies: StockCompany[];
 }

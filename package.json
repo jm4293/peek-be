@@ -12,6 +12,7 @@
     "start": "concurrently \"nest start peek\" \"nest start peek-admin\"",
     "start:dev": "concurrently \"nest start --watch peek\" \"nest start --watch peek-admin\"",
     "start:debug": "concurrently \"nest start --debug --watch peek\" \"nest start --debug --watch peek-admin\"",
+    "start-dev:debug": "concurrently \"nest start --debug --watch peek-admin\"",
     "start:prod": "concurrently \"node dist/apps/peek/main\" \"node dist/apps/peek-admin/main\"",
     "build-rm": "rm -rf dist",
     "node_modules-rm": "rm -rf ./node_modules"

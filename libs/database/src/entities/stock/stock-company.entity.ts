@@ -1,4 +1,15 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Exclude } from 'class-transformer';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+
+import { BoardCategory } from '@libs/database/entities';
 
 @Entity()
 export class StockCompany {
@@ -24,9 +35,6 @@ export class StockCompany {
   homePage: string;
 
   @Column({ type: 'varchar', nullable: true })
-  marketType: string;
-
-  @Column({ type: 'varchar', nullable: true })
   listingAt: string;
 
   @CreateDateColumn({ type: 'timestamp' })
@@ -34,4 +42,12 @@ export class StockCompany {
 
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
+
+  @Exclude()
+  @Column()
+  boardCategoryId: number;
+
+  @ManyToOne(() => BoardCategory, (boardCategory) => boardCategory.stockCompanies)
+  @JoinColumn({ name: 'boardCategoryId' })
+  category: BoardCategory;
 }
