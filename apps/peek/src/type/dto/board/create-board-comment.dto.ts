@@ -1,11 +1,9 @@
-import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNumber, IsOptional } from 'class-validator';
 
-import { IBaseBoardComment } from '../../interface';
+import { BaseBoardCommentDto } from './base-board-comment.dto';
 
-export class CreateBoardCommentDto implements IBaseBoardComment {
-  @Transform(({ value }) => value.trim())
-  @IsString()
-  @IsNotEmpty()
-  content: string;
+export class CreateBoardCommentDto extends BaseBoardCommentDto {
+  @IsNumber()
+  @IsOptional()
+  commentId: number;
 }

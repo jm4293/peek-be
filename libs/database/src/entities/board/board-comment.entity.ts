@@ -15,6 +15,12 @@ import { Board, UserAccount } from '@libs/database/entities';
 
 @Entity()
 export class BoardComment {
+  constructor(partial?: Partial<BoardComment>) {
+    if (partial) {
+      return Object.assign(this, partial);
+    }
+  }
+
   @PrimaryGeneratedColumn()
   id: number;
 
