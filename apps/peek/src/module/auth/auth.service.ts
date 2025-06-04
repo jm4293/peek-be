@@ -1,10 +1,11 @@
 import { Request } from 'express';
-import { EntityManager } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { InjectDataSource } from '@nestjs/typeorm';
 
 import { UserAccountTypeEnum, UserVisitTypeEnum, userAccountTypeDescription } from '@libs/constant/enum';
 import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from '@libs/constant/jwt';
@@ -23,33 +24,13 @@ export class AuthService {
     private readonly userRepository: UserRepository,
     private readonly userAccountRepository: UserAccountRepository,
     private readonly userVisitRepository: UserVisitRepository,
-    // private readonly userPushTokenRepository: UserPushTokenRepository,
 
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
+
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
-
-  async registerEmail(dto: CreateUserEmailDto) {
-    const { nickname, name, policy, birthday, email, password } = dto;
-
-    return await this.userAccountRepository.manager.transaction(async (manager) => {
-      const user = await this._createUser({ nickname, name, policy, birthday }, manager);
-
-      const hashedPassword = await BcryptHandler.hashPassword(password);
-
-      const newUserAccount = manager.create(UserAccount, {
-        user,
-        userAccountType: UserAccountTypeEnum.EMAIL,
-        email,
-        password: hashedPassword,
-      });
-
-      await manager.save(UserAccount, newUserAccount);
-
-      return { email: newUserAccount.email };
-    });
-  }
 
   async checkEmail(dto: CheckEmailDto) {
     const { email } = dto;
@@ -77,6 +58,28 @@ export class AuthService {
     }
 
     return { isExist: false, email };
+  }
+
+  async registerEmail(dto: CreateUserEmailDto) {
+    const { nickname, name, policy, birthday, email, password } = dto;
+
+    return await this.dataSource.transaction(async (manager: EntityManager) => {
+      const user = manager.create(User, { nickname, name, policy, birthday, thumbnail: null });
+      const savedUser = await manager.save(User, user);
+
+      const hashedPassword = await BcryptHandler.hashPassword(password);
+
+      const userAccount = manager.create(UserAccount, {
+        userId: savedUser.id,
+        userAccountType: UserAccountTypeEnum.EMAIL,
+        email,
+        password: hashedPassword,
+      });
+
+      await manager.save(UserAccount, userAccount);
+
+      return { email };
+    });
   }
 
   async login(params: { dto: LoginEmailDto; req: Request }) {
@@ -235,10 +238,9 @@ export class AuthService {
     const { req, type, user, userAccount } = params;
 
     const accessToken = await this._generateJwtToken({ accountId: userAccount.id }, ACCESS_TOKEN_TIME);
-
     const refreshToken = await this._generateJwtToken({ accountId: userAccount.id }, REFRESH_TOKEN_TIME);
 
-    await this.userAccountRepository.manager.transaction(async (manager) => {
+    await this.dataSource.transaction(async (manager) => {
       await manager.update(UserAccount, { userId: user.id }, { refreshToken: null });
       await manager.update(UserAccount, { id: userAccount.id }, { refreshToken });
     });
@@ -271,22 +273,5 @@ export class AuthService {
     // );
     //
     // return resizingPicture.data.resizedImageUrl;
-  }
-
-  private async _createUser(
-    params: {
-      nickname: string;
-      name: string;
-      policy: boolean;
-      birthday?: string;
-      thumbnail?: string;
-    },
-    manager: EntityManager,
-  ) {
-    const { nickname, name, policy, birthday, thumbnail } = params;
-
-    const user = manager.create(User, { nickname, name, policy, birthday, thumbnail });
-
-    return await manager.save(User, user);
   }
 }

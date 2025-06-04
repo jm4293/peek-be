@@ -13,6 +13,19 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @Post('check-email')
+  @HttpCode(200)
+  async checkEmail(@Body() dto: CheckEmailDto) {
+    return await this.authService.checkEmail(dto);
+  }
+
+  @Public()
+  @Post('register')
+  async register(@Body() dto: CreateUserEmailDto) {
+    return await this.authService.registerEmail(dto);
+  }
+
+  @Public()
   @Post('login')
   async login(@Body() dto: LoginEmailDto, @Req() req: Request, @Res() res: Response) {
     const { accessToken, refreshToken } = await this.authService.login({ dto, req });
@@ -36,29 +49,24 @@ export class AuthController {
   }
 
   @Public()
-  @Post('check-email')
-  @HttpCode(200)
-  async checkEmail(@Body() dto: CheckEmailDto) {
-    return await this.authService.checkEmail(dto);
-  }
-
-  @Public()
-  @Post('register')
-  async register(@Body() dto: CreateUserEmailDto) {
-    // const ret = await this.authService.registerEmail(dto);
-    //
-    // return { ...ret };
-
-    return await this.authService.registerEmail(dto);
-  }
-
-  @Public()
   @Post('refresh-token')
   @HttpCode(200)
-  async refreshToken(@Req() req: Request) {
-    const { accessToken } = await this.authService.refreshToken({ req });
+  async refreshToken(@Req() req: Request, @Res() res: Response) {
+    try {
+      const { accessToken } = await this.authService.refreshToken({ req });
 
-    return { accessToken };
+      res.status(200).json({ accessToken });
+    } catch (err) {
+      const cookies = req.cookies;
+
+      for (const cookie in cookies) {
+        if (cookies.hasOwnProperty(cookie)) {
+          res.clearCookie(cookie);
+        }
+      }
+
+      res.status(200).json();
+    }
   }
 
   @Post('logout')
@@ -73,6 +81,6 @@ export class AuthController {
       }
     }
 
-    return res.status(200).json();
+    res.status(200).json();
   }
 }
