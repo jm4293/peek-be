@@ -1,27 +1,14 @@
 import { Board, BoardCategory, BoardComment } from '@libs/database';
-import { Request, Response } from 'express';
+import { Request } from 'express';
 
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseEnumPipe,
-  ParseIntPipe,
-  Post,
-  Put,
-  Query,
-  Req,
-  Res,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Req, Res } from '@nestjs/common';
 
 import { Public } from '../../decorator';
 import { ParseReqHandler } from '../../handler';
 import {
   CreateBoardCommentDto,
-  CreateBoardCommentReplyDto,
   CreateBoardDto,
+  GetBoardCommentDto,
   GetBoardCommentListDto,
   GetBoardDto,
   GetBoardListDto,
@@ -40,7 +27,9 @@ export class BoardController {
   async getBoardCategoryList() {
     const ret = await this.boardService.getBoardCategoryList();
 
-    return ret.map((item) => new BoardCategory(item));
+    return {
+      boardCategories: ret.map((item) => new BoardCategory(item)),
+    };
   }
 
   // 게시판
@@ -122,30 +111,34 @@ export class BoardController {
     const { boardId } = param;
     const { accountId } = ParseReqHandler.parseReq(req);
 
-    await this.boardService.createBoardComment({ boardId, dto, accountId });
+    await this.boardService.createBoardComment({ boardId, accountId, dto });
   }
 
   @Put(':boardSeq/comment/:boardCommentSeq')
   async updateBoardComment(
-    @Param('boardSeq', ParseIntPipe) boardSeq: number,
-    @Param('boardCommentSeq', ParseIntPipe) boardCommentSeq: number,
+    @Param() boardParam: GetBoardDto,
+    @Param() boardCommentParam: GetBoardCommentDto,
     @Body() dto: UpdateBoardCommentDto,
     @Req() req: Request,
   ) {
-    // await this.boardService.updateBoardComment({ boardSeq, boardCommentSeq, dto, req });
-    //
-    // return ResConfig.Success({ res, statusCode: 'OK' });
+    const { boardId } = boardParam;
+    const { boardCommentId } = boardCommentParam;
+    const { accountId } = ParseReqHandler.parseReq(req);
+
+    await this.boardService.updateBoardComment({ boardId, boardCommentId, accountId, dto });
   }
 
   @Delete(':boardSeq/comment/:boardCommentSeq')
   async deleteBoardComment(
-    @Param('boardSeq', ParseIntPipe) boardSeq: number,
-    @Param('boardCommentSeq', ParseIntPipe) boardCommentSeq: number,
+    @Param() boardParam: GetBoardDto,
+    @Param() boardCommentParam: GetBoardCommentDto,
     @Req() req: Request,
   ) {
-    // await this.boardService.deleteBoardComment({ boardSeq, boardCommentSeq, req });
-    //
-    // return ResConfig.Success({ res, statusCode: 'OK' });
+    const { boardId } = boardParam;
+    const { boardCommentId } = boardCommentParam;
+    const { accountId } = ParseReqHandler.parseReq(req);
+
+    await this.boardService.deleteBoardComment({ boardId, boardCommentId, accountId });
   }
 
   // 게시판 좋아요(찜)

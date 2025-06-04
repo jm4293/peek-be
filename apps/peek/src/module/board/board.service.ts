@@ -15,7 +15,6 @@ import {
   BoardLikeRepository,
   BoardRepository,
   UserAccountRepository,
-  UserPushTokenRepository,
   UserRepository,
 } from '@libs/database/repositories';
 
@@ -40,8 +39,6 @@ export class BoardService {
 
     private readonly userRepository: UserRepository,
     private readonly userAccountRepository: UserAccountRepository,
-    private readonly userPushTokenRepository: UserPushTokenRepository,
-    // private readonly notificationHandler: NotificationHandler,
 
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
@@ -76,16 +73,18 @@ export class BoardService {
       .leftJoinAndSelect('board.category', 'category')
       .leftJoinAndSelect('board.userAccount', 'userAccount')
       .leftJoinAndSelect('userAccount.user', 'user')
-      .loadRelationCountAndMap('board.commentCount', 'board.comments')
+      .loadRelationCountAndMap('board.commentCount', 'board.comments', 'comments', (qb) =>
+        qb.andWhere('comments.parentCommentId IS NULL'),
+      )
       .loadRelationCountAndMap('board.likeCount', 'board.likes')
       .where('board.deletedAt IS NULL')
       .orderBy('board.createdAt', 'DESC')
       .skip((pageParam - 1) * LIST_LIMIT)
       .take(LIST_LIMIT);
 
-    // if (category) {
-    //   queryBuilder.andWhere('board.category = :category', { category: StockCategoryEnum[category] });
-    // }
+    if (category) {
+      queryBuilder.andWhere('board.category = :category', { category });
+    }
 
     const [boards, total] = await queryBuilder.getManyAndCount();
 
@@ -170,7 +169,6 @@ export class BoardService {
 
     await this.dataSource.transaction(async (manager) => {
       await manager.getRepository(Board).update({ id: boardId }, { deletedAt: new Date() });
-
       await manager.getRepository(BoardArticle).update({ boardId }, { deletedAt: new Date() });
     });
   }
@@ -243,7 +241,7 @@ export class BoardService {
     // return { boardComments, total, nextPage };
   }
 
-  async createBoardComment(params: { boardId: number; dto: CreateBoardCommentDto; accountId: number }) {
+  async createBoardComment(params: { boardId: number; accountId: number; dto: CreateBoardCommentDto }) {
     const { boardId, dto, accountId } = params;
     const { content, commentId } = dto;
 
@@ -262,39 +260,36 @@ export class BoardService {
   }
 
   async updateBoardComment(params: {
-    boardSeq: number;
-    boardCommentSeq: number;
+    boardId: number;
+    boardCommentId: number;
+    accountId: number;
     dto: UpdateBoardCommentDto;
-    req: Request;
   }) {
-    // const { boardSeq, boardCommentSeq, dto, req } = params;
-    // const { userSeq } = req.user;
-    // const { content } = dto;
-    //
-    // await this.boardRepository.findByBoardSeq(boardSeq);
-    // const user = await this.userRepository.findByUserSeq(userSeq);
-    // const boardComment = await this.boardCommentRepository.findByBoardCommentSeq(boardCommentSeq);
-    //
-    // if (boardComment.user.userSeq !== user.userSeq) {
-    //   throw new BadRequestException('댓글 작성자만 수정할 수 있습니다.');
-    // }
-    //
-    // await this.boardCommentRepository.update({ boardCommentSeq }, { content });
+    const { boardId, boardCommentId, accountId, dto } = params;
+    const { content } = dto;
+
+    await this.userAccountRepository.findById(accountId);
+    await this.boardRepository.findById(boardId);
+    const comment = await this.boardCommentRepository.findById(boardCommentId);
+
+    if (comment.userAccount.id !== accountId) {
+      throw new BadRequestException('댓글 작성자만 수정할 수 있습니다.');
+    }
+
+    await this.boardCommentRepository.update({ id: boardCommentId }, { content });
   }
 
-  async deleteBoardComment(params: { boardSeq: number; boardCommentSeq: number; req: Request }) {
-    // const { boardSeq, boardCommentSeq, req } = params;
-    // const { userSeq } = req.user;
-    //
-    // await this.boardRepository.findByBoardSeq(boardSeq);
-    // const user = await this.userRepository.findByUserSeq(userSeq);
-    // const boardComment = await this.boardCommentRepository.findByBoardCommentSeq(boardCommentSeq);
-    //
-    // if (boardComment.user.userSeq !== user.userSeq) {
-    //   throw new BadRequestException('댓글 작성자만 삭제할 수 있습니다.');
-    // }
-    //
-    // await this.boardCommentRepository.update({ boardCommentSeq }, { isDeleted: true, deletedAt: new Date() });
+  async deleteBoardComment(params: { boardId: number; boardCommentId: number; accountId: number }) {
+    const { boardId, boardCommentId, accountId } = params;
+
+    await this.userAccountRepository.findById(accountId);
+    await this.boardRepository.findById(boardId);
+    const comment = await this.boardCommentRepository.findById(boardCommentId);
+
+    if (comment.userAccount.id !== accountId) {
+      throw new BadRequestException('댓글 작성자만 삭제할 수 있습니다.');
+    }
+    await this.boardCommentRepository.update({ id: boardCommentId }, { deletedAt: new Date() });
   }
 
   // 게시판 좋아요(찜)
