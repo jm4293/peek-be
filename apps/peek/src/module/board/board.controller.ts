@@ -114,7 +114,7 @@ export class BoardController {
     await this.boardService.createBoardComment({ boardId, accountId, dto });
   }
 
-  @Put(':boardSeq/comment/:boardCommentSeq')
+  @Put(':boardId/comment/:boardCommentId')
   async updateBoardComment(
     @Param() boardParam: GetBoardDto,
     @Param() boardCommentParam: GetBoardCommentDto,
@@ -128,7 +128,7 @@ export class BoardController {
     await this.boardService.updateBoardComment({ boardId, boardCommentId, accountId, dto });
   }
 
-  @Delete(':boardSeq/comment/:boardCommentSeq')
+  @Delete(':boardId/comment/:boardCommentId')
   async deleteBoardComment(
     @Param() boardParam: GetBoardDto,
     @Param() boardCommentParam: GetBoardCommentDto,

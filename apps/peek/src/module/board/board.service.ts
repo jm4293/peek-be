@@ -156,7 +156,6 @@ export class BoardService {
       const { title, content } = dto;
 
       await manager.getRepository(Board).update({ id: boardId }, { title });
-
       await manager.getRepository(BoardArticle).update({ boardId }, { content });
     });
   }
@@ -286,9 +285,10 @@ export class BoardService {
     await this.boardRepository.findById(boardId);
     const comment = await this.boardCommentRepository.findById(boardCommentId);
 
-    if (comment.userAccount.id !== accountId) {
+    if (comment.userAccountId !== accountId) {
       throw new BadRequestException('댓글 작성자만 삭제할 수 있습니다.');
     }
+
     await this.boardCommentRepository.update({ id: boardCommentId }, { deletedAt: new Date() });
   }
 
