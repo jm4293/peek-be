@@ -1,6 +1,6 @@
 import { Request } from 'express';
 
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
@@ -27,7 +27,7 @@ export class AuthGuardConfig implements CanActivate {
     const token = this._extractTokenFromHeader(request);
 
     if (!token) {
-      throw new UnauthorizedException('토큰이 없습니다. 로그인이 필요합니다.');
+      throw new ForbiddenException('토큰이 없습니다. 로그인이 필요합니다.');
     }
 
     try {
