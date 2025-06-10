@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import { catchError, firstValueFrom } from 'rxjs';
 import { DataSource, EntityManager } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
@@ -88,6 +89,12 @@ export class AuthService {
 
     const userAccount = await this.userAccountRepository.findByEmail(email);
 
+    if (userAccount.userAccountType !== UserAccountTypeEnum.EMAIL) {
+      throw new BadRequestException(
+        `이메일: ${email}은 ${userAccountTypeDescription[userAccount.userAccountType]} 간편로그인 회원입니다.`,
+      );
+    }
+
     const isMatch = await BcryptHandler.comparePassword(password, userAccount.password as string);
 
     if (!isMatch) {
@@ -98,86 +105,15 @@ export class AuthService {
   }
 
   async loginOauth(params: { dto: LoginOauthDto; req: Request }) {
-    //   const { dto, req } = params;
-    //   const { userAccountType, access_token } = dto;
-    //   switch (userAccountType) {
-    //     case UserAccountTypeEnum.GOOGLE: {
-    //       const googleResponse = await firstValueFrom(
-    //         this.httpService.get<IGetOauthGoogleTokenRes>(
-    //           `${this.configService.get('GOOGLE_OAUTH_URL')}?access_token=${access_token}`,
-    //         ),
-    //       );
-    //       const { email, name, picture } = googleResponse.data;
-    //       const imageResponse = await firstValueFrom(this.httpService.get(picture, { responseType: 'arraybuffer' }));
-    //       const blob = new Blob([imageResponse.data], { type: 'image/jpeg' });
-    //       const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
-    //       const resizingPicture = await this._resizingImage({ imageFile: file, width: 100, height: 100 });
-    //       const userAccount = await this.userAccountRepository.findOne({
-    //         where: { email, userAccountType: UserAccountTypeEnum.GOOGLE },
-    //         relations: ['user'],
-    //       });
-    //       if (userAccount) {
-    //         // 유저 계정이 있는 경우
-    //         await this.userRepository.update(
-    //           { userSeq: userAccount.user.userSeq },
-    //           { nickname: name, name, thumbnail: resizingPicture },
-    //         );
-    //         const userAccountGoogle = await this.userAccountRepository.findOne({
-    //           where: { email, userAccountType: UserAccountTypeEnum.GOOGLE },
-    //           relations: ['user'],
-    //         });
-    //         if (userAccountGoogle) {
-    //           // 구글 유저 계정이 있는 경우 로그인으로 진행
-    //           return await this._login({
-    //             req,
-    //             user: userAccountGoogle.user,
-    //             userAccount: userAccountGoogle,
-    //             type: UserVisitTypeEnum.SIGN_IN_OAUTH_GOOGLE,
-    //           });
-    //         } else {
-    //           // 유저 계정은 있으나 구글 계정이 없는 경우 구글 계정으로 연동
-    //           const newUserAccount = await this.userAccountRepository.createUserAccountByOauth({
-    //             userAccountType: UserAccountTypeEnum.GOOGLE,
-    //             email,
-    //             user: userAccount.user,
-    //           });
-    //           return await this._login({
-    //             req,
-    //             user: newUserAccount.user,
-    //             userAccount: newUserAccount,
-    //             type: UserVisitTypeEnum.SIGN_IN_OAUTH_GOOGLE,
-    //           });
-    //         }
-    //       } else {
-    //         // 유저 계정이 없는 경우 회원가입으로 진행
-    //         const newUser = await this.userRepository.createUser({
-    //           nickname: name,
-    //           name,
-    //           policy: true,
-    //           birthday: undefined,
-    //           thumbnail: resizingPicture,
-    //         });
-    //         const newUserAccount = await this.userAccountRepository.createUserAccountByOauth({
-    //           userAccountType: UserAccountTypeEnum.GOOGLE,
-    //           email,
-    //           user: newUser,
-    //         });
-    //         return await this._login({
-    //           req,
-    //           user: newUser,
-    //           userAccount: newUserAccount,
-    //           type: UserVisitTypeEnum.SIGN_IN_OAUTH_GOOGLE,
-    //         });
-    //       }
-    //     }
-    //     case UserAccountTypeEnum.KAKAO:
-    //       break;
-    //     case UserAccountTypeEnum.NAVER:
-    //       break;
-    //     default:
-    //       break;
-    //   }
-    //   return;
+    const { dto, req } = params;
+    const { userAccountType, access_token } = dto;
+
+    switch (userAccountType) {
+      case UserAccountTypeEnum.GOOGLE:
+        return await this._googleOauthLogin({ req, access_token });
+      default:
+        break;
+    }
   }
 
   async logout(params: { req: Request }) {
@@ -248,6 +184,99 @@ export class AuthService {
     await this._registerUserVisit({ req, type, userAccountId: userAccount.id });
 
     return { accessToken, refreshToken };
+  }
+
+  private async _googleOauthLogin(params: { req: Request; access_token: string }) {
+    const { req, access_token } = params;
+
+    const googleResponse = await firstValueFrom(
+      this.httpService
+        .get<{
+          email: string;
+          name: string;
+          picture: string;
+        }>(`${this.configService.get('GOOGLE_OAUTH_URL')}?access_token=${access_token}`)
+        .pipe(
+          catchError((error) => {
+            throw new BadRequestException(`구글 OAuth 인증에 실패했습니다: ${error.message}`);
+          }),
+        ),
+    );
+
+    const { email, name, picture } = googleResponse.data;
+
+    // const imageResponse = await firstValueFrom(this.httpService.get(picture, { responseType: 'arraybuffer' }));
+    // const blob = new Blob([imageResponse.data], { type: 'image/jpeg' });
+    // const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+    // const resizingPicture = await this._resizingImage({ imageFile: file, width: 100, height: 100 });
+
+    const googleAccount = await this.userAccountRepository.findOne({
+      where: { email, userAccountType: UserAccountTypeEnum.GOOGLE },
+      relations: ['user'],
+    });
+
+    // 구글 계정이 있는 경우 로그인으로 진행
+    if (googleAccount) {
+      await this.userRepository.update({ id: googleAccount.user.id }, { nickname: name, name, thumbnail: null });
+
+      return await this._login({
+        req,
+        type: UserVisitTypeEnum.SIGN_IN_OAUTH_GOOGLE,
+        user: googleAccount.user,
+        userAccount: googleAccount,
+      });
+    }
+
+    const account = await this.userAccountRepository.findOne({
+      where: { email, userAccountType: UserAccountTypeEnum.EMAIL },
+      relations: ['user'],
+    });
+
+    // 이메일 계정이 있으나 구글 계정이 없는 경우
+    if (account) {
+      await this.userRepository.update({ id: account.user.id }, { nickname: name, name, thumbnail: null });
+
+      const savedGoogleAccount = this.userAccountRepository.create({
+        userId: account.user.id,
+        userAccountType: UserAccountTypeEnum.GOOGLE,
+        email,
+      });
+
+      await this.userAccountRepository.save(savedGoogleAccount);
+
+      return await this._login({
+        req,
+        type: UserVisitTypeEnum.SIGN_IN_OAUTH_GOOGLE,
+        user: account.user,
+        userAccount: account,
+      });
+    }
+
+    // 구글 회원가입
+    const savedUser = this.userRepository.create({
+      nickname: name,
+      name,
+      policy: true,
+      birthday: undefined,
+      thumbnail: null,
+    });
+
+    const newUser = await this.userRepository.save(savedUser);
+
+    const savedGoogleAccount = this.userAccountRepository.create({
+      userAccountType: UserAccountTypeEnum.GOOGLE,
+      email,
+      user: newUser,
+    });
+
+    const newUserAccount = await this.userAccountRepository.save(savedGoogleAccount);
+
+    return await this._login({
+      req,
+      type: UserVisitTypeEnum.SIGN_IN_OAUTH_GOOGLE,
+      user: newUser,
+      userAccount: newUserAccount,
+    });
   }
 
   private async _resizingImage(params: { imageFile: File; width: number; height: number }) {

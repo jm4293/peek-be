@@ -10,14 +10,6 @@ export class UserRepository extends Repository<User> {
     super(User, manager);
   }
 
-  // async createUser(dto: { nickname: string; name: string; policy: boolean; birthday?: string; thumbnail?: string }) {
-  //   const { nickname, name, policy, birthday, thumbnail } = dto;
-  //
-  //   const user = this.create({ nickname, name, policy, birthday, thumbnail });
-  //
-  //   return await this.save(user);
-  // }
-
   async findById(id: number) {
     const ret = await this.findOne({ where: { id } });
 
