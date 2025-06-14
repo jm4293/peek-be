@@ -16,11 +16,13 @@ import {
   Req,
 } from '@nestjs/common';
 
+import { ParseReqHandler } from '../../handler';
 import {
   ReadUserNotificationDto,
   RegisterUserPushTokenDto,
   UpdateUserDto,
   UpdateUserPasswordDto,
+  UpdateUserThumbnailDto,
 } from '../../type/dto';
 import { UserService } from './user.service';
 
@@ -39,9 +41,17 @@ export class UserController {
   @Put()
   @HttpCode(200)
   async updateUser(@Body() dto: UpdateUserDto, @Req() req: Request) {
-    // await this.userService.updateUser({ dto, req });
-    //
-    // return;
+    const { accountId } = ParseReqHandler.parseReq(req);
+
+    await this.userService.updateUser({ dto, accountId });
+  }
+
+  @Patch('thumbnail')
+  @HttpCode(200)
+  async updateThumbnail(@Body() dto: UpdateUserThumbnailDto, @Req() req: Request) {
+    const { accountId } = ParseReqHandler.parseReq(req);
+
+    await this.userService.updateThumbnail({ dto, accountId });
   }
 
   // 유저 비밀번호 수정

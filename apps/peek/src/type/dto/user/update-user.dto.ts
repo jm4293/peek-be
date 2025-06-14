@@ -20,5 +20,5 @@ export class UpdateUserDto {
   @Transform(({ value }) => value.trim())
   @IsString()
   @IsOptional()
-  thumbnailUrl: string;
+  thumbnail: string;
 }

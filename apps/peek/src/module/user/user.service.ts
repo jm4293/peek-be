@@ -10,6 +10,7 @@ import {
   RegisterUserPushTokenDto,
   UpdateUserDto,
   UpdateUserPasswordDto,
+  UpdateUserThumbnailDto,
 } from '../../type/dto';
 
 @Injectable()
@@ -27,18 +28,34 @@ export class UserService {
     return await this.userAccountRepository.findById(accountId);
   }
 
-  async updateUser(params: { dto: UpdateUserDto; req: Request }) {
-    // const { dto, req } = params;
-    // const { userSeq } = req.user;
-    //
-    // const user = await this.userRepository.findByUserSeq(userSeq);
-    //
-    // user.nickname = dto.nickname;
-    // user.name = dto.name;
-    // user.birthday = dto.birthday;
-    // user.thumbnail = dto.thumbnailUrl;
-    //
-    // await this.userRepository.save(user);
+  async updateUser(params: { dto: UpdateUserDto; accountId: number }) {
+    const { dto, accountId } = params;
+
+    const { user } = await this.userAccountRepository.findOne({
+      where: { id: accountId },
+      relations: ['user'],
+    });
+
+    user.nickname = dto.nickname;
+    user.name = dto.name;
+    user.birthday = dto.birthday;
+    user.thumbnail = dto.thumbnail;
+
+    await this.userRepository.save(user);
+  }
+
+  async updateThumbnail(params: { dto: UpdateUserThumbnailDto; accountId: number }) {
+    const { dto, accountId } = params;
+    const { thumbnail } = dto;
+
+    const { user } = await this.userAccountRepository.findOne({
+      where: { id: accountId },
+      relations: ['user'],
+    });
+
+    user.thumbnail = thumbnail;
+
+    await this.userRepository.save(user);
   }
 
   async updatePassword(params: { dto: UpdateUserPasswordDto; req: Request }) {
