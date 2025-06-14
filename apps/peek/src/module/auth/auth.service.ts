@@ -1,3 +1,4 @@
+import { AxiosResponse } from 'axios';
 import { Request } from 'express';
 import { catchError, firstValueFrom } from 'rxjs';
 import { DataSource, EntityManager } from 'typeorm';
@@ -205,10 +206,10 @@ export class AuthService {
 
     const { email, name, picture } = googleResponse.data;
 
-    // const imageResponse = await firstValueFrom(this.httpService.get(picture, { responseType: 'arraybuffer' }));
-    // const blob = new Blob([imageResponse.data], { type: 'image/jpeg' });
-    // const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
-    // const resizingPicture = await this._resizingImage({ imageFile: file, width: 100, height: 100 });
+    const imageResponse = await firstValueFrom(this.httpService.get(picture, { responseType: 'arraybuffer' }));
+    const blob = new Blob([imageResponse.data], { type: 'image/jpeg' });
+    const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+    const thumbnail = await this._resizingImage({ imageFile: file });
 
     const googleAccount = await this.userAccountRepository.findOne({
       where: { email, userAccountType: UserAccountTypeEnum.GOOGLE },
@@ -217,7 +218,7 @@ export class AuthService {
 
     // 구글 계정이 있는 경우 로그인으로 진행
     if (googleAccount) {
-      await this.userRepository.update({ id: googleAccount.user.id }, { nickname: name, name, thumbnail: null });
+      await this.userRepository.update({ id: googleAccount.user.id }, { nickname: name, name, thumbnail });
 
       return await this._login({
         req,
@@ -234,7 +235,7 @@ export class AuthService {
 
     // 이메일 계정이 있으나 구글 계정이 없는 경우
     if (account) {
-      await this.userRepository.update({ id: account.user.id }, { nickname: name, name, thumbnail: null });
+      await this.userRepository.update({ id: account.user.id }, { nickname: name, name, thumbnail });
 
       const savedGoogleAccount = this.userAccountRepository.create({
         userId: account.user.id,
@@ -258,7 +259,7 @@ export class AuthService {
       name,
       policy: true,
       birthday: undefined,
-      thumbnail: null,
+      thumbnail,
     });
 
     const newUser = await this.userRepository.save(savedUser);
@@ -279,28 +280,19 @@ export class AuthService {
     });
   }
 
-  private async _resizingImage(params: { imageFile: File; width: number; height: number }) {
-    // const { imageFile, width, height } = params;
-    //
-    // const formData = new FormData();
-    //
-    // formData.append('image', imageFile);
-    // formData.append('width', width.toString());
-    // formData.append('height', height.toString());
-    //
-    // const resizingPicture = await firstValueFrom<AxiosResponse<{ resizedImageUrl: string }>>(
-    //   // this.httpService.post(
-    //   //   `${this.configService.get('IMAGE_RESIZING_URL')}:${this.configService.get('IMAGE_RESIZING_PORT')}/${this.configService.get('IMAGE_RESIZING_PREFIX')}`,
-    //   //   formData,
-    //   //   { headers: { 'Content-Type': 'multipart/form-data' } },
-    //   // ),
-    //   this.httpService.post(
-    //     `${this.configService.get('IMAGE_RESIZING_URL')}/${this.configService.get('IMAGE_RESIZING_PREFIX')}/upload`,
-    //     formData,
-    //     { headers: { 'Content-Type': 'multipart/form-data' } },
-    //   ),
-    // );
-    //
-    // return resizingPicture.data.resizedImageUrl;
+  private async _resizingImage(params: { imageFile: File }) {
+    const { imageFile } = params;
+
+    const formData = new FormData();
+
+    formData.append('image', imageFile);
+
+    const resizingPicture = await firstValueFrom<AxiosResponse<{ name: string }>>(
+      this.httpService.post(`http://localhost:${this.configService.get('IMAGE_SERVER_PORT')}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }),
+    );
+
+    return resizingPicture.data.name;
   }
 }
