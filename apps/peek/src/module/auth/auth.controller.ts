@@ -53,6 +53,13 @@ export class AuthController {
   async loginOauth(@Body() dto: LoginOauthDto, @Req() req: Request, @Res() res: Response) {
     const { accessToken, refreshToken } = await this.authService.loginOauth({ dto, req });
 
+    res.cookie(ACCESS_TOKEN_NAME, accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: ACCESS_TOKEN_COOKIE_TIME,
+    });
+
     res.cookie('__rt', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -60,11 +67,11 @@ export class AuthController {
       maxAge: REFRESH_TOKEN_COOKIE_TIME,
     });
 
-    res.status(200).json({ accessToken });
+    res.status(200).json({});
   }
 
   @Public()
-  @Post('refresh-token')
+  @Post('refresh')
   @HttpCode(200)
   async refreshToken(@Req() req: Request, @Res() res: Response) {
     try {
@@ -77,7 +84,7 @@ export class AuthController {
         maxAge: ACCESS_TOKEN_COOKIE_TIME,
       });
 
-      res.status(200).json({});
+      res.status(200).json({ accessToken });
     } catch (err) {
       const cookies = req.cookies;
 
@@ -87,7 +94,7 @@ export class AuthController {
         }
       }
 
-      res.status(200).json();
+      res.status(200).json({});
     }
   }
 
