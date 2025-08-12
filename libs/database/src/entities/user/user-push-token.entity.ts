@@ -9,10 +9,13 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import { KoreanTime } from '@libs/database/decorators';
+
 import { User } from '@libs/database/entities';
 
 @Entity()
 export class UserPushToken {
+  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -24,10 +27,12 @@ export class UserPushToken {
   @Column({ type: 'varchar', length: 255 })
   deviceNo: string;
 
+  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
   @Exclude()
+  @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 

@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import {
   KisTokenIssueRepository,
   KisTokenRepository,
+  StockCategoryRepository,
   StockCompanyRepository,
   UserRepository,
 } from '@libs/database/repositories';
@@ -14,7 +15,17 @@ import { StockService } from './stock.service';
 @Module({
   imports: [HttpModule],
   controllers: [StockController],
-  providers: [StockService, StockCompanyRepository, KisTokenRepository, KisTokenIssueRepository, UserRepository],
+  providers: [
+    StockService,
+
+    StockCategoryRepository,
+    StockCompanyRepository,
+
+    KisTokenRepository,
+    KisTokenIssueRepository,
+
+    UserRepository,
+  ],
   exports: [],
 })
 export class StockModule {}

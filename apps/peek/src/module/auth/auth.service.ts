@@ -1,22 +1,25 @@
+import { AxiosResponse } from 'axios';
 import { Request } from 'express';
-import { EntityManager } from 'typeorm';
+import { catchError, firstValueFrom } from 'rxjs';
+import { DataSource, EntityManager } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { InjectDataSource } from '@nestjs/typeorm';
 
-import { UserAccountTypeEnum, UserVisitTypeEnum, userAccountTypeDescription } from '@libs/constant/enum';
+import { UserAccountTypeEnum, UserVisitTypeEnum, userAccountTypeDescription } from '@libs/constant/enum/user';
 import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from '@libs/constant/jwt';
 
 import { User, UserAccount } from '@libs/database/entities';
 
 import { UserAccountRepository, UserRepository, UserVisitRepository } from '@libs/database/repositories';
 
+import { REFRESH_TOKEN_NAME } from '../../constant/cookie';
 import { BcryptHandler } from '../../handler';
-import { CheckEmailDto, CreateUserEmailDto, LoginEmailDto, LoginOauthDto } from '../../type/dto';
 import { IJwtToken } from '../../type/interface';
-import { ICheckEmailRes, ICreateUserEmailRes } from '../../type/res';
+import { CheckEmailDto, LoginEmailDto, LoginOauthDto, SignupEmailDto } from './dto';
 
 @Injectable()
 export class AuthService {
@@ -24,35 +27,15 @@ export class AuthService {
     private readonly userRepository: UserRepository,
     private readonly userAccountRepository: UserAccountRepository,
     private readonly userVisitRepository: UserVisitRepository,
-    // private readonly userPushTokenRepository: UserPushTokenRepository,
 
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
+
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
-  async registerEmail(dto: CreateUserEmailDto): Promise<ICreateUserEmailRes> {
-    const { nickname, name, policy, birthday, email, password } = dto;
-
-    return await this.userAccountRepository.manager.transaction(async (manager) => {
-      const user = await this._createUser({ nickname, name, policy, birthday }, manager);
-
-      const hashedPassword = await BcryptHandler.hashPassword(password);
-
-      const newUserAccount = manager.create(UserAccount, {
-        user,
-        userAccountType: UserAccountTypeEnum.EMAIL,
-        email,
-        password: hashedPassword,
-      });
-
-      await manager.save(UserAccount, newUserAccount);
-
-      return { email: newUserAccount.email };
-    });
-  }
-
-  async checkEmail(dto: CheckEmailDto): Promise<ICheckEmailRes> {
+  async checkEmail(dto: CheckEmailDto) {
     const { email } = dto;
 
     const userAccount = await this.userAccountRepository.findOne({ where: { email } });
@@ -80,11 +63,39 @@ export class AuthService {
     return { isExist: false, email };
   }
 
+  async signup(dto: SignupEmailDto) {
+    const { nickname, name, policy, birthday, email, password } = dto;
+
+    return await this.dataSource.transaction(async (manager: EntityManager) => {
+      const user = manager.create(User, { nickname, name, policy, birthday, thumbnail: null });
+      const savedUser = await manager.save(User, user);
+
+      const hashedPassword = await BcryptHandler.hashPassword(password);
+
+      const userAccount = manager.create(UserAccount, {
+        userId: savedUser.id,
+        userAccountType: UserAccountTypeEnum.EMAIL,
+        email,
+        password: hashedPassword,
+      });
+
+      await manager.save(UserAccount, userAccount);
+
+      return { email };
+    });
+  }
+
   async login(params: { dto: LoginEmailDto; req: Request }) {
     const { dto, req } = params;
     const { email, password } = dto;
 
     const userAccount = await this.userAccountRepository.findByEmail(email);
+
+    if (userAccount.userAccountType !== UserAccountTypeEnum.EMAIL) {
+      throw new BadRequestException(
+        `이메일: ${email}은 ${userAccountTypeDescription[userAccount.userAccountType]} 간편로그인 회원입니다.`,
+      );
+    }
 
     const isMatch = await BcryptHandler.comparePassword(password, userAccount.password as string);
 
@@ -96,119 +107,48 @@ export class AuthService {
   }
 
   async loginOauth(params: { dto: LoginOauthDto; req: Request }) {
-    //   const { dto, req } = params;
-    //   const { userAccountType, access_token } = dto;
-    //   switch (userAccountType) {
-    //     case UserAccountTypeEnum.GOOGLE: {
-    //       const googleResponse = await firstValueFrom(
-    //         this.httpService.get<IGetOauthGoogleTokenRes>(
-    //           `${this.configService.get('GOOGLE_OAUTH_URL')}?access_token=${access_token}`,
-    //         ),
-    //       );
-    //       const { email, name, picture } = googleResponse.data;
-    //       const imageResponse = await firstValueFrom(this.httpService.get(picture, { responseType: 'arraybuffer' }));
-    //       const blob = new Blob([imageResponse.data], { type: 'image/jpeg' });
-    //       const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
-    //       const resizingPicture = await this._resizingImage({ imageFile: file, width: 100, height: 100 });
-    //       const userAccount = await this.userAccountRepository.findOne({
-    //         where: { email, userAccountType: UserAccountTypeEnum.GOOGLE },
-    //         relations: ['user'],
-    //       });
-    //       if (userAccount) {
-    //         // 유저 계정이 있는 경우
-    //         await this.userRepository.update(
-    //           { userSeq: userAccount.user.userSeq },
-    //           { nickname: name, name, thumbnail: resizingPicture },
-    //         );
-    //         const userAccountGoogle = await this.userAccountRepository.findOne({
-    //           where: { email, userAccountType: UserAccountTypeEnum.GOOGLE },
-    //           relations: ['user'],
-    //         });
-    //         if (userAccountGoogle) {
-    //           // 구글 유저 계정이 있는 경우 로그인으로 진행
-    //           return await this._login({
-    //             req,
-    //             user: userAccountGoogle.user,
-    //             userAccount: userAccountGoogle,
-    //             type: UserVisitTypeEnum.SIGN_IN_OAUTH_GOOGLE,
-    //           });
-    //         } else {
-    //           // 유저 계정은 있으나 구글 계정이 없는 경우 구글 계정으로 연동
-    //           const newUserAccount = await this.userAccountRepository.createUserAccountByOauth({
-    //             userAccountType: UserAccountTypeEnum.GOOGLE,
-    //             email,
-    //             user: userAccount.user,
-    //           });
-    //           return await this._login({
-    //             req,
-    //             user: newUserAccount.user,
-    //             userAccount: newUserAccount,
-    //             type: UserVisitTypeEnum.SIGN_IN_OAUTH_GOOGLE,
-    //           });
-    //         }
-    //       } else {
-    //         // 유저 계정이 없는 경우 회원가입으로 진행
-    //         const newUser = await this.userRepository.createUser({
-    //           nickname: name,
-    //           name,
-    //           policy: true,
-    //           birthday: undefined,
-    //           thumbnail: resizingPicture,
-    //         });
-    //         const newUserAccount = await this.userAccountRepository.createUserAccountByOauth({
-    //           userAccountType: UserAccountTypeEnum.GOOGLE,
-    //           email,
-    //           user: newUser,
-    //         });
-    //         return await this._login({
-    //           req,
-    //           user: newUser,
-    //           userAccount: newUserAccount,
-    //           type: UserVisitTypeEnum.SIGN_IN_OAUTH_GOOGLE,
-    //         });
-    //       }
-    //     }
-    //     case UserAccountTypeEnum.KAKAO:
-    //       break;
-    //     case UserAccountTypeEnum.NAVER:
-    //       break;
-    //     default:
-    //       break;
-    //   }
-    //   return;
+    const { dto, req } = params;
+    const { userAccountType, access_token } = dto;
+
+    switch (userAccountType) {
+      case UserAccountTypeEnum.GOOGLE:
+        return await this._googleOauthLogin({ req, access_token });
+      default:
+        break;
+    }
   }
 
   async logout(params: { req: Request }) {
     const { req } = params;
-    const { id } = req.userAccount;
+    const { accountId } = req.userAccount;
 
-    await this.userAccountRepository.update({ id }, { refreshToken: null });
+    await this.userAccountRepository.update({ id: accountId }, { refreshToken: null });
 
-    await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_OUT_EMAIL, userAccountId: id });
+    await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_OUT_EMAIL, userAccountId: accountId });
   }
 
   async refreshToken(params: { req: Request }) {
     const { req } = params;
 
-    const refreshToken = req.cookies['refreshToken'] as string;
+    const refreshToken = req.cookies[REFRESH_TOKEN_NAME] as string;
 
     if (!refreshToken) {
-      throw new ForbiddenException('리프레시 토큰이 존재하지 않습니다.');
+      throw new ForbiddenException();
     }
 
-    const { id } = this.jwtService.verify<IJwtToken>(refreshToken, this.configService.get('JWT_SECRET_KEY'));
+    const { accountId } = this.jwtService.verify<IJwtToken>(refreshToken, this.configService.get('JWT_SECRET_KEY'));
 
-    const userAccount = await this.userAccountRepository.findOne({ where: { id } });
+    const userAccount = await this.userAccountRepository.findOne({ where: { id: accountId } });
 
     if (!userAccount) {
-      throw new ForbiddenException('사용자 계정이 존재하지 않습니다.');
+      throw new ForbiddenException();
     }
 
     if (refreshToken !== userAccount.refreshToken) {
-      throw new ForbiddenException('리프레시 토큰이 일치하지 않습니다.');
+      throw new ForbiddenException();
     }
 
-    const accessToken = await this._generateJwtToken({ id: userAccount.id }, ACCESS_TOKEN_TIME);
+    const accessToken = await this._generateJwtToken({ accountId: userAccount.id }, ACCESS_TOKEN_TIME);
 
     return { accessToken };
   }
@@ -224,19 +164,21 @@ export class AuthService {
   }
 
   private async _generateJwtToken(params: IJwtToken, expiresIn: number) {
-    const { id } = params;
+    const { accountId } = params;
 
-    return await this.jwtService.signAsync({ id }, { expiresIn, secret: this.configService.get('JWT_SECRET_KEY') });
+    return await this.jwtService.signAsync(
+      { accountId },
+      { expiresIn, secret: this.configService.get('JWT_SECRET_KEY') },
+    );
   }
 
   private async _login(params: { req: Request; type: UserVisitTypeEnum; user: User; userAccount: UserAccount }) {
     const { req, type, user, userAccount } = params;
 
-    const accessToken = await this._generateJwtToken({ id: userAccount.id }, ACCESS_TOKEN_TIME);
+    const accessToken = await this._generateJwtToken({ accountId: userAccount.id }, ACCESS_TOKEN_TIME);
+    const refreshToken = await this._generateJwtToken({ accountId: userAccount.id }, REFRESH_TOKEN_TIME);
 
-    const refreshToken = await this._generateJwtToken({ id: userAccount.id }, REFRESH_TOKEN_TIME);
-
-    await this.userAccountRepository.manager.transaction(async (manager) => {
+    await this.dataSource.transaction(async (manager) => {
       await manager.update(UserAccount, { userId: user.id }, { refreshToken: null });
       await manager.update(UserAccount, { id: userAccount.id }, { refreshToken });
     });
@@ -246,45 +188,112 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private async _resizingImage(params: { imageFile: File; width: number; height: number }) {
-    // const { imageFile, width, height } = params;
-    //
-    // const formData = new FormData();
-    //
-    // formData.append('image', imageFile);
-    // formData.append('width', width.toString());
-    // formData.append('height', height.toString());
-    //
-    // const resizingPicture = await firstValueFrom<AxiosResponse<{ resizedImageUrl: string }>>(
-    //   // this.httpService.post(
-    //   //   `${this.configService.get('IMAGE_RESIZING_URL')}:${this.configService.get('IMAGE_RESIZING_PORT')}/${this.configService.get('IMAGE_RESIZING_PREFIX')}`,
-    //   //   formData,
-    //   //   { headers: { 'Content-Type': 'multipart/form-data' } },
-    //   // ),
-    //   this.httpService.post(
-    //     `${this.configService.get('IMAGE_RESIZING_URL')}/${this.configService.get('IMAGE_RESIZING_PREFIX')}/upload`,
-    //     formData,
-    //     { headers: { 'Content-Type': 'multipart/form-data' } },
-    //   ),
-    // );
-    //
-    // return resizingPicture.data.resizedImageUrl;
+  private async _googleOauthLogin(params: { req: Request; access_token: string }) {
+    const { req, access_token } = params;
+
+    const googleResponse = await firstValueFrom(
+      this.httpService
+        .get<{
+          email: string;
+          name: string;
+          picture: string;
+        }>(`${this.configService.get('GOOGLE_OAUTH_URL')}?access_token=${access_token}`)
+        .pipe(
+          catchError((error) => {
+            throw new BadRequestException(`구글 OAuth 인증에 실패했습니다: ${error.message}`);
+          }),
+        ),
+    );
+
+    const { email, name, picture } = googleResponse.data;
+
+    // const imageResponse = await firstValueFrom(this.httpService.get(picture, { responseType: 'arraybuffer' }));
+    // const blob = new Blob([imageResponse.data], { type: 'image/jpeg' });
+    // const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+    // const thumbnail = await this._resizingImage({ imageFile: file });
+
+    const googleAccount = await this.userAccountRepository.findOne({
+      where: { email, userAccountType: UserAccountTypeEnum.GOOGLE },
+      relations: ['user'],
+    });
+
+    // 구글 계정이 있는 경우 로그인으로 진행
+    if (googleAccount) {
+      await this.userRepository.update({ id: googleAccount.user.id }, { nickname: name, name, thumbnail: null });
+
+      return await this._login({
+        req,
+        type: UserVisitTypeEnum.SIGN_IN_OAUTH_GOOGLE,
+        user: googleAccount.user,
+        userAccount: googleAccount,
+      });
+    }
+
+    const account = await this.userAccountRepository.findOne({
+      where: { email, userAccountType: UserAccountTypeEnum.EMAIL },
+      relations: ['user'],
+    });
+
+    // 이메일 계정이 있으나 구글 계정이 없는 경우
+    if (account) {
+      await this.userRepository.update({ id: account.user.id }, { nickname: name, name, thumbnail: null });
+
+      const savedGoogleAccount = this.userAccountRepository.create({
+        userId: account.user.id,
+        userAccountType: UserAccountTypeEnum.GOOGLE,
+        email,
+      });
+
+      await this.userAccountRepository.save(savedGoogleAccount);
+
+      return await this._login({
+        req,
+        type: UserVisitTypeEnum.SIGN_IN_OAUTH_GOOGLE,
+        user: account.user,
+        userAccount: account,
+      });
+    }
+
+    // 구글 회원가입
+    const savedUser = this.userRepository.create({
+      nickname: name,
+      name,
+      policy: true,
+      birthday: undefined,
+      thumbnail: null,
+    });
+
+    const newUser = await this.userRepository.save(savedUser);
+
+    const savedGoogleAccount = this.userAccountRepository.create({
+      userAccountType: UserAccountTypeEnum.GOOGLE,
+      email,
+      user: newUser,
+    });
+
+    const newUserAccount = await this.userAccountRepository.save(savedGoogleAccount);
+
+    return await this._login({
+      req,
+      type: UserVisitTypeEnum.SIGN_IN_OAUTH_GOOGLE,
+      user: newUser,
+      userAccount: newUserAccount,
+    });
   }
 
-  private async _createUser(
-    params: {
-      nickname: string;
-      name: string;
-      policy: boolean;
-      birthday?: string;
-      thumbnail?: string;
-    },
-    manager: EntityManager,
-  ) {
-    const { nickname, name, policy, birthday, thumbnail } = params;
+  private async _resizingImage(params: { imageFile: File }) {
+    const { imageFile } = params;
 
-    const user = manager.create(User, { nickname, name, policy, birthday, thumbnail });
+    const formData = new FormData();
 
-    return await manager.save(User, user);
+    formData.append('image', imageFile);
+
+    const resizingPicture = await firstValueFrom<AxiosResponse<{ name: string }>>(
+      this.httpService.post(`http://localhost:${this.configService.get('IMAGE_SERVER_PORT')}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }),
+    );
+
+    return resizingPicture.data.name;
   }
 }

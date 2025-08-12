@@ -1,76 +1,102 @@
 import { Request } from 'express';
-import { SelectQueryBuilder } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
 
-import { StockKindEnum, UserNotificationTypeEnum } from '@libs/constant';
+import { BoardTypeEnum } from '@libs/constant/enum/board';
 
-import { Board, BoardComment } from '@libs/database/entities';
+import { Board, BoardArticle, BoardComment } from '@libs/database/entities';
 
 import {
-  BoardCommentReplyRepository,
+  BoardArticleRepository,
   BoardCommentRepository,
   BoardLikeRepository,
   BoardRepository,
-  UserPushTokenRepository,
+  StockCategoryRepository,
+  UserAccountRepository,
   UserRepository,
 } from '@libs/database/repositories';
 
-import { NotificationHandler } from '../../handler';
+import { LIST_LIMIT } from '../../constant/list';
 import {
   CreateBoardCommentDto,
   CreateBoardDto,
+  GetBoardCommentListDto,
   GetBoardListDto,
   UpdateBoardCommentDto,
   UpdateBoardDto,
-} from '../../type/dto';
+} from './dto';
 
 @Injectable()
 export class BoardService {
   constructor(
     private readonly boardRepository: BoardRepository,
+    private readonly boardArticleRepository: BoardArticleRepository,
     private readonly boardCommentRepository: BoardCommentRepository,
-    private readonly boardCommentReplyRepository: BoardCommentReplyRepository,
     private readonly boardLikeRepository: BoardLikeRepository,
+
+    private readonly stockCategoryRepository: StockCategoryRepository,
+
     private readonly userRepository: UserRepository,
-    private readonly userPushTokenRepository: UserPushTokenRepository,
-    private readonly notificationHandler: NotificationHandler,
+    private readonly userAccountRepository: UserAccountRepository,
+
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
-  // 게시판
-  async getBoardList(params: GetBoardListDto) {
-    // const { pageParam, marketType } = params;
-    //
-    // const LIMIT = 10;
-    //
-    // const queryBuilder: SelectQueryBuilder<Board> = this.boardRepository
-    //   .createQueryBuilder('board')
-    //   .leftJoinAndSelect('board.user', 'user')
-    //   .loadRelationCountAndMap('board.likeCount', 'board.boardLikes')
-    //   .loadRelationCountAndMap('board.commentCount', 'board.boardComments', 'boardComments', (qb) =>
-    //     qb.andWhere('boardComments.isDeleted = :isDeleted', { isDeleted: false }),
-    //   )
-    //   .where('board.isDeleted = :isDeleted', { isDeleted: false });
-    //
-    // if (marketType) {
-    //   queryBuilder.andWhere('board.marketType = :marketType', { marketType });
-    // }
-    //
-    // queryBuilder
-    //   .orderBy('board.createdAt', 'DESC')
-    //   .skip((pageParam - 1) * LIMIT)
-    //   .take(LIMIT);
-    //
-    // const [boards, total] = await queryBuilder.getManyAndCount();
-    //
-    // const hasNextPage = pageParam * LIMIT < total;
-    // const nextPage = hasNextPage ? pageParam + 1 : null;
-    //
-    // return { boards, total, nextPage };
+  // 게시판 카테고리
+  async getBoardCategoryList() {
+    return await this.stockCategoryRepository.find();
   }
 
-  async getMyBoardList(params: { pageParam: number; req: Request }) {
-    // const { pageParam, req } = params;
+  // 게시판
+  async getBoardDetail(boardId: number) {
+    const board = await this.boardRepository.findOne({
+      where: { id: boardId, deletedAt: null },
+      relations: ['category', 'userAccount', 'userAccount.user', 'article'],
+    });
+
+    if (!board) {
+      throw new BadRequestException('게시글을 찾을 수 없습니다.');
+    }
+
+    await this.boardRepository.increaseViewCount(boardId);
+
+    return board;
+  }
+
+  async getBoardList(params: { query: GetBoardListDto }) {
+    const { query } = params;
+    const { page, category } = query;
+
+    const queryBuilder = this.boardRepository
+      .createQueryBuilder('board')
+      .leftJoinAndSelect('board.category', 'category')
+      .leftJoinAndSelect('board.userAccount', 'userAccount')
+      .leftJoinAndSelect('userAccount.user', 'user')
+      .loadRelationCountAndMap('board.commentCount', 'board.comments', 'comments', (qb) =>
+        qb.andWhere('comments.parentCommentId IS NULL'),
+      )
+      .loadRelationCountAndMap('board.likeCount', 'board.likes')
+      .where('board.deletedAt IS NULL')
+      .orderBy('board.createdAt', 'DESC')
+      .skip((page - 1) * LIST_LIMIT)
+      .take(LIST_LIMIT);
+
+    if (category) {
+      queryBuilder.andWhere('board.category = :category', { category });
+    }
+
+    const [boards, total] = await queryBuilder.getManyAndCount();
+
+    const hasNextPage = page * LIST_LIMIT < total;
+    const nextPage = hasNextPage ? Number(page) + 1 : null;
+
+    return { boards, total, nextPage };
+  }
+
+  async getMyBoardList(params: { page: number; req: Request }) {
+    // const { page, req } = params;
     // const { userSeq } = req.user;
     //
     // const LIMIT = 10;
@@ -84,110 +110,115 @@ export class BoardService {
     //   .where('board.isDeleted = :isDeleted', { isDeleted: false })
     //   .andWhere('user.userSeq = :userSeq', { userSeq })
     //   .orderBy('board.createdAt', 'DESC')
-    //   .skip((pageParam - 1) * LIMIT)
+    //   .skip((page - 1) * LIMIT)
     //   .take(LIMIT);
     //
     // const [boards, total] = await queryBuilder.getManyAndCount();
     //
-    // const hasNextPage = pageParam * LIMIT < total;
-    // const nextPage = hasNextPage ? pageParam + 1 : null;
+    // const hasNextPage = page * LIMIT < total;
+    // const nextPage = hasNextPage ? Number(page) + 1 : null;
     //
     // return { boards, total, nextPage };
   }
 
-  async getBoardDetail(params: { boardSeq: number; req: Request }) {
-    // const { boardSeq, req } = params;
-    // const { user } = req;
-    //
-    // const board = await this.boardRepository.findByBoardSeq(boardSeq);
-    //
-    // await this.boardRepository.increaseBoardViewCount(boardSeq);
-    //
-    // const isMine = board.user.userSeq === user?.userSeq;
-    //
-    // return { board, isMine };
+  async createBoard(params: { dto: CreateBoardDto; accountId: number }) {
+    const { dto, accountId } = params;
+    const { categoryId, title, content } = dto;
+
+    await this.userAccountRepository.findById(accountId);
+
+    await this.stockCategoryRepository.findById(categoryId);
+
+    await this.dataSource.transaction(async (manager) => {
+      const board = manager.getRepository(Board).create({
+        type: BoardTypeEnum.GENERAL,
+        title,
+        stockCategoryId: categoryId,
+        userAccountId: accountId,
+      });
+
+      const savedBoard = await manager.getRepository(Board).save(board);
+
+      const boardArticle = manager.getRepository(BoardArticle).create({
+        content,
+        boardId: savedBoard.id,
+      });
+
+      await manager.getRepository(BoardArticle).save(boardArticle);
+    });
   }
 
-  async createBoard(params: { dto: CreateBoardDto; req: Request }) {
-    // const { dto, req } = params;
-    // const { userSeq } = req.user;
-    //
-    // const user = await this.userRepository.findByUserSeq(userSeq);
-    // const board = this.boardRepository.create({ ...dto, user });
-    //
-    // await this.boardRepository.save(board);
+  async updateBoard(params: { boardId: number; dto: UpdateBoardDto; accountId: number }) {
+    const { boardId, dto, accountId } = params;
+
+    await this._checkBoard({ accountId, boardId });
+
+    await this.dataSource.transaction(async (manager) => {
+      const { title, content } = dto;
+
+      await manager.getRepository(Board).update({ id: boardId }, { title });
+      await manager.getRepository(BoardArticle).update({ boardId }, { content });
+    });
   }
 
-  async updateBoard(params: { boardSeq: number; dto: UpdateBoardDto; req: Request }) {
-    // const { boardSeq, dto, req } = params;
-    // const { userSeq } = req.user;
-    //
-    // const user = await this.userRepository.findByUserSeq(userSeq);
-    // const board = await this.boardRepository.findByBoardSeq(boardSeq);
-    //
-    // if (board.user.userSeq !== user.userSeq) {
-    //   throw new BadRequestException('게시물 작성자만 수정할 수 있습니다.');
-    // }
-    //
-    // await this.boardRepository.update({ boardSeq }, dto);
+  async deleteBoard(params: { boardId: number; req: Request }) {
+    const { boardId, req } = params;
+    const { accountId } = req.userAccount;
+
+    await this._checkBoard({ accountId, boardId });
+
+    await this.dataSource.transaction(async (manager) => {
+      await manager.getRepository(Board).update({ id: boardId }, { deletedAt: new Date() });
+      await manager.getRepository(BoardArticle).update({ boardId }, { deletedAt: new Date() });
+    });
   }
 
-  async deleteBoard(params: { boardSeq: number; req: Request }) {
-    // const { boardSeq, req } = params;
-    // const { userSeq } = req.user;
-    //
-    // const user = await this.userRepository.findByUserSeq(userSeq);
-    // const board = await this.boardRepository.findByBoardSeq(boardSeq);
-    //
-    // if (board.user.userSeq !== user.userSeq) {
-    //   throw new BadRequestException('게시물 작성자만 삭제할 수 있습니다.');
-    // }
-    //
-    // await this.boardRepository.update({ boardSeq }, { isDeleted: true, deletedAt: new Date() });
+  async _checkBoard(params: { accountId: number; boardId: number }) {
+    const { accountId, boardId } = params;
+
+    await this.userAccountRepository.findById(accountId);
+
+    const board = await this.boardRepository.findOne({
+      where: { id: boardId, deletedAt: null },
+      relations: ['userAccount'],
+    });
+
+    if (accountId !== board.userAccount.id) {
+      throw new BadRequestException('게시물 작성자만 수정할 수 있습니다.');
+    }
+
+    await this.boardArticleRepository.findByBoardId(boardId);
   }
 
   // 게시판 댓글
-  async getBoardCommentList(params: { boardSeq: number; pageParam: number; req: Request }) {
-    // const { boardSeq, pageParam, req } = params;
-    // const { user } = req;
-    //
-    // await this.boardRepository.findByBoardSeq(boardSeq);
-    //
-    // const LIMIT = 5;
-    //
-    // const queryBuilder = this.boardCommentRepository
-    //   .createQueryBuilder('boardComment')
-    //   .leftJoinAndSelect('boardComment.user', 'user')
-    //   .leftJoinAndSelect('boardComment.boardCommentReplies', 'boardCommentReplies')
-    //   .leftJoinAndSelect('boardCommentReplies.user', 'replyUser')
-    //   .where('boardComment.boardSeq = :boardSeq', { boardSeq })
-    //   .andWhere('boardComment.isDeleted = :isDeleted', { isDeleted: false })
-    //   .orderBy('boardComment.createdAt', 'ASC')
-    //   .skip((pageParam - 1) * LIMIT)
-    //   .take(LIMIT);
-    //
-    // const [boardComments, total] = await queryBuilder.getManyAndCount();
-    //
-    // const checkedIsMine = boardComments.map((boardComment) => {
-    //   const isMine = boardComment.user.userSeq === user?.userSeq;
-    //
-    //   const boardCommentReplies = boardComment.boardCommentReplies.map((boardCommentReply) => {
-    //     const isMine = boardCommentReply.user.userSeq === user?.userSeq;
-    //
-    //     return { ...boardCommentReply, isMine };
-    //   });
-    //
-    //   return { ...boardComment, isMine, boardCommentReplies };
-    // });
-    //
-    // const hasNextPage = pageParam * LIMIT < total;
-    // const nextPage = hasNextPage ? pageParam + 1 : null;
-    //
-    // return { boardComments: checkedIsMine, total, nextPage };
+  async getBoardCommentList(params: { boardId: number; query: GetBoardCommentListDto }) {
+    const { boardId, query } = params;
+    const { page } = query;
+
+    await this.boardRepository.findById(boardId);
+
+    const queryBuilder = this.boardCommentRepository
+      .createQueryBuilder('boardComment')
+      .leftJoinAndSelect('boardComment.userAccount', 'userAccount')
+      .leftJoinAndSelect('userAccount.user', 'user')
+      .where('boardComment.boardId = :boardId', { boardId })
+      .andWhere('boardComment.deletedAt IS NULL')
+      .orderBy('boardComment.createdAt', 'ASC')
+      .skip((page - 1) * LIST_LIMIT)
+      .take(LIST_LIMIT);
+
+    const [boardComments, total] = await queryBuilder.getManyAndCount();
+
+    const nestedComments = this._nestComments(boardComments);
+
+    const hasNextPage = page * LIST_LIMIT < total;
+    const nextPage = hasNextPage ? Number(page) + 1 : null;
+
+    return { boardComments: nestedComments, total, nextPage };
   }
 
-  async getMyBoardCommentList(params: { pageParam: number; req: Request }) {
-    // const { pageParam, req } = params;
+  async getMyBoardCommentList(params: { page: number; req: Request }) {
+    // const { page, req } = params;
     // const { userSeq } = req.user;
     //
     // const LIMIT = 10;
@@ -199,117 +230,67 @@ export class BoardService {
     //   .where('boardComment.isDeleted = :isDeleted', { isDeleted: false })
     //   .andWhere('user.userSeq = :userSeq', { userSeq })
     //   .orderBy('boardComment.createdAt', 'DESC')
-    //   .skip((pageParam - 1) * LIMIT)
+    //   .skip((page - 1) * LIMIT)
     //   .take(LIMIT);
     //
     // const [boardComments, total] = await queryBuilder.getManyAndCount();
     //
-    // const hasNextPage = pageParam * LIMIT < total;
-    // const nextPage = hasNextPage ? pageParam + 1 : null;
+    // const hasNextPage = page * LIMIT < total;
+    // const nextPage = hasNextPage ? Number(page) + 1 : null;
     //
     // return { boardComments, total, nextPage };
   }
 
-  async createBoardComment(params: { boardSeq: number; dto: CreateBoardCommentDto; req: Request }) {
-    // const { boardSeq, dto, req } = params;
-    // const { userSeq } = req.user;
-    // const { content } = dto;
-    //
-    // const user = await this.userRepository.findByUserSeq(userSeq);
-    // const board = await this.boardRepository.findByBoardSeq(boardSeq);
-    //
-    // const boardComment = this.boardCommentRepository.create({ content, user, board });
-    //
-    // await this.boardCommentRepository.save(boardComment);
-    //
-    // if (board.user.userSeq !== user.userSeq) {
-    //   // const userPushToken = await this.userPushTokenRepository.getUserPushTokenByUserSeq(board.user.userSeq);
-    //
-    //   await this.notificationHandler.sendPushNotification({
-    //     pushToken: null,
-    //     message: `${user.nickname}님이 ${board.title} 게시물에 댓글을 하였습니다.`,
-    //     userNotificationType: UserNotificationTypeEnum.BOARD_COMMENT,
-    //     userSeq: board.user.userSeq,
-    //   });
-    // }
+  async createBoardComment(params: { boardId: number; accountId: number; dto: CreateBoardCommentDto }) {
+    const { boardId, dto, accountId } = params;
+    const { content, commentId } = dto;
+
+    await this.userAccountRepository.findById(accountId);
+
+    await this.boardRepository.findById(boardId);
+
+    const comment = this.boardCommentRepository.create({
+      content,
+      boardId,
+      userAccountId: accountId,
+      parentCommentId: commentId || null,
+    });
+
+    await this.boardCommentRepository.save(comment);
   }
 
   async updateBoardComment(params: {
-    boardSeq: number;
-    boardCommentSeq: number;
+    boardId: number;
+    boardCommentId: number;
+    accountId: number;
     dto: UpdateBoardCommentDto;
-    req: Request;
   }) {
-    // const { boardSeq, boardCommentSeq, dto, req } = params;
-    // const { userSeq } = req.user;
-    // const { content } = dto;
-    //
-    // await this.boardRepository.findByBoardSeq(boardSeq);
-    // const user = await this.userRepository.findByUserSeq(userSeq);
-    // const boardComment = await this.boardCommentRepository.findByBoardCommentSeq(boardCommentSeq);
-    //
-    // if (boardComment.user.userSeq !== user.userSeq) {
-    //   throw new BadRequestException('댓글 작성자만 수정할 수 있습니다.');
-    // }
-    //
-    // await this.boardCommentRepository.update({ boardCommentSeq }, { content });
+    const { boardId, boardCommentId, accountId, dto } = params;
+    const { content } = dto;
+
+    await this.userAccountRepository.findById(accountId);
+    await this.boardRepository.findById(boardId);
+    const comment = await this.boardCommentRepository.findById(boardCommentId);
+
+    if (comment.userAccount.id !== accountId) {
+      throw new BadRequestException('댓글 작성자만 수정할 수 있습니다.');
+    }
+
+    await this.boardCommentRepository.update({ id: boardCommentId }, { content });
   }
 
-  async deleteBoardComment(params: { boardSeq: number; boardCommentSeq: number; req: Request }) {
-    // const { boardSeq, boardCommentSeq, req } = params;
-    // const { userSeq } = req.user;
-    //
-    // await this.boardRepository.findByBoardSeq(boardSeq);
-    // const user = await this.userRepository.findByUserSeq(userSeq);
-    // const boardComment = await this.boardCommentRepository.findByBoardCommentSeq(boardCommentSeq);
-    //
-    // if (boardComment.user.userSeq !== user.userSeq) {
-    //   throw new BadRequestException('댓글 작성자만 삭제할 수 있습니다.');
-    // }
-    //
-    // await this.boardCommentRepository.update({ boardCommentSeq }, { isDeleted: true, deletedAt: new Date() });
-  }
+  async deleteBoardComment(params: { boardId: number; boardCommentId: number; accountId: number }) {
+    const { boardId, boardCommentId, accountId } = params;
 
-  // 게시판 댓글 답장
-  async createBoardCommentReply(params: { boardCommentSeq: number; dto: CreateBoardCommentDto; req: Request }) {
-    // const { boardCommentSeq, dto, req } = params;
-    // const { userSeq } = req.user;
-    // const { content } = dto;
-    //
-    // const user = await this.userRepository.findByUserSeq(userSeq);
-    //
-    // const boardComment = await this.boardCommentRepository.findByBoardCommentSeq(boardCommentSeq);
-    //
-    // const boardCommentReply = this.boardCommentReplyRepository.create({ content, user, boardComment });
-    //
-    // await this.boardCommentReplyRepository.save(boardCommentReply);
-    //
-    // if (boardComment.user.userSeq !== user.userSeq) {
-    //   // const userPushToken = await this.userPushTokenRepository.getUserPushTokenByUserSeq(parentBoardComment.user.userSeq);
-    //
-    //   await this.notificationHandler.sendPushNotification({
-    //     pushToken: null,
-    //     message: `${user.nickname}님이 ${boardComment.content} 댓글에 답장을 하였습니다.`,
-    //     userNotificationType: UserNotificationTypeEnum.BOARD_COMMENT_REPLY,
-    //     userSeq: boardComment.user.userSeq,
-    //   });
-    // }
-  }
+    await this.userAccountRepository.findById(accountId);
+    await this.boardRepository.findById(boardId);
+    const comment = await this.boardCommentRepository.findById(boardCommentId);
 
-  async deleteBoardCommentReply(params: { boardCommentSeq: number; boardCommentReplySeq: number; req: Request }) {
-    // const { boardCommentSeq, boardCommentReplySeq, req } = params;
-    // const { userSeq } = req.user;
-    //
-    // const user = await this.userRepository.findByUserSeq(userSeq);
-    //
-    // await this.boardCommentRepository.findByBoardCommentSeq(boardCommentSeq);
-    // const boardCommentReply = await this.boardCommentReplyRepository.findByBoardCommentReplySeq(boardCommentReplySeq);
-    //
-    // if (boardCommentReply.user.userSeq !== user.userSeq) {
-    //   throw new BadRequestException('댓글 답장 작성자만 삭제할 수 있습니다.');
-    // }
-    //
-    // await this.boardCommentReplyRepository.update({ boardCommentReplySeq }, { isDeleted: true, deletedAt: new Date() });
+    if (comment.userAccountId !== accountId) {
+      throw new BadRequestException('댓글 작성자만 삭제할 수 있습니다.');
+    }
+
+    await this.boardCommentRepository.update({ id: boardCommentId }, { deletedAt: new Date() });
   }
 
   // 게시판 좋아요(찜)
@@ -332,4 +313,25 @@ export class BoardService {
     //     await this.boardLikeRepository.save(newBoardLike);
     //   }
   }
+
+  _nestComments = (comments: BoardComment[]) => {
+    const map = comments.reduce(
+      (acc, comment) => {
+        acc[comment.id] = { ...comment, replies: [] };
+
+        return acc;
+      },
+      {} as Record<number, BoardComment>,
+    );
+
+    return comments.reduce((acc, comment) => {
+      if (comment.parentCommentId) {
+        map[comment.parentCommentId].replies.push(map[comment.id]);
+      } else {
+        acc.push(map[comment.id]);
+      }
+
+      return acc;
+    }, [] as BoardComment[]);
+  };
 }

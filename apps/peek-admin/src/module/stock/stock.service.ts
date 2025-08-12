@@ -4,47 +4,45 @@ import * as XLSX from 'xlsx';
 
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { StockKindEnum } from '@libs/constant';
-
 import { StockCompany } from '@libs/database/entities';
 
-import { StockCompanyRepository } from '@libs/database/repositories';
+import { StockCategoryRepository, StockCompanyRepository } from '@libs/database/repositories';
 
-import { PageQueryDto } from '../../type/dto/pagenation';
+import { LIST_LIMIT } from '../../constant/list';
+import { GetStockCodeListDto } from '../../type/dto';
 
 @Injectable()
 export class StockService {
-  constructor(private readonly stockRepository: StockCompanyRepository) {}
+  constructor(
+    private readonly stockRepository: StockCompanyRepository,
+    private readonly stockCategoryRepository: StockCategoryRepository,
+  ) {}
 
-  async getCodeList(params: { pageQuery: PageQueryDto; kind: StockKindEnum; text: string }) {
-    // const { pageQuery, kind, text } = params;
-    // const { count, page } = pageQuery;
-    //
-    // let whereCondition = {};
-    // let orderCondition: FindOptionsOrder<StockCompany> = { companyName: 'ASC' };
-    //
-    // if (kind) {
-    //   whereCondition = { ...whereCondition, marketType: kind };
-    // }
-    //
-    // if (text) {
-    //   whereCondition = { ...whereCondition, companyName: Like(`%${text}%`) };
-    // }
-    //
-    // const [stocks, total] = await this.stockRepository.findAndCount({
-    //   where: whereCondition,
-    //   order: orderCondition,
-    //   take: count,
-    //   skip: (page - 1) * count,
-    // });
-    //
-    // return { stocks, total };
+  async getStockCompanyList(query: GetStockCodeListDto) {
+    const { page, category, text } = query;
+
+    let whereCondition = {};
+
+    const orderCondition: FindOptionsOrder<StockCompany> = { companyName: 'ASC' };
+
+    if (category) {
+      whereCondition = { ...whereCondition, category: category };
+    }
+
+    if (text) {
+      whereCondition = { ...whereCondition, companyName: Like(`%${text}%`) };
+    }
+
+    return await this.stockRepository.findAndCount({
+      where: whereCondition,
+      order: orderCondition,
+      take: LIST_LIMIT,
+      skip: (page - 1) * LIST_LIMIT,
+    });
   }
 
-  async getCodeDetail(params: { code: number }) {
-    // const { code } = params;
-    //
-    // return await this.stockRepository.findOne({ where: { code } });
+  async getStockCompany(code: number) {
+    return await this.stockRepository.findOne({ where: { code } });
   }
 
   async deleteStock() {
@@ -52,104 +50,110 @@ export class StockService {
   }
 
   async uploadStock(params: { file: Express.Multer.File; dataType: 'KOSPI' | 'KOSDAQ' }) {
-    // const { file, dataType } = params;
-    //
-    // this._isCheckXLSXFile(file);
-    //
-    // const arr = this._parseXLSXFile(file);
-    //
-    // await this._saveStockCodes({ arr, dataType });
+    const { file, dataType } = params;
+
+    this._isCheckXLSXFile(file);
+
+    const arr = this._parseXLSXFile(file);
+
+    const category = await this.stockCategoryRepository.findByEnName(dataType);
+
+    if (!category) {
+      throw new BadRequestException(`${dataType} 카테고리가 존재하지 않습니다.`);
+    }
+
+    await this._saveStockCodes({ arr, dataType, stockCategoryId: category.id });
   }
 
   private _isCheckXLSXFile(file: Express.Multer.File) {
-    // const ret = file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-    //
-    // if (!ret) {
-    //   throw new BadRequestException('XLSX 파일이 아닙니다.');
-    // }
+    const ret = file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+    if (!ret) {
+      throw new BadRequestException('XLSX 파일이 아닙니다.');
+    }
   }
 
   private _parseXLSXFile(file: Express.Multer.File) {
-    // const workbook = XLSX.read(file.buffer, { type: 'buffer' });
-    // const sheetName = '유가증권';
-    // const worksheet = workbook.Sheets[sheetName];
-    //
-    // if (!worksheet) {
-    //   throw new BadRequestException('유가증권 시트가 없습니다.');
-    // }
-    //
-    // const ref = worksheet['!ref'];
-    //
-    // if (!ref) {
-    //   throw new BadRequestException('시트에 데이터가 없습니다.');
-    // }
-    //
-    // const range = XLSX.utils.decode_range(ref);
-    //
-    // const { s: start, e: end } = range;
-    //
-    // const rowCount = end.r - start.r + 1;
-    // const colCount = end.c - start.c + 1;
-    //
-    // const arr = Array.from({ length: rowCount }, (_, i) => {
-    //   return Array.from({ length: colCount }, (_, j) => {
-    //     const cellRef = XLSX.utils.encode_cell({ r: start.r + i, c: start.c + j });
-    //     const cell = worksheet[cellRef];
-    //
-    //     return cell ? cell.v : null;
-    //   });
-    // });
-    //
-    // arr.shift();
-    //
-    // return arr;
+    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+    const sheetName = '유가증권';
+    const worksheet = workbook.Sheets[sheetName];
+
+    if (!worksheet) {
+      throw new BadRequestException('유가증권 시트가 없습니다.');
+    }
+
+    const ref = worksheet['!ref'];
+
+    if (!ref) {
+      throw new BadRequestException('시트에 데이터가 없습니다.');
+    }
+
+    const range = XLSX.utils.decode_range(ref);
+
+    const { s: start, e: end } = range;
+
+    const rowCount = end.r - start.r + 1;
+    const colCount = end.c - start.c + 1;
+
+    const arr = Array.from({ length: rowCount }, (_, i) => {
+      return Array.from({ length: colCount }, (_, j) => {
+        const cellRef = XLSX.utils.encode_cell({ r: start.r + i, c: start.c + j });
+        const cell = worksheet[cellRef];
+
+        return cell ? cell.v : null;
+      });
+    });
+
+    arr.shift();
+
+    return arr;
   }
 
-  private async _saveStockCodes(params: { arr: any[]; dataType: 'KOSPI' | 'KOSDAQ' }) {
-    // const { arr, dataType } = params;
-    //
-    // const excelDateToJSDate = (serial: number) => {
-    //   const excelEpoch = new Date(1899, 11, 30);
-    //   const jsDate = new Date(excelEpoch.getTime() + serial * 24 * 60 * 60 * 1000);
-    //   return dayjs(jsDate).format('YYYY-MM-DD');
-    // };
-    //
-    // if (dataType === 'KOSPI') {
-    //   const entities = arr.map((row) => {
-    //     const entity = new StockCompany();
-    //
-    //     entity.companyName = row[0] as string;
-    //     entity.code = row[1] as number;
-    //     entity.industry = row[2] as string;
-    //     entity.products = row[3] as string;
-    //     entity.listingAt = excelDateToJSDate(row[4]);
-    //     entity.ceo = row[6] as string;
-    //     entity.homePage = row[7] as string;
-    //     entity.marketType = 'KOSPI';
-    //
-    //     return entity;
-    //   });
-    //
-    //   await this.stockRepository.save(entities);
-    // }
-    //
-    // if (dataType === 'KOSDAQ') {
-    //   const entities = arr.map((row) => {
-    //     const entity = new StockCompany();
-    //
-    //     entity.companyName = row[0] as string;
-    //     entity.code = row[1] as number;
-    //     entity.industry = row[2] as string;
-    //     entity.products = row[3] as string;
-    //     entity.listingAt = excelDateToJSDate(row[4]);
-    //     entity.ceo = row[6] as string;
-    //     entity.homePage = row[7] as string;
-    //     entity.marketType = 'KOSDAQ';
-    //
-    //     return entity;
-    //   });
-    //
-    //   await this.stockRepository.save(entities);
-    // }
+  private async _saveStockCodes(params: { arr: any[]; dataType: 'KOSPI' | 'KOSDAQ'; stockCategoryId: number }) {
+    const { arr, dataType, stockCategoryId } = params;
+
+    const excelDateToJSDate = (serial: number) => {
+      const excelEpoch = new Date(1899, 11, 30);
+      const jsDate = new Date(excelEpoch.getTime() + serial * 24 * 60 * 60 * 1000);
+      return dayjs(jsDate).format('YYYY-MM-DD');
+    };
+
+    if (dataType === 'KOSPI') {
+      const entities = arr.map((row) => {
+        const entity = new StockCompany();
+
+        entity.companyName = row[0] as string;
+        entity.code = row[1] as number;
+        entity.industry = row[2] as string;
+        entity.products = row[3] as string;
+        entity.listingAt = excelDateToJSDate(row[4]);
+        entity.ceo = row[6] as string;
+        entity.homePage = row[7] as string;
+        entity.stockCategoryId = stockCategoryId;
+
+        return entity;
+      });
+
+      await this.stockRepository.save(entities);
+    }
+
+    if (dataType === 'KOSDAQ') {
+      const entities = arr.map((row) => {
+        const entity = new StockCompany();
+
+        entity.companyName = row[0] as string;
+        entity.code = row[1] as number;
+        entity.industry = row[2] as string;
+        entity.products = row[3] as string;
+        entity.listingAt = excelDateToJSDate(row[4]);
+        entity.ceo = row[6] as string;
+        entity.homePage = row[7] as string;
+        entity.stockCategoryId = stockCategoryId;
+
+        return entity;
+      });
+
+      await this.stockRepository.save(entities);
+    }
   }
 }

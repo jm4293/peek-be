@@ -1,5 +1,7 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
+import { KoreanTime } from '@libs/database/decorators';
+
 import { KisTokenIssue } from '@libs/database/entities';
 
 @Entity()
@@ -19,9 +21,11 @@ export class KisToken {
   @Column({ type: 'int' })
   expiresIn: number;
 
+  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
+  @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 

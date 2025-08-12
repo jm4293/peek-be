@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -10,25 +11,39 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import { KoreanTime } from '@libs/database/decorators';
+
 import { Board, UserAccount } from '@libs/database/entities';
 
 @Entity()
 export class BoardComment {
+  constructor(partial?: Partial<BoardComment>) {
+    if (partial) {
+      Object.assign(this, partial);
+    }
+  }
+
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ type: 'text' })
   content: string;
 
+  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
+  @Exclude()
+  @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
+  @Exclude()
+  @KoreanTime()
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
+  @Exclude()
   @Column()
   boardId: number;
 
@@ -36,6 +51,7 @@ export class BoardComment {
   @JoinColumn({ name: 'boardId' })
   board: Board;
 
+  @Exclude()
   @Column()
   userAccountId: number;
 

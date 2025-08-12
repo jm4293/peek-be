@@ -2,12 +2,7 @@ import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 
-import {
-  UserAccountRepository,
-  UserPushTokenRepository,
-  UserRepository,
-  UserVisitRepository,
-} from '@libs/database/repositories';
+import { UserAccountRepository, UserRepository, UserVisitRepository } from '@libs/database/repositories';
 
 import { jwtModuleConfig } from '../../config';
 import { AuthController } from './auth.controller';

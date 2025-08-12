@@ -1,4 +1,5 @@
 export enum UserAccountStatusEnum {
-  ACTIVE = 'ACTIVE',
-  DELETE = 'DELETE',
+  ACTIVE = 1,
+  DELETE = 2,
+  PAUSED = 3,
 }

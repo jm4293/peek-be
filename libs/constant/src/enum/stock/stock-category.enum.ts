@@ -1,5 +1,5 @@
 export enum StockCategoryEnum {
-  KOSPI = 'KOSPI',
-  KOSDAQ = 'KOSDAQ',
-  STOCK_US = 'STOCK_US',
+  KOSPI = 1,
+  KOSDAQ = 2,
+  STOCK_US = 3,
 }

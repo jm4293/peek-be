@@ -1,16 +1,16 @@
 import { Request } from 'express';
 
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import { UserAccountRepository, UserRepository } from '@libs/database/repositories';
 
-import { BcryptHandler } from '../../handler';
 import {
   ReadUserNotificationDto,
   RegisterUserPushTokenDto,
   UpdateUserDto,
   UpdateUserPasswordDto,
-} from '../../type/dto';
+  UpdateUserThumbnailDto,
+} from './dto';
 
 @Injectable()
 export class UserService {
@@ -21,24 +21,38 @@ export class UserService {
     // private readonly userNotificationRepository: UserNotificationRepository,
   ) {}
 
-  async getMyInfo(req: Request) {
-    const { id } = req.userAccount;
-
-    return await this.userAccountRepository.findById(id);
+  async getMyInfo(accountId: number) {
+    return await this.userAccountRepository.findById(accountId);
   }
 
-  async updateUser(params: { dto: UpdateUserDto; req: Request }) {
-    // const { dto, req } = params;
-    // const { userSeq } = req.user;
-    //
-    // const user = await this.userRepository.findByUserSeq(userSeq);
-    //
-    // user.nickname = dto.nickname;
-    // user.name = dto.name;
-    // user.birthday = dto.birthday;
-    // user.thumbnail = dto.thumbnailUrl;
-    //
-    // await this.userRepository.save(user);
+  async updateUser(params: { dto: UpdateUserDto; accountId: number }) {
+    const { dto, accountId } = params;
+
+    const { user } = await this.userAccountRepository.findOne({
+      where: { id: accountId },
+      relations: ['user'],
+    });
+
+    user.nickname = dto.nickname;
+    user.name = dto.name;
+    user.birthday = dto.birthday;
+    user.thumbnail = dto.thumbnail;
+
+    await this.userRepository.save(user);
+  }
+
+  async updateThumbnail(params: { dto: UpdateUserThumbnailDto; accountId: number }) {
+    const { dto, accountId } = params;
+    const { thumbnail } = dto;
+
+    const { user } = await this.userAccountRepository.findOne({
+      where: { id: accountId },
+      relations: ['user'],
+    });
+
+    user.thumbnail = thumbnail;
+
+    await this.userRepository.save(user);
   }
 
   async updatePassword(params: { dto: UpdateUserPasswordDto; req: Request }) {
@@ -81,8 +95,8 @@ export class UserService {
     // }
   }
 
-  async getNotificationList(params: { pageParam: number; req: Request }) {
-    // const { pageParam, req } = params;
+  async getNotificationList(params: { page: number; req: Request }) {
+    // const { page, req } = params;
     // const { userSeq } = req.user;
     //
     // const LIMIT = 5;
@@ -93,13 +107,13 @@ export class UserService {
     //   .where('userNotification.user = :userSeq', { userSeq })
     //   .andWhere('userNotification.isDeleted = false')
     //   .orderBy('userNotification.createdAt', 'DESC')
-    //   .skip((pageParam - 1) * LIMIT)
+    //   .skip((page - 1) * LIMIT)
     //   .take(LIMIT);
     //
     // const [notifications, total] = await queryBuilder.getManyAndCount();
     //
-    // const hasNextPage = pageParam * LIMIT < total;
-    // const nextPage = hasNextPage ? pageParam + 1 : null;
+    // const hasNextPage = page * LIMIT < total;
+    // const nextPage = hasNextPage ? page + 1 : null;
     //
     // return { notifications, total, nextPage };
   }

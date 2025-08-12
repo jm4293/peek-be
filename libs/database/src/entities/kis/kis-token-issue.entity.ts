@@ -8,6 +8,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import { KoreanTime } from '@libs/database/decorators';
+
 import { KisToken, User } from '@libs/database/entities';
 
 @Entity()
@@ -24,9 +26,11 @@ export class KisTokenIssue {
   @Column({ type: 'varchar', length: 255, nullable: true })
   referer: string | null;
 
+  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
+  @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 

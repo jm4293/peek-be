@@ -1,51 +1,35 @@
 import { Response } from 'express';
 
-import {
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Query,
-  Res,
-  UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Delete, Get, Param, Post, Query, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 
-import { StockKindEnum } from '@libs/constant';
-
 import { ResConfig } from '../../config';
-import { PageQueryDto } from '../../type/dto/pagenation';
+import { GetStockCodeDto, GetStockCodeListDto } from '../../type/dto';
 import { StockService } from './stock.service';
 
 @Controller('stock')
 export class StockController {
   constructor(private readonly stockService: StockService) {}
 
-  @Get()
-  async getCodeList(
-    @Query() pageQuery: PageQueryDto,
-    @Query('kind') kind: StockKindEnum,
-    @Query('text') text: string,
-    @Res() res: Response,
-  ) {
-    const ret = await this.stockService.getCodeList({ pageQuery, kind, text: text?.trim() });
+  @Get(':code')
+  async getStockCompany(@Param() param: GetStockCodeDto, @Res() res: Response) {
+    const { code } = param;
+
+    const ret = await this.stockService.getStockCompany(code);
 
     return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
-  @Get(':code')
-  async getCodeDetail(@Param('code', ParseIntPipe) code: number, @Res() res: Response) {
-    const ret = await this.stockService.getCodeDetail({ code });
+  @Get()
+  async getStockCompanyList(@Query() query: GetStockCodeListDto, @Res() res: Response) {
+    const [stockCompanies, total] = await this.stockService.getStockCompanyList(query);
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    return ResConfig.Success({ res, statusCode: 'OK', data: { stockCompanies, total } });
   }
 
   @Delete()
   async deleteStock() {
-    await this.stockService.deleteStock();
+    // await this.stockService.deleteStock();
   }
 
   @Post('upload/kospi')

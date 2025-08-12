@@ -1,33 +1,21 @@
-import { Request, Response } from 'express';
+import { Board, BoardComment } from '@libs/database';
+import { Request } from 'express';
 
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseEnumPipe,
-  ParseIntPipe,
-  Post,
-  Put,
-  Query,
-  Req,
-  Res,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Req, Res } from '@nestjs/common';
 
-import { StockKindEnum } from '@libs/constant';
-
-import { ResConfig } from '../../config';
 import { Public } from '../../decorator';
+import { ParseReqHandler } from '../../handler';
+import { BoardService } from './board.service';
 import {
   CreateBoardCommentDto,
-  CreateBoardCommentReplyDto,
   CreateBoardDto,
+  GetBoardCommentDto,
+  GetBoardCommentListDto,
+  GetBoardDto,
   GetBoardListDto,
   UpdateBoardCommentDto,
   UpdateBoardDto,
-} from '../../type/dto';
-import { BoardService } from './board.service';
+} from './dto';
 
 @Controller('board')
 export class BoardController {
@@ -35,147 +23,122 @@ export class BoardController {
 
   // 게시판
   @Public()
-  @Get()
-  async getBoardList(@Query() query: GetBoardListDto, @Req() req: Request, @Res() res: Response) {
-    const ret = await this.boardService.getBoardList(query);
+  @Get(':boardId')
+  async getBoardDetail(@Param() param: GetBoardDto) {
+    const { boardId } = param;
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
-  }
+    const ret = await this.boardService.getBoardDetail(boardId);
 
-  @Get('mine')
-  async getMyBoardList(@Query('pageParam', ParseIntPipe) pageParam: number, @Req() req: Request, @Res() res: Response) {
-    const ret = await this.boardService.getMyBoardList({ pageParam, req });
-
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    // return new Board(ret);
+    return {
+      board: new Board(ret),
+    };
   }
 
   @Public()
-  @Get(':boardSeq')
-  async getBoardDetail(@Param('boardSeq', ParseIntPipe) boardSeq: number, @Req() req: Request, @Res() res: Response) {
-    const ret = await this.boardService.getBoardDetail({ boardSeq, req });
+  @Get()
+  async getBoardList(@Query() query: GetBoardListDto) {
+    const { boards, total, nextPage } = await this.boardService.getBoardList({ query });
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    return {
+      boards: boards.map((item) => new Board(item)),
+      total,
+      nextPage,
+    };
+  }
+
+  @Get('mine')
+  async getMyBoardList(@Query('page', ParseIntPipe) page: number, @Req() req: Request) {
+    // const ret = await this.boardService.getMyBoardList({ page, req });
+    //
+    // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
   @Post()
-  async createBoard(@Body() dto: CreateBoardDto, @Req() req: Request, @Res() res: Response) {
-    await this.boardService.createBoard({ dto, req });
+  async createBoard(@Body() dto: CreateBoardDto, @Req() req: Request) {
+    const { accountId } = ParseReqHandler.parseReq(req);
 
-    return ResConfig.Success({ res, statusCode: 'CREATED' });
+    await this.boardService.createBoard({ dto, accountId });
   }
 
-  @Put(':boardSeq')
-  async updateBoard(
-    @Param('boardSeq', ParseIntPipe) boardSeq: number,
-    @Body() dto: UpdateBoardDto,
-    @Req() req: Request,
-    @Res() res: Response,
-  ) {
-    await this.boardService.updateBoard({ boardSeq, dto, req });
+  @Put(':boardId')
+  async updateBoard(@Param() param: GetBoardDto, @Body() dto: UpdateBoardDto, @Req() req: Request) {
+    const { boardId } = param;
+    const { accountId } = ParseReqHandler.parseReq(req);
 
-    return ResConfig.Success({ res, statusCode: 'OK' });
+    await this.boardService.updateBoard({ boardId, dto, accountId });
   }
 
-  @Delete(':boardSeq')
-  async deleteBoard(@Param('boardSeq', ParseIntPipe) boardSeq: number, @Req() req: Request, @Res() res: Response) {
-    await this.boardService.deleteBoard({ boardSeq, req });
+  @Delete(':boardId')
+  async deleteBoard(@Param() param: GetBoardDto, @Req() req: Request) {
+    const { boardId } = param;
 
-    return ResConfig.Success({ res, statusCode: 'OK' });
+    await this.boardService.deleteBoard({ boardId, req });
   }
 
   // 게시판 댓글
   @Public()
-  @Get(':boardSeq/comments')
-  async getBoardCommentList(
-    @Param('boardSeq', ParseIntPipe) boardSeq: number,
-    @Query('pageParam', ParseIntPipe) pageParam: number,
-    @Req() req: Request,
-    @Res() res: Response,
-  ) {
-    const ret = await this.boardService.getBoardCommentList({ boardSeq, pageParam, req });
+  @Get(':boardId/comments')
+  async getBoardCommentList(@Param() param: GetBoardDto, @Query() query: GetBoardCommentListDto, @Req() req: Request) {
+    const { boardId } = param;
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    const ret = await this.boardService.getBoardCommentList({ boardId, query });
+
+    return {
+      boardComments: ret.boardComments.map((item) => new BoardComment(item)),
+      total: ret.total,
+      nextPage: ret.nextPage,
+    };
   }
 
   @Get('comment/mine')
-  async getMyBoardCommentList(
-    @Query('pageParam', ParseIntPipe) pageParam: number,
-    @Req() req: Request,
-    @Res() res: Response,
-  ) {
-    const ret = await this.boardService.getMyBoardCommentList({ pageParam, req });
-
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+  async getMyBoardCommentList(@Query('page', ParseIntPipe) page: number, @Req() req: Request) {
+    // const ret = await this.boardService.getMyBoardCommentList({ page, req });
+    //
+    // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
-  @Post(':boardSeq/comment')
-  async createBoardComment(
-    @Param('boardSeq', ParseIntPipe) boardSeq: number,
-    @Body() dto: CreateBoardCommentDto,
-    @Req() req: Request,
-    @Res() res: Response,
-  ) {
-    await this.boardService.createBoardComment({ boardSeq, dto, req });
+  @Post(':boardId/comment')
+  async createBoardComment(@Param() param: GetBoardDto, @Body() dto: CreateBoardCommentDto, @Req() req: Request) {
+    const { boardId } = param;
+    const { accountId } = ParseReqHandler.parseReq(req);
 
-    return ResConfig.Success({ res, statusCode: 'CREATED' });
+    await this.boardService.createBoardComment({ boardId, accountId, dto });
   }
 
-  @Put(':boardSeq/comment/:boardCommentSeq')
+  @Put(':boardId/comment/:boardCommentId')
   async updateBoardComment(
-    @Param('boardSeq', ParseIntPipe) boardSeq: number,
-    @Param('boardCommentSeq', ParseIntPipe) boardCommentSeq: number,
+    @Param() boardParam: GetBoardDto,
+    @Param() boardCommentParam: GetBoardCommentDto,
     @Body() dto: UpdateBoardCommentDto,
     @Req() req: Request,
-    @Res() res: Response,
   ) {
-    await this.boardService.updateBoardComment({ boardSeq, boardCommentSeq, dto, req });
+    const { boardId } = boardParam;
+    const { boardCommentId } = boardCommentParam;
+    const { accountId } = ParseReqHandler.parseReq(req);
 
-    return ResConfig.Success({ res, statusCode: 'OK' });
+    await this.boardService.updateBoardComment({ boardId, boardCommentId, accountId, dto });
   }
 
-  @Delete(':boardSeq/comment/:boardCommentSeq')
+  @Delete(':boardId/comment/:boardCommentId')
   async deleteBoardComment(
-    @Param('boardSeq', ParseIntPipe) boardSeq: number,
-    @Param('boardCommentSeq', ParseIntPipe) boardCommentSeq: number,
+    @Param() boardParam: GetBoardDto,
+    @Param() boardCommentParam: GetBoardCommentDto,
     @Req() req: Request,
-    @Res() res: Response,
   ) {
-    await this.boardService.deleteBoardComment({ boardSeq, boardCommentSeq, req });
+    const { boardId } = boardParam;
+    const { boardCommentId } = boardCommentParam;
+    const { accountId } = ParseReqHandler.parseReq(req);
 
-    return ResConfig.Success({ res, statusCode: 'OK' });
-  }
-
-  // 게시판 댓글 답장
-  @Post(':boardCommentSeq/reply')
-  async createBoardCommentReply(
-    @Param('boardCommentSeq', ParseIntPipe) boardCommentSeq: number,
-    @Body() dto: CreateBoardCommentReplyDto,
-    @Req() req: Request,
-    @Res() res: Response,
-  ) {
-    await this.boardService.createBoardCommentReply({ boardCommentSeq, dto, req });
-
-    return ResConfig.Success({ res, statusCode: 'CREATED' });
-  }
-
-  @Delete(':boardCommentSeq/reply/:boardCommentReplySeq')
-  async deleteBoardCommentReply(
-    @Param('boardCommentSeq', ParseIntPipe) boardCommentSeq: number,
-    @Param('boardCommentReplySeq', ParseIntPipe) boardCommentReplySeq: number,
-    @Req() req: Request,
-    @Res() res: Response,
-  ) {
-    await this.boardService.deleteBoardCommentReply({ boardCommentSeq, boardCommentReplySeq, req });
-
-    return ResConfig.Success({ res, statusCode: 'OK' });
+    await this.boardService.deleteBoardComment({ boardId, boardCommentId, accountId });
   }
 
   // 게시판 좋아요(찜)
   @Public()
   @Post(':boardSeq/like')
-  async createBoardLike(@Param('boardSeq', ParseIntPipe) boardSeq: number, @Req() req: Request, @Res() res: Response) {
-    await this.boardService.boardLike({ boardSeq, req });
-
-    return ResConfig.Success({ res, statusCode: 'OK' });
+  async createBoardLike(@Param('boardSeq', ParseIntPipe) boardSeq: number, @Req() req: Request) {
+    // await this.boardService.boardLike({ boardSeq, req });
+    //
+    // return ResConfig.Success({ res, statusCode: 'OK' });
   }
 }

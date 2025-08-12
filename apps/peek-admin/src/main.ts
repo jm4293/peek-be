@@ -12,7 +12,7 @@ async function bootstrap() {
   // configService.get('NODE_ENV') === 'development' && app.setGlobalPrefix('api');
 
   app.enableCors({
-    origin: ['http://localhost:31180'],
+    origin: ['http://localhost:29980'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
@@ -33,6 +33,7 @@ async function bootstrap() {
     },
   });
   // Swagger 설정 끝
+
   await app.listen(configService.get('SERVER_PORT_ADMIN') as string, () => {
     console.info(`어드민 서버: ${configService.get('SERVER_PORT_ADMIN')}`);
   });

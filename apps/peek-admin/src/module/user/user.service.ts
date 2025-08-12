@@ -1,26 +1,26 @@
 import { Injectable } from '@nestjs/common';
 
-import { UserStatusEnum } from '@libs/constant/enum';
-
 import { UserRepository } from '@libs/database/repositories';
+
+import { LIST_LIMIT } from '../../constant/list';
+import { GetUserListDto } from '../../type/dto';
 
 @Injectable()
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async getUsers(params: { pageParam: number }) {
-    // const { pageParam } = params;
-    //
-    // const limit = 10;
-    // const offset = (pageParam - 1) * limit;
-    //
-    // const [users, total] = await this.userRepository.findAndCount({ skip: offset, take: limit });
-    //
-    // return { users, total };
+  async getUser(userId: number) {
+    return await this.userRepository.findById(userId);
   }
 
-  async getUser(userSeq: number) {
-    // return await this.userRepository.findByUserSeq(userSeq);
+  async getUsers(query: GetUserListDto) {
+    const { page } = query;
+
+    return await this.userRepository.findAndCount({
+      take: LIST_LIMIT,
+      skip: (page - 1) * LIST_LIMIT,
+      relations: ['userAccounts'],
+    });
   }
 
   async updateUser(userSeq: number) {}

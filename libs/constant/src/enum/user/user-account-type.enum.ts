@@ -1,9 +1,9 @@
 export enum UserAccountTypeEnum {
-  EMAIL = 'EMAIL',
-  GOOGLE = 'GOOGLE',
-  FACEBOOK = 'FACEBOOK',
-  KAKAO = 'KAKAO',
-  NAVER = 'NAVER',
+  EMAIL = 1,
+  GOOGLE = 2,
+  FACEBOOK = 3,
+  KAKAO = 4,
+  NAVER = 5,
 }
 
 export const userAccountTypeDescription = {

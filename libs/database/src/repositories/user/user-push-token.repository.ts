@@ -1,6 +1,6 @@
 import { EntityManager, Repository } from 'typeorm';
 
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import { UserPushToken } from '@libs/database/entities';
 

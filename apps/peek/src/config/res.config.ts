@@ -2,7 +2,7 @@ import { Response } from 'express';
 
 import { HttpStatus } from '@nestjs/common';
 
-import { ResEnum } from '@libs/constant/enum';
+import { ResEnum } from '@libs/constant/enum/res';
 
 export class ResConfig<T = unknown> {
   static Success<T>(params: { res: Response; statusCode: 'OK' | 'CREATED' | 'ACCEPTED'; message?: string; data?: T }) {

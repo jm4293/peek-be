@@ -11,18 +11,21 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { UserAccountStatusEnum, UserAccountTypeEnum } from '@libs/constant/enum';
+import { UserAccountStatusEnum, UserAccountTypeEnum } from '@libs/constant/enum/user';
 
-import { BoardArticle, BoardComment, BoardLike, User, UserVisit } from '@libs/database/entities';
+import { KoreanTime } from '@libs/database/decorators';
+
+import { Board, BoardComment, BoardLike, User, UserVisit } from '@libs/database/entities';
 
 @Entity()
 export class UserAccount {
   constructor(partial?: Partial<UserAccount>) {
     if (partial) {
-      return Object.assign(this, partial);
+      Object.assign(this, partial);
     }
   }
 
+  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -45,14 +48,17 @@ export class UserAccount {
   @Column({ type: 'varchar', length: 255, nullable: true })
   refreshToken: string | null;
 
+  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
   @Exclude()
+  @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
   @Exclude()
+  @KoreanTime()
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 
@@ -67,8 +73,8 @@ export class UserAccount {
   @OneToMany(() => UserVisit, (userVisit) => userVisit.userAccount)
   userVisits: UserVisit[];
 
-  @OneToMany(() => BoardArticle, (boardArticle) => boardArticle.userAccount)
-  boardArticles: BoardArticle[];
+  @OneToMany(() => Board, (board) => board.userAccount)
+  boards: Board[];
 
   @OneToMany(() => BoardComment, (boardComment) => boardComment.userAccount)
   boardComments: BoardComment[];

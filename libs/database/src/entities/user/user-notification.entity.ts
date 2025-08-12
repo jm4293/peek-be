@@ -10,12 +10,15 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { UserNotificationTypeEnum } from '@libs/constant/enum';
+import { UserNotificationTypeEnum } from '@libs/constant/enum/user';
+
+import { KoreanTime } from '@libs/database/decorators';
 
 import { User } from '@libs/database/entities';
 
 @Entity()
 export class UserNotification {
+  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -29,14 +32,17 @@ export class UserNotification {
   @Column({ type: 'boolean', default: false })
   isRead: boolean;
 
+  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
   @Exclude()
+  @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
   @Exclude()
+  @KoreanTime()
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 

@@ -5,13 +5,14 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { StockKindEnum } from '@libs/constant';
+import { StockCategoryEnum } from '@libs/constant/enum/stock';
 
 import { KisToken, StockCompany } from '@libs/database/entities';
 
 import {
   KisTokenIssueRepository,
   KisTokenRepository,
+  StockCategoryRepository,
   StockCompanyRepository,
   UserRepository,
 } from '@libs/database/repositories';
@@ -24,11 +25,17 @@ export class StockService {
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
 
+    private readonly stockCategoryRepository: StockCategoryRepository,
     private readonly stockRepository: StockCompanyRepository,
+
     private readonly kisTokenRepository: KisTokenRepository,
     private readonly kisTokenIssueRepository: KisTokenIssueRepository,
     private readonly userRepository: UserRepository,
   ) {}
+
+  async getStockCategoryList() {
+    return await this.stockCategoryRepository.find();
+  }
 
   // 토큰
   async getOuathToken(params: { req: Request }) {
@@ -46,7 +53,7 @@ export class StockService {
     //   return { kisToken: kisToken.accessToken };
   }
 
-  async getCodeList(params: { kind: StockKindEnum; text: string }) {
+  async getCodeList(params: { kind: StockCategoryEnum; text: string }) {
     // const { kind, text } = params;
     //
     // let whereCondition = {};
@@ -68,7 +75,7 @@ export class StockService {
     // return { stocks, total };
   }
 
-  async getCodeDetail(params: { code: number; kind: StockKindEnum }) {
+  async getCodeDetail(params: { code: number; kind: StockCategoryEnum }) {
     // const { code } = params;
     //
     // return await this.stockRepository.findOne({ where: { code } });

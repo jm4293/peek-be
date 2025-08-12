@@ -5,6 +5,8 @@ import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 
+import { ACCESS_TOKEN_NAME } from '../constant/cookie';
+import { IS_PUBLIC_KEY } from '../decorator';
 import { IJwtToken } from '../type/interface';
 
 @Injectable()
@@ -16,38 +18,39 @@ export class AuthGuardConfig implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext) {
-    const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler());
+    const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler());
+
+    if (isPublic) {
+      return true;
+    }
 
     const request = context.switchToHttp().getRequest<Request>();
 
     const token = this._extractTokenFromHeader(request);
 
-    if (token) {
-      try {
-        request['userAccount'] = this.jwtService.verify<IJwtToken>(token, {
-          secret: this.configService.get('JWT_SECRET_KEY'),
-        });
-      } catch (e) {
-        if (!isPublic) {
-          throw new UnauthorizedException('유효하지 않은 토큰입니다.');
-        }
-      }
-    } else if (!isPublic) {
-      throw new UnauthorizedException('토큰이 존재하지 않습니다.');
+    if (!token) {
+      throw new UnauthorizedException();
     }
 
-    return true;
+    try {
+      request['userAccount'] = this.jwtService.verify<IJwtToken>(token, {
+        secret: this.configService.get('JWT_SECRET_KEY'),
+      });
+
+      return true;
+    } catch (error) {
+      throw new UnauthorizedException();
+    }
   }
 
   private _extractTokenFromHeader(request: Request): string | undefined {
-    const [type, token] = request.headers['authorization']?.split(' ') ?? [];
+    // const [type, token] = request.headers['authorization']?.split(' ') ?? [];
 
-    return type === 'Bearer' ? token : undefined;
+    // return type === 'Bearer' ? token : undefined;
+
+    const cookies = request.headers.cookie?.split('; ') ?? [];
+    const accessTokenCookie = cookies.find((cookie) => cookie.startsWith(`${ACCESS_TOKEN_NAME}=`));
+
+    return accessTokenCookie ? accessTokenCookie.split('=')[1] : null;
   }
-
-  // private _extractTokenFromHeader(request: Request): string | undefined {
-  //   const token = request.cookies['AT'];
-  //
-  //   return token ? token : undefined;
-  // }
 }

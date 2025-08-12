@@ -2,24 +2,60 @@ import { Request, Response } from 'express';
 
 import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
 
-import { REFRESH_TOKEN_COOKIE_TIME } from '@libs/constant';
+import { ACCESS_TOKEN_COOKIE_TIME, REFRESH_TOKEN_COOKIE_TIME } from '@libs/constant/jwt';
 
+import { ACCESS_TOKEN_NAME, REFRESH_TOKEN_NAME } from '../../constant/cookie';
 import { Public } from '../../decorator';
-import { CheckEmailDto, CreateUserEmailDto, LoginEmailDto, LoginOauthDto } from '../../type/dto';
 import { AuthService } from './auth.service';
+import { CheckEmailDto, LoginEmailDto, LoginOauthDto, SignupEmailDto } from './dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @Post('check-email')
+  @HttpCode(200)
+  async checkEmail(@Body() dto: CheckEmailDto) {
+    return await this.authService.checkEmail(dto);
+  }
+
+  @Public()
+  @Post('signup')
+  async signup(@Body() dto: SignupEmailDto) {
+    return await this.authService.signup(dto);
+  }
+
+  @Public()
   @Post('login')
   async login(@Body() dto: LoginEmailDto, @Req() req: Request, @Res() res: Response) {
     const { accessToken, refreshToken } = await this.authService.login({ dto, req });
 
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie(ACCESS_TOKEN_NAME, accessToken, {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: ACCESS_TOKEN_COOKIE_TIME,
+    });
+
+    res.cookie(REFRESH_TOKEN_NAME, refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: REFRESH_TOKEN_COOKIE_TIME,
+    });
+
+    res.status(200).json({});
+  }
+
+  @Public()
+  @Post('login-oauth')
+  async loginOauth(@Body() dto: LoginOauthDto, @Req() req: Request, @Res() res: Response) {
+    const { accessToken, refreshToken } = await this.authService.loginOauth({ dto, req });
+
+    res.cookie('__rt', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: REFRESH_TOKEN_COOKIE_TIME,
     });
@@ -28,41 +64,31 @@ export class AuthController {
   }
 
   @Public()
-  @Post('login-oauth')
-  async loginOauth(@Body() dto: LoginOauthDto) {
-    // const ret = await this.authService.loginOauth({ dto, req });
-    //
-    // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
-  }
-
-  @Public()
-  @Post('check-email')
-  @HttpCode(200)
-  async checkEmail(@Body() dto: CheckEmailDto) {
-    // const ret = await this.authService.checkEmail(dto);
-    //
-    // return { ...ret };
-
-    return await this.authService.checkEmail(dto);
-  }
-
-  @Public()
-  @Post('register')
-  async register(@Body() dto: CreateUserEmailDto) {
-    // const ret = await this.authService.registerEmail(dto);
-    //
-    // return { ...ret };
-
-    return await this.authService.registerEmail(dto);
-  }
-
-  @Public()
   @Post('refresh-token')
   @HttpCode(200)
-  async refreshToken(@Req() req: Request) {
-    const { accessToken } = await this.authService.refreshToken({ req });
+  async refreshToken(@Req() req: Request, @Res() res: Response) {
+    try {
+      const { accessToken } = await this.authService.refreshToken({ req });
 
-    return { accessToken };
+      res.cookie(ACCESS_TOKEN_NAME, accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: ACCESS_TOKEN_COOKIE_TIME,
+      });
+
+      res.status(200).json({});
+    } catch (err) {
+      const cookies = req.cookies;
+
+      for (const cookie in cookies) {
+        if (cookies.hasOwnProperty(cookie)) {
+          res.clearCookie(cookie);
+        }
+      }
+
+      res.status(200).json();
+    }
   }
 
   @Post('logout')
@@ -77,6 +103,6 @@ export class AuthController {
       }
     }
 
-    return res.status(200).json();
+    res.status(200).json();
   }
 }
