@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 import { AuthGuardConfig, configModuleConfig, typeormModuleConfig } from './config';
 import { AuthModule, BoardModule, HomeModule, StockModule, UserModule } from './module';
 
@@ -23,8 +25,8 @@ import { AuthModule, BoardModule, HomeModule, StockModule, UserModule } from './
     AuthModule,
     UserModule,
   ],
-  controllers: [],
-  providers: [{ provide: APP_GUARD, useClass: AuthGuardConfig }],
+  controllers: [AppController],
+  providers: [{ provide: APP_GUARD, useClass: AuthGuardConfig }, AppService],
   exports: [],
 })
 export class AppModule {}

@@ -36,7 +36,6 @@ export class UserController {
 
     const ret = await this.userService.getMyInfo(accountId);
 
-    // return new UserAccount(ret);
     return {
       my: new UserAccount(ret),
     };
