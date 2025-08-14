@@ -1,7 +1,8 @@
 import { Exclude } from 'class-transformer';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
-import { Board, UserAccount } from '@libs/database/entities';
+import { UserAccount } from '../user';
+import { Board } from './board.entity';
 
 @Entity()
 export class BoardLike {

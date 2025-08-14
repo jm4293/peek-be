@@ -1,10 +1,12 @@
-import { Board, BoardComment } from '@libs/database';
 import { Request } from 'express';
 
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Req } from '@nestjs/common';
 
-import { Public } from '../../decorator';
-import { ParseReqHandler } from '../../handler';
+import { Public } from '@peek/decorator/public';
+import { ParseReqHandler } from '@peek/handler/parseReq';
+
+import { Board, BoardComment } from '@database/entities/board';
+
 import { BoardService } from './board.service';
 import {
   CreateBoardCommentDto,

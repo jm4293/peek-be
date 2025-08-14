@@ -9,9 +9,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { KoreanTime } from '@libs/database/decorators';
+import { KoreanTime } from '@database/decorators';
 
-import { User } from '@libs/database/entities';
+import { User } from './user.entity';
 
 @Entity()
 export class UserPushToken {

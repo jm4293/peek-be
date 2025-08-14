@@ -2,9 +2,10 @@ import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 
-import { UserAccountRepository, UserRepository, UserVisitRepository } from '@libs/database/repositories';
+import { jwtModuleConfig } from '@peek/config/jwt';
 
-import { jwtModuleConfig } from '../../config';
+import { UserAccountRepository, UserRepository, UserVisitRepository } from '@database/repositories/user';
+
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 

@@ -11,11 +11,13 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { UserAccountStatusEnum, UserAccountTypeEnum } from '@libs/constant/enum/user';
+import { UserAccountStatusEnum, UserAccountTypeEnum } from '@constant/enum/user';
 
-import { KoreanTime } from '@libs/database/decorators';
+import { KoreanTime } from '@database/decorators';
 
-import { Board, BoardComment, BoardLike, User, UserVisit } from '@libs/database/entities';
+import { Board, BoardComment, BoardLike } from '../board';
+import { UserVisit } from './user-visit.entity';
+import { User } from './user.entity';
 
 @Entity()
 export class UserAccount {

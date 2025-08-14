@@ -1,4 +1,3 @@
-import { UserAccount } from '@libs/database';
 import { Request } from 'express';
 
 import {
@@ -16,7 +15,10 @@ import {
   Req,
 } from '@nestjs/common';
 
-import { ParseReqHandler } from '../../handler';
+import { ParseReqHandler } from '@peek/handler/parseReq';
+
+import { UserAccount } from '@database/entities/user';
+
 import {
   ReadUserNotificationDto,
   RegisterUserPushTokenDto,

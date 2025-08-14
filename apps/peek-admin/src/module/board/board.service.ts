@@ -1,13 +1,13 @@
-import { Board, BoardArticle, BoardArticleRepository, BoardComment, BoardCommentRepository } from '@libs/database';
 import { DataSource } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 
-import { BoardRepository } from '@libs/database/repositories';
+import { LIST_LIMIT } from '@peek-admin/constant/list';
+import { GetBoardListDto } from '@peek-admin/type/dto';
 
-import { LIST_LIMIT } from '../../constant/list';
-import { GetBoardListDto } from '../../type/dto';
+import { Board, BoardArticle, BoardComment } from '@database/entities/board';
+import { BoardArticleRepository, BoardCommentRepository, BoardRepository } from '@database/repositories/board';
 
 @Injectable()
 export class BoardService {

@@ -4,21 +4,20 @@ import { DataSource } from 'typeorm';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 
-import { BoardTypeEnum } from '@libs/constant/enum/board';
+import { LIST_LIMIT } from '@peek/constant/list';
 
-import { Board, BoardArticle, BoardComment } from '@libs/database/entities';
+import { BoardTypeEnum } from '@constant/enum/board';
 
+import { Board, BoardArticle, BoardComment } from '@database/entities/board';
 import {
   BoardArticleRepository,
   BoardCommentRepository,
   BoardLikeRepository,
   BoardRepository,
-  StockCategoryRepository,
-  UserAccountRepository,
-  UserRepository,
-} from '@libs/database/repositories';
+} from '@database/repositories/board';
+import { StockCategoryRepository } from '@database/repositories/stock';
+import { UserAccountRepository, UserRepository } from '@database/repositories/user';
 
-import { LIST_LIMIT } from '../../constant/list';
 import {
   CreateBoardCommentDto,
   CreateBoardDto,

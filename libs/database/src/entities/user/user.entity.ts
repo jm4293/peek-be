@@ -9,11 +9,14 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { UserTypeEnum } from '@libs/constant/enum/user';
+import { UserTypeEnum } from '@constant/enum/user';
 
-import { KoreanTime } from '@libs/database/decorators';
+import { KoreanTime } from '@database/decorators';
 
-import { KisTokenIssue, UserAccount, UserNotification, UserPushToken } from '@libs/database/entities';
+import { KisTokenIssue } from '../kis';
+import { UserAccount } from './user-account.entity';
+import { UserNotification } from './user-notification.entity';
+import { UserPushToken } from './user-push-token.entity';
 
 @Entity()
 export class User {

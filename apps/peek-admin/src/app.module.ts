@@ -2,8 +2,13 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { configModuleConfig, typeormModuleConfig } from './config';
-import { AuthModule, BoardModule, KisTokenScheduleModule, StockModule, UserModule } from './module';
+import { configModuleConfig } from './config/config-module';
+import { typeormModuleConfig } from './config/typeorm';
+import { AuthModule } from './module/auth';
+import { BoardModule } from './module/board';
+import { KisTokenScheduleModule } from './module/schedule';
+import { StockModule } from './module/stock';
+import { UserModule } from './module/user';
 
 /**
  * imports: 다른 모듈을 가져오기

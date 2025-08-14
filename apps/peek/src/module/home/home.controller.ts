@@ -2,8 +2,9 @@ import { Response } from 'express';
 
 import { Controller, Get, Res } from '@nestjs/common';
 
-import { ResConfig } from '../../config';
-import { Public } from '../../decorator';
+import { ResConfig } from '@peek/config/_res.config';
+import { Public } from '@peek/decorator/public';
+
 import { HomeService } from './home.service';
 
 @Controller('home')

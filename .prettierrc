@@ -6,12 +6,11 @@
   "printWidth": 120,
   "importOrder": [
     "^@nestjs/(.*)$",
-    "^@apps/peek/(.*)$",
-    "^@apps/peek-admin/(.*)$",
-    "^@libs/constant(.*)$",
-    "^@libs/database/decorators(.*)$",
-    "^@libs/database/entities(.*)$",
-    "^@libs/database/repositories(.*)$",
+    "^@peek/(.*)$",
+    "^@peek-admin/(.*)$",
+    "^@constant/(.*)$",
+    "^@database/(.*)$",
+    "^@database/decorators(.*)$",
     "^[./]"
   ],
   "importOrderSeparation": true,

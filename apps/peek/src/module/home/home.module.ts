@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { BoardRepository } from '@libs/database/repositories';
+import { BoardRepository } from '@database/repositories/board';
 
 import { HomeController } from './home.controller';
 import { HomeService } from './home.service';

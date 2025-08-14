@@ -10,11 +10,11 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { UserNotificationTypeEnum } from '@libs/constant/enum/user';
+import { UserNotificationTypeEnum } from '@constant/enum/user';
 
-import { KoreanTime } from '@libs/database/decorators';
+import { KoreanTime } from '@database/decorators';
 
-import { User } from '@libs/database/entities';
+import { User } from './user.entity';
 
 @Entity()
 export class UserNotification {

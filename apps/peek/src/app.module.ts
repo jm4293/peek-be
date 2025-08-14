@@ -5,8 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthGuardConfig, configModuleConfig, typeormModuleConfig } from './config';
-import { AuthModule, BoardModule, HomeModule, StockModule, UserModule } from './module';
+import { AuthGuardConfig } from './config/auth-guard';
+import { configModuleConfig } from './config/config';
+import { typeormModuleConfig } from './config/typeorm';
+import { AuthModule } from './module/auth';
+import { BoardModule } from './module/board';
+import { HomeModule } from './module/home';
+import { StockModule } from './module/stock';
+import { UserModule } from './module/user';
 
 /**
  * imports: 다른 모듈을 가져오기

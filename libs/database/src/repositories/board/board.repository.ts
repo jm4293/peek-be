@@ -2,7 +2,7 @@ import { EntityManager, Repository } from 'typeorm';
 
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { Board } from '@libs/database/entities';
+import { Board } from '@database/entities/board';
 
 @Injectable()
 export class BoardRepository extends Repository<Board> {

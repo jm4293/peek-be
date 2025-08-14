@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
-import { UserRepository } from '@libs/database/repositories';
+import { LIST_LIMIT } from '@peek-admin/constant/list';
+import { GetUserListDto } from '@peek-admin/type/dto';
 
-import { LIST_LIMIT } from '../../constant/list';
-import { GetUserListDto } from '../../type/dto';
+import { UserRepository } from '@database/repositories/user';
 
 @Injectable()
 export class UserService {

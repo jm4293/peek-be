@@ -12,11 +12,15 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { BoardTypeEnum } from '@libs/constant/enum/board';
+import { BoardTypeEnum } from '@constant/enum/board';
 
-import { KoreanTime } from '@libs/database/decorators';
+import { KoreanTime } from '@database/decorators';
 
-import { BoardArticle, BoardComment, BoardLike, StockCategory, UserAccount } from '@libs/database/entities';
+import { StockCategory } from '../stock';
+import { UserAccount } from '../user';
+import { BoardArticle } from './board-article.entity';
+import { BoardComment } from './board-comment.entity';
+import { BoardLike } from './board-like.entity';
 
 @Entity()
 export class Board {

@@ -8,7 +8,7 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
-import { validationPipeConfig } from './config';
+import { validationPipeConfig } from './config/validation-pipe';
 
 async function bootstrap() {
   // const httpsOptions = {

@@ -2,7 +2,7 @@ import { EntityManager, Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 
-import { StockCompany } from '@libs/database/entities';
+import { StockCompany } from '@database/entities/stock';
 
 @Injectable()
 export class StockCompanyRepository extends Repository<StockCompany> {

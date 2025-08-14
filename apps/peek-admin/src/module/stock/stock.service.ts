@@ -4,12 +4,11 @@ import * as XLSX from 'xlsx';
 
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { StockCompany } from '@libs/database/entities';
+import { LIST_LIMIT } from '@peek-admin/constant/list';
+import { GetStockCodeListDto } from '@peek-admin/type/dto';
 
-import { StockCategoryRepository, StockCompanyRepository } from '@libs/database/repositories';
-
-import { LIST_LIMIT } from '../../constant/list';
-import { GetStockCodeListDto } from '../../type/dto';
+import { StockCompany } from '@database/entities/stock';
+import { StockCategoryRepository, StockCompanyRepository } from '@database/repositories/stock';
 
 @Injectable()
 export class StockService {

@@ -9,11 +9,11 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { UserVisitTypeEnum } from '@libs/constant/enum/user';
+import { UserVisitTypeEnum } from '@constant/enum/user';
 
-import { KoreanTime } from '@libs/database/decorators';
+import { KoreanTime } from '@database/decorators';
 
-import { UserAccount } from '@libs/database/entities';
+import { UserAccount } from './user-account.entity';
 
 @Entity()
 export class UserVisit {

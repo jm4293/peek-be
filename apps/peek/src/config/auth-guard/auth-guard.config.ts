@@ -5,9 +5,9 @@ import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 
-import { ACCESS_TOKEN_NAME } from '../constant/cookie';
-import { IS_PUBLIC_KEY } from '../decorator';
-import { IJwtToken } from '../type/interface';
+import { ACCESS_TOKEN_NAME } from '@peek/constant/cookie';
+import { IS_PUBLIC_KEY } from '@peek/decorator/public';
+import { IJwtToken } from '@peek/type/interface';
 
 @Injectable()
 export class AuthGuardConfig implements CanActivate {

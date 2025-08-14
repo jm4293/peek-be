@@ -1,12 +1,14 @@
-import { StockCategory } from '@libs/database';
 import { Request, Response } from 'express';
 
 import { Controller, Get, Param, ParseEnumPipe, ParseIntPipe, Query, Req, Res } from '@nestjs/common';
 
-import { StockCategoryEnum } from '@libs/constant/enum/stock';
+import { ResConfig } from '@peek/config/_res.config';
+import { Public } from '@peek/decorator/public';
 
-import { ResConfig } from '../../config';
-import { Public } from '../../decorator';
+import { StockCategoryEnum } from '@constant/enum/stock';
+
+import { StockCategory } from '@database/entities/stock';
+
 import { StockService } from './stock.service';
 
 @Controller('stock')

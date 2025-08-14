@@ -10,9 +10,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { KoreanTime } from '@libs/database/decorators';
+import { KoreanTime } from '@database/decorators';
 
-import { Board } from '@libs/database/entities';
+import { Board } from './board.entity';
 
 @Entity()
 export class BoardArticle {

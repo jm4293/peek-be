@@ -4,13 +4,13 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
-import { UserTypeEnum, UserVisitTypeEnum } from '@libs/constant/enum/user';
-import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from '@libs/constant/jwt';
+import { BcryptHandler } from '@peek-admin/handler/bcrypt';
+import { LoginDto } from '@peek-admin/type/dto';
 
-import { UserAccountRepository, UserVisitRepository } from '@libs/database/repositories';
+import { UserTypeEnum, UserVisitTypeEnum } from '@constant/enum/user';
+import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from '@constant/jwt/index';
 
-import { BcryptHandler } from '../../handler';
-import { LoginDto } from '../../type/dto';
+import { UserAccountRepository, UserVisitRepository } from '@database/repositories/user';
 
 @Injectable()
 export class AuthService {

@@ -9,9 +9,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { KoreanTime } from '@libs/database/decorators';
+import { KoreanTime } from '@database/decorators';
 
-import { StockCategory } from '@libs/database/entities';
+import { StockCategory } from './stock-category.entity';
 
 @Entity()
 export class StockCompany {

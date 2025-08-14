@@ -2,9 +2,10 @@ import { Request, Response } from 'express';
 
 import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 
-import { REFRESH_TOKEN_COOKIE_TIME } from '@libs/constant/jwt';
+import { LoginDto } from '@peek-admin/type/dto';
 
-import { LoginDto } from '../../type/dto';
+import { REFRESH_TOKEN_COOKIE_TIME } from '@constant/jwt/index';
+
 import { AuthService } from './auth.service';
 
 @Controller('auth')

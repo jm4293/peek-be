@@ -11,9 +11,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { KoreanTime } from '@libs/database/decorators';
+import { KoreanTime } from '@database/decorators';
 
-import { Board, UserAccount } from '@libs/database/entities';
+import { UserAccount } from '../user';
+import { Board } from './board.entity';
 
 @Entity()
 export class BoardComment {

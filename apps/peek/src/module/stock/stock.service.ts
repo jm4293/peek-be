@@ -1,21 +1,15 @@
 import { Request } from 'express';
-import { FindOptionsOrder, Like } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { StockCategoryEnum } from '@libs/constant/enum/stock';
+import { StockCategoryEnum } from '@constant/enum/stock';
 
-import { KisToken, StockCompany } from '@libs/database/entities';
-
-import {
-  KisTokenIssueRepository,
-  KisTokenRepository,
-  StockCategoryRepository,
-  StockCompanyRepository,
-  UserRepository,
-} from '@libs/database/repositories';
+import { KisToken } from '@database/entities/kis';
+import { KisTokenIssueRepository, KisTokenRepository } from '@database/repositories/kis';
+import { StockCategoryRepository, StockCompanyRepository } from '@database/repositories/stock';
+import { UserRepository } from '@database/repositories/user';
 
 @Injectable()
 export class StockService {

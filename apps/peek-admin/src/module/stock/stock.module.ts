@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { StockCategoryRepository, StockCompanyRepository } from '@libs/database/repositories';
+import { StockCategoryRepository, StockCompanyRepository } from '@database/repositories/stock';
 
 import { StockController } from './stock.controller';
 import { StockService } from './stock.service';

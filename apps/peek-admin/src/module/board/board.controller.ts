@@ -1,9 +1,10 @@
 import { Response } from 'express';
 
-import { Controller, Delete, Get, Param, Put, Query, Res } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Query, Res } from '@nestjs/common';
 
-import { ResConfig } from '../../config';
-import { GetBoardDto, GetBoardListDto } from '../../type/dto';
+import { ResConfig } from '@peek-admin/config/_res.config';
+import { GetBoardDto, GetBoardListDto } from '@peek-admin/type/dto';
+
 import { BoardService } from './board.service';
 
 @Controller('board')

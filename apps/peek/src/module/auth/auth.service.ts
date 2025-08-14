@@ -9,16 +9,16 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectDataSource } from '@nestjs/typeorm';
 
-import { UserAccountTypeEnum, UserVisitTypeEnum, userAccountTypeDescription } from '@libs/constant/enum/user';
-import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from '@libs/constant/jwt';
+import { REFRESH_TOKEN_NAME } from '@peek/constant/cookie';
+import { BcryptHandler } from '@peek/handler/bcrypt';
+import { IJwtToken } from '@peek/type/interface';
 
-import { User, UserAccount } from '@libs/database/entities';
+import { UserAccountTypeEnum, UserVisitTypeEnum, userAccountTypeDescription } from '@constant/enum/user';
+import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from '@constant/jwt/index';
 
-import { UserAccountRepository, UserRepository, UserVisitRepository } from '@libs/database/repositories';
+import { User, UserAccount } from '@database/entities/user';
+import { UserAccountRepository, UserRepository, UserVisitRepository } from '@database/repositories/user';
 
-import { REFRESH_TOKEN_NAME } from '../../constant/cookie';
-import { BcryptHandler } from '../../handler';
-import { IJwtToken } from '../../type/interface';
 import { CheckEmailDto, LoginEmailDto, LoginOauthDto, SignupEmailDto } from './dto';
 
 @Injectable()

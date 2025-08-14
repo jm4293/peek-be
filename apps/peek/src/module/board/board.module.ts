@@ -5,10 +5,9 @@ import {
   BoardCommentRepository,
   BoardLikeRepository,
   BoardRepository,
-  StockCategoryRepository,
-  UserAccountRepository,
-  UserRepository,
-} from '@libs/database/repositories';
+} from '@database/repositories/board';
+import { StockCategoryRepository } from '@database/repositories/stock';
+import { UserAccountRepository, UserRepository } from '@database/repositories/user';
 
 import { BoardController } from './board.controller';
 import { BoardService } from './board.service';

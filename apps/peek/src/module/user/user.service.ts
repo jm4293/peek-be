@@ -2,7 +2,7 @@ import { Request } from 'express';
 
 import { Injectable } from '@nestjs/common';
 
-import { UserAccountRepository, UserRepository } from '@libs/database/repositories';
+import { UserAccountRepository, UserRepository } from '@database/repositories/user';
 
 import {
   ReadUserNotificationDto,
