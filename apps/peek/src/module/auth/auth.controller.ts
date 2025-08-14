@@ -20,7 +20,7 @@ export class AuthController {
     return {
       httpOnly: true,
       secure: isProduction,
-      sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
+      sameSite: 'lax',
     };
   }
 
@@ -44,37 +44,37 @@ export class AuthController {
 
     const { accessToken, refreshToken } = await this.authService.login({ dto, req });
 
-    res.cookie(ACCESS_TOKEN_NAME, accessToken, {
-      ...cookieOptions,
-      maxAge: ACCESS_TOKEN_COOKIE_TIME,
-    });
+    // res.cookie(ACCESS_TOKEN_NAME, accessToken, {
+    //   ...cookieOptions,
+    //   maxAge: ACCESS_TOKEN_COOKIE_TIME,
+    // });
 
-    res.cookie(REFRESH_TOKEN_NAME, refreshToken, {
-      ...cookieOptions,
-      maxAge: REFRESH_TOKEN_COOKIE_TIME,
-    });
+    // res.cookie(REFRESH_TOKEN_NAME, refreshToken, {
+    //   ...cookieOptions,
+    //   maxAge: REFRESH_TOKEN_COOKIE_TIME,
+    // });
 
-    res.status(200).json({});
+    res.status(200).json({ accessToken, refreshToken });
   }
 
   @Public()
-  @Post('login-oauth')
+  @Post('login/oauth')
   async loginOauth(@Body() dto: LoginOauthDto, @Req() req: Request, @Res() res: Response) {
     const cookieOptions = this._cookieOptions();
 
     const { accessToken, refreshToken } = await this.authService.loginOauth({ dto, req });
 
-    res.cookie(ACCESS_TOKEN_NAME, accessToken, {
-      ...cookieOptions,
-      maxAge: ACCESS_TOKEN_COOKIE_TIME,
-    });
+    // res.cookie(ACCESS_TOKEN_NAME, accessToken, {
+    //   ...cookieOptions,
+    //   maxAge: ACCESS_TOKEN_COOKIE_TIME,
+    // });
 
-    res.cookie('__rt', refreshToken, {
-      ...cookieOptions,
-      maxAge: REFRESH_TOKEN_COOKIE_TIME,
-    });
+    // res.cookie('__rt', refreshToken, {
+    //   ...cookieOptions,
+    //   maxAge: REFRESH_TOKEN_COOKIE_TIME,
+    // });
 
-    res.status(200).json({});
+    res.status(200).json({ accessToken, refreshToken });
   }
 
   @Public()
@@ -86,10 +86,10 @@ export class AuthController {
 
       const { accessToken } = await this.authService.refreshToken({ req });
 
-      res.cookie(ACCESS_TOKEN_NAME, accessToken, {
-        ...cookieOptions,
-        maxAge: ACCESS_TOKEN_COOKIE_TIME,
-      });
+      // res.cookie(ACCESS_TOKEN_NAME, accessToken, {
+      //   ...cookieOptions,
+      //   maxAge: ACCESS_TOKEN_COOKIE_TIME,
+      // });
 
       res.status(200).json({ accessToken });
     } catch (err) {
@@ -109,14 +109,14 @@ export class AuthController {
   async logout(@Req() req: Request, @Res() res: Response) {
     await this.authService.logout({ req });
 
-    const cookies = req.cookies;
+    // const cookies = req.cookies;
 
-    for (const cookie in cookies) {
-      if (cookies.hasOwnProperty(cookie)) {
-        res.clearCookie(cookie);
-      }
-    }
+    // for (const cookie in cookies) {
+    //   if (cookies.hasOwnProperty(cookie)) {
+    //     res.clearCookie(cookie);
+    //   }
+    // }
 
-    res.status(200).json();
+    res.status(200).json({});
   }
 }
