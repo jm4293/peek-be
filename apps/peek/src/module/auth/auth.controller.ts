@@ -14,6 +14,16 @@ import { CheckEmailDto, LoginEmailDto, LoginOauthDto, SignupEmailDto } from './d
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  private _cookieOptions() {
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    return {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax' | 'strict',
+    };
+  }
+
   @Public()
   @Post('check-email')
   @HttpCode(200)
@@ -30,19 +40,17 @@ export class AuthController {
   @Public()
   @Post('login')
   async login(@Body() dto: LoginEmailDto, @Req() req: Request, @Res() res: Response) {
+    const cookieOptions = this._cookieOptions();
+
     const { accessToken, refreshToken } = await this.authService.login({ dto, req });
 
     res.cookie(ACCESS_TOKEN_NAME, accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      ...cookieOptions,
       maxAge: ACCESS_TOKEN_COOKIE_TIME,
     });
 
     res.cookie(REFRESH_TOKEN_NAME, refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      ...cookieOptions,
       maxAge: REFRESH_TOKEN_COOKIE_TIME,
     });
 
@@ -52,19 +60,17 @@ export class AuthController {
   @Public()
   @Post('login-oauth')
   async loginOauth(@Body() dto: LoginOauthDto, @Req() req: Request, @Res() res: Response) {
+    const cookieOptions = this._cookieOptions();
+
     const { accessToken, refreshToken } = await this.authService.loginOauth({ dto, req });
 
     res.cookie(ACCESS_TOKEN_NAME, accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      ...cookieOptions,
       maxAge: ACCESS_TOKEN_COOKIE_TIME,
     });
 
     res.cookie('__rt', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      ...cookieOptions,
       maxAge: REFRESH_TOKEN_COOKIE_TIME,
     });
 
@@ -76,12 +82,12 @@ export class AuthController {
   @HttpCode(200)
   async refreshToken(@Req() req: Request, @Res() res: Response) {
     try {
+      const cookieOptions = this._cookieOptions();
+
       const { accessToken } = await this.authService.refreshToken({ req });
 
       res.cookie(ACCESS_TOKEN_NAME, accessToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
+        ...cookieOptions,
         maxAge: ACCESS_TOKEN_COOKIE_TIME,
       });
 
