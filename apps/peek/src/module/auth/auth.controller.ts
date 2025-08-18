@@ -2,7 +2,10 @@ import { Request, Response } from 'express';
 
 import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
 
+import { ACCESS_TOKEN_NAME } from '@peek/constant/cookie';
 import { Public } from '@peek/decorator/public';
+
+import { ACCESS_TOKEN_COOKIE_TIME } from '@constant/jwt';
 
 import { AuthService } from './auth.service';
 import { CheckEmailCodeDto, CheckEmailDto, LoginEmailDto, LoginOauthDto, SignupEmailDto } from './dto';
@@ -80,10 +83,10 @@ export class AuthController {
 
       const { accessToken } = await this.authService.refreshToken({ req });
 
-      // res.cookie(ACCESS_TOKEN_NAME, accessToken, {
-      //   ...cookieOptions,
-      //   maxAge: ACCESS_TOKEN_COOKIE_TIME,
-      // });
+      res.cookie(ACCESS_TOKEN_NAME, accessToken, {
+        ...cookieOptions,
+        maxAge: ACCESS_TOKEN_COOKIE_TIME,
+      });
 
       res.status(200).json({ accessToken });
     } catch (err) {
@@ -120,7 +123,7 @@ export class AuthController {
     return {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'lax',
+      sameSite: 'lax' as 'lax' | 'strict' | 'none',
     };
   }
 }
