@@ -7,6 +7,7 @@ import { jwtModuleConfig } from '@peek/config/jwt';
 import { UserAccountRepository, UserRepository, UserVisitRepository } from '@database/repositories/user';
 
 import { AWSService } from '../aws';
+import { EmailVerificationService } from '../email-verification';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
@@ -16,6 +17,7 @@ import { AuthService } from './auth.service';
   providers: [
     AuthService,
     AWSService,
+    EmailVerificationService,
 
     UserRepository,
     UserAccountRepository,

@@ -1,4 +1,3 @@
-import { AxiosResponse } from 'axios';
 import { Request } from 'express';
 import { catchError, firstValueFrom } from 'rxjs';
 import { DataSource, EntityManager } from 'typeorm';
@@ -21,7 +20,8 @@ import { User, UserAccount } from '@database/entities/user';
 import { UserAccountRepository, UserRepository, UserVisitRepository } from '@database/repositories/user';
 
 import { AWSService } from '../aws';
-import { CheckEmailDto, LoginEmailDto, LoginOauthDto, SignupEmailDto } from './dto';
+import { EmailVerificationService } from '../email-verification';
+import { CheckEmailCodeDto, CheckEmailDto, LoginEmailDto, LoginOauthDto, SignupEmailDto } from './dto';
 
 @Injectable()
 export class AuthService {
@@ -30,6 +30,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
+    private readonly emailVerificationService: EmailVerificationService,
 
     private readonly userRepository: UserRepository,
     private readonly userAccountRepository: UserAccountRepository,
@@ -63,7 +64,13 @@ export class AuthService {
       }
     }
 
-    return { isExist: false, email };
+    await this.emailVerificationService.sendVerificationCode(email);
+  }
+
+  async checkEmailCode(dto: CheckEmailCodeDto) {
+    const { email, code } = dto;
+
+    return await this.emailVerificationService.verifyCode(email, code);
   }
 
   async signup(dto: SignupEmailDto) {

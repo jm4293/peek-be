@@ -2,33 +2,27 @@ import { Request, Response } from 'express';
 
 import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
 
-import { ACCESS_TOKEN_NAME, REFRESH_TOKEN_NAME } from '@peek/constant/cookie';
 import { Public } from '@peek/decorator/public';
 
-import { ACCESS_TOKEN_COOKIE_TIME, REFRESH_TOKEN_COOKIE_TIME } from '@constant/jwt';
-
 import { AuthService } from './auth.service';
-import { CheckEmailDto, LoginEmailDto, LoginOauthDto, SignupEmailDto } from './dto';
+import { CheckEmailCodeDto, CheckEmailDto, LoginEmailDto, LoginOauthDto, SignupEmailDto } from './dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
-  private _cookieOptions() {
-    const isProduction = process.env.NODE_ENV === 'production';
-
-    return {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-    };
-  }
 
   @Public()
   @Post('check-email')
   @HttpCode(200)
   async checkEmail(@Body() dto: CheckEmailDto) {
     return await this.authService.checkEmail(dto);
+  }
+
+  @Public()
+  @Post('check-email-code')
+  @HttpCode(200)
+  async checkEmailCode(@Body() dto: CheckEmailCodeDto) {
+    return await this.authService.checkEmailCode(dto);
   }
 
   @Public()
@@ -118,5 +112,15 @@ export class AuthController {
     // }
 
     res.status(200).json({});
+  }
+
+  private _cookieOptions() {
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    return {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+    };
   }
 }
