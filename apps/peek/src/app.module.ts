@@ -1,3 +1,4 @@
+import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
@@ -6,11 +7,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthGuardConfig } from './config/auth-guard';
+import { cacheModuleConfig } from './config/cache';
 import { configModuleConfig } from './config/config';
 import { typeormModuleConfig } from './config/typeorm';
 import { AuthModule } from './module/auth';
 import { AWSModule } from './module/aws';
 import { BoardModule } from './module/board';
+import { EmailVerificationModule } from './module/email-verification';
 import { HomeModule } from './module/home';
 import { ImageModule } from './module/image';
 import { StockModule } from './module/stock';
@@ -28,9 +31,12 @@ import { UserModule } from './module/user';
     ConfigModule.forRoot(configModuleConfig),
     TypeOrmModule.forRootAsync(typeormModuleConfig),
 
+    CacheModule.register(cacheModuleConfig),
+
     AuthModule,
     AWSModule,
     BoardModule,
+    EmailVerificationModule,
     HomeModule,
     ImageModule,
     StockModule,
