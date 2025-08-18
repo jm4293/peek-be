@@ -88,7 +88,7 @@ export class AWSService {
       });
 
       const response = await this.s3Client.send(command);
-      const imageBuffer = await this.streamToBuffer(response.Body as any);
+      const imageBuffer = await this._streamToBuffer(response.Body as any);
 
       let sharpInstance = sharp(imageBuffer);
 
@@ -105,7 +105,7 @@ export class AWSService {
     }
   }
 
-  private async streamToBuffer(stream: any): Promise<Buffer> {
+  private async _streamToBuffer(stream: any): Promise<Buffer> {
     const chunks: Buffer[] = [];
     return new Promise((resolve, reject) => {
       stream.on('data', (chunk: Buffer) => chunks.push(chunk));

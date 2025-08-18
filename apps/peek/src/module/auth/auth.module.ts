@@ -6,6 +6,7 @@ import { jwtModuleConfig } from '@peek/config/jwt';
 
 import { UserAccountRepository, UserRepository, UserVisitRepository } from '@database/repositories/user';
 
+import { AWSService } from '../aws';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
@@ -14,6 +15,8 @@ import { AuthService } from './auth.service';
   controllers: [AuthController],
   providers: [
     AuthService,
+    AWSService,
+
     UserRepository,
     UserAccountRepository,
     UserVisitRepository,

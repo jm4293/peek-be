@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { UserAccountRepository, UserNotificationRepository, UserRepository } from '@database/repositories/user';
+import { UserAccountRepository, UserRepository } from '@database/repositories/user';
 
+import { AWSService } from '../aws';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
@@ -10,10 +11,12 @@ import { UserService } from './user.service';
   controllers: [UserController],
   providers: [
     UserService,
+    AWSService,
+
     UserRepository,
     UserAccountRepository,
     // UserPushTokenRepository,
-    UserNotificationRepository,
+    // UserNotificationRepository,
   ],
   exports: [],
 })

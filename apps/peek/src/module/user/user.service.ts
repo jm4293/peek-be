@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 
 import { UserAccountRepository, UserRepository } from '@database/repositories/user';
 
+import { AWSService } from '../aws';
 import {
   ReadUserNotificationDto,
   RegisterUserPushTokenDto,
@@ -15,6 +16,8 @@ import {
 @Injectable()
 export class UserService {
   constructor(
+    private readonly awsService: AWSService,
+
     private readonly userRepository: UserRepository,
     private readonly userAccountRepository: UserAccountRepository,
     // private readonly userPushTokenRepository: UserPushTokenRepository,
