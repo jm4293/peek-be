@@ -1,44 +1,19 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 
 import { AWS_S3_BUCKET_NAME } from '@peek/constant/aws';
 import { IMAGE_TYPE } from '@peek/constant/image-type';
 
+import { AWSService } from '../aws';
+
 @Injectable()
-export class AWSService {
-  private s3Client: S3Client;
-
-  constructor(private readonly configService: ConfigService) {
-    this.s3Client = new S3Client({
-      region: this.configService.get('AWS_REGION'),
-      credentials: {
-        accessKeyId: this.configService.get('AWS_ACCESS_KEY_ID'),
-        secretAccessKey: this.configService.get('AWS_SECRET_ACCESS_KEY'),
-      },
-    });
-  }
-
-  getS3Client(): S3Client {
-    return this.s3Client;
-  }
+export class ImageService {
+  constructor(private readonly awsService: AWSService) {}
 
   async uploadImage(params: { file: Express.Multer.File; type: keyof typeof IMAGE_TYPE }) {
     const { file, type } = params;
-
-    if (!file) {
-      throw new BadRequestException('이미지를 업로드 해주세요.');
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      throw new BadRequestException('이미지 파일 크기는 5MB를 초과할 수 없습니다.');
-    }
-
-    if (file.mimetype !== 'image/jpeg' && file.mimetype !== 'image/png') {
-      throw new BadRequestException('지원하는 이미지 형식은 JPEG와 PNG입니다.');
-    }
 
     const now = Date.now();
 
@@ -58,14 +33,14 @@ export class AWSService {
         },
       });
 
-      await this.s3Client.send(command);
+      await this.awsService.getS3Client().send(command);
     } catch (error) {
       console.error(error);
 
       throw new BadRequestException('이미지 업로드에 실패했습니다.');
     }
 
-    return fileName;
+    return key;
   }
 
   async getProcessedImage(params: {
@@ -77,17 +52,13 @@ export class AWSService {
   }) {
     const { fileName, type, width, height, quality = 80 } = params;
 
-    if (!type) {
-      throw new BadRequestException('이미지 타입이 필요합니다.');
-    }
-
     try {
       const command = new GetObjectCommand({
         Bucket: AWS_S3_BUCKET_NAME,
         Key: `${type}/${fileName}`,
       });
 
-      const response = await this.s3Client.send(command);
+      const response = await this.awsService.getS3Client().send(command);
       const imageBuffer = await this.streamToBuffer(response.Body as any);
 
       let sharpInstance = sharp(imageBuffer);

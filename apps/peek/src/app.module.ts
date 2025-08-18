@@ -9,8 +9,10 @@ import { AuthGuardConfig } from './config/auth-guard';
 import { configModuleConfig } from './config/config';
 import { typeormModuleConfig } from './config/typeorm';
 import { AuthModule } from './module/auth';
+import { AWSModule } from './module/aws';
 import { BoardModule } from './module/board';
 import { HomeModule } from './module/home';
+import { ImageModule } from './module/image';
 import { StockModule } from './module/stock';
 import { UserModule } from './module/user';
 
@@ -25,10 +27,13 @@ import { UserModule } from './module/user';
   imports: [
     ConfigModule.forRoot(configModuleConfig),
     TypeOrmModule.forRootAsync(typeormModuleConfig),
-    HomeModule,
-    StockModule,
-    BoardModule,
+
     AuthModule,
+    AWSModule,
+    BoardModule,
+    HomeModule,
+    ImageModule,
+    StockModule,
     UserModule,
   ],
   controllers: [AppController],
