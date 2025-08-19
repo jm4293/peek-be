@@ -24,11 +24,11 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  nickname: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  nickname: string | null;
 
-  @Column({ type: 'varchar', length: 255 })
-  name: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  name: string | null;
 
   @Exclude()
   @Column({ type: 'enum', enum: UserTypeEnum, default: UserTypeEnum.USER })

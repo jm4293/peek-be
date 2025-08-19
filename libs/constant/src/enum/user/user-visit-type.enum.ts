@@ -5,4 +5,5 @@ export enum UserVisitTypeEnum {
   SIGN_OUT_EMAIL = 4,
   SIGN_OUT_OAUTH = 5,
   SIGN_OUT_OAUTH_GOOGLE = 6,
+  WITHDRAWAL = 9,
 }
