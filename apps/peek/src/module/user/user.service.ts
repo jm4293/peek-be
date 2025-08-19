@@ -1,8 +1,20 @@
 import { Request } from 'express';
+import { DataSource } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
 
-import { UserAccountRepository, UserRepository } from '@database/repositories/user';
+import { UserAccountStatusEnum } from '@constant/enum/user';
+
+import { Board, BoardComment } from '@database/entities/board';
+import { User, UserAccount, UserNotification, UserPushToken } from '@database/entities/user';
+import {
+  UserAccountRepository,
+  UserNotificationRepository,
+  UserPushTokenRepository,
+  UserRepository,
+  UserVisitRepository,
+} from '@database/repositories/user';
 
 import { AWSService } from '../aws';
 import {
@@ -20,8 +32,11 @@ export class UserService {
 
     private readonly userRepository: UserRepository,
     private readonly userAccountRepository: UserAccountRepository,
-    // private readonly userPushTokenRepository: UserPushTokenRepository,
-    // private readonly userNotificationRepository: UserNotificationRepository,
+    private readonly userPushTokenRepository: UserPushTokenRepository,
+    private readonly userNotificationRepository: UserNotificationRepository,
+    private readonly userVisitRepository: UserVisitRepository,
+
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async getMyInfo(accountId: number) {
@@ -76,6 +91,47 @@ export class UserService {
     // userAccount.password = await BcryptHandler.hashPassword(newPassword);
     //
     // await this.userAccountRepository.save(userAccount);
+  }
+
+  async deleteUser(accountId: number) {
+    // const accountList = await this.userAccountRepository.find({ where: { id: accountId } });
+
+    const { userId } = await this.userAccountRepository.findById(accountId);
+
+    const accountList = await this.userAccountRepository.find({ where: { userId } });
+
+    await this.dataSource.transaction(async (manager) => {
+      await manager.update(Board, { userAccountId: accountId }, { deletedAt: new Date() });
+      await manager.update(BoardComment, { userAccountId: accountId }, { deletedAt: new Date() });
+      await manager.update(
+        UserAccount,
+        { id: accountId },
+        {
+          password: null,
+          refreshToken: null,
+          status: UserAccountStatusEnum.DELETE,
+          deletedAt: new Date(),
+        },
+      );
+
+      if (accountList.length === 1) {
+        const account = accountList[0];
+
+        await manager.delete(UserNotification, { userId: account.userId });
+        await manager.delete(UserPushToken, { userId: account.userId });
+        await manager.update(
+          User,
+          { id: account.userId },
+          {
+            nickname: null,
+            name: null,
+            birthday: null,
+            thumbnail: null,
+            deletedAt: new Date(),
+          },
+        );
+      }
+    });
   }
 
   async registerPushToken(params: { dto: RegisterUserPushTokenDto; req: Request }) {

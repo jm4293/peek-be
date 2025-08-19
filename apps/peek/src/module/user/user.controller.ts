@@ -69,6 +69,13 @@ export class UserController {
     // return;
   }
 
+  @Delete()
+  async deleteUser(@Req() req: Request) {
+    const { accountId } = ParseReqHandler.parseReq(req);
+
+    await this.userService.deleteUser(accountId);
+  }
+
   @Post('push-token')
   async registerPushToken(@Body() dto: RegisterUserPushTokenDto) {
     // await this.userService.registerPushToken({ dto, req });
