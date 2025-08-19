@@ -43,12 +43,34 @@ export class BoardService {
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
-  // 게시판 카테고리
-  async getBoardCategoryList() {
-    return await this.stockCategoryRepository.find();
+  // 게시판
+  async getMyBoardList(params: { query: GetBoardListDto; accountId: number }) {
+    const { query, accountId } = params;
+    const { page } = query;
+
+    const queryBuilder = this.boardRepository
+      .createQueryBuilder('board')
+      .leftJoinAndSelect('board.category', 'category')
+      // .leftJoinAndSelect('board.userAccount', 'userAccount')
+      // .leftJoinAndSelect('userAccount.user', 'user')
+      .loadRelationCountAndMap('board.commentCount', 'board.comments', 'comments', (qb) =>
+        qb.andWhere('comments.parentCommentId IS NULL'),
+      )
+      .loadRelationCountAndMap('board.likeCount', 'board.likes')
+      .where('board.deletedAt IS NULL')
+      .andWhere('board.userAccountId = :accountId', { accountId })
+      .orderBy('board.createdAt', 'DESC')
+      .skip((page - 1) * LIST_LIMIT)
+      .take(LIST_LIMIT);
+
+    const [boards, total] = await queryBuilder.getManyAndCount();
+
+    const hasNextPage = page * LIST_LIMIT < total;
+    const nextPage = hasNextPage ? Number(page) + 1 : null;
+
+    return { boards, total, nextPage };
   }
 
-  // 게시판
   async getBoardDetail(boardId: number) {
     const board = await this.boardRepository.findOne({
       where: { id: boardId, deletedAt: null },
@@ -92,32 +114,6 @@ export class BoardService {
     const nextPage = hasNextPage ? Number(page) + 1 : null;
 
     return { boards, total, nextPage };
-  }
-
-  async getMyBoardList(params: { page: number; req: Request }) {
-    // const { page, req } = params;
-    // const { userSeq } = req.user;
-    //
-    // const LIMIT = 10;
-    //
-    // const queryBuilder: SelectQueryBuilder<Board> = this.boardRepository
-    //   .createQueryBuilder('board')
-    //   .leftJoinAndSelect('board.user', 'user')
-    //   .loadRelationCountAndMap('board.commentCount', 'board.boardComments', 'boardComments', (qb) =>
-    //     qb.andWhere('boardComments.isDeleted = :isDeleted', { isDeleted: false }),
-    //   )
-    //   .where('board.isDeleted = :isDeleted', { isDeleted: false })
-    //   .andWhere('user.userSeq = :userSeq', { userSeq })
-    //   .orderBy('board.createdAt', 'DESC')
-    //   .skip((page - 1) * LIMIT)
-    //   .take(LIMIT);
-    //
-    // const [boards, total] = await queryBuilder.getManyAndCount();
-    //
-    // const hasNextPage = page * LIMIT < total;
-    // const nextPage = hasNextPage ? Number(page) + 1 : null;
-    //
-    // return { boards, total, nextPage };
   }
 
   async createBoard(params: { dto: CreateBoardDto; accountId: number }) {
@@ -172,24 +168,32 @@ export class BoardService {
     });
   }
 
-  async _checkBoard(params: { accountId: number; boardId: number }) {
-    const { accountId, boardId } = params;
+  // 게시판 댓글
+  async getMyBoardCommentList(params: { query: GetBoardCommentListDto; accountId: number }) {
+    const { query, accountId } = params;
+    const { page } = query;
 
-    await this.userAccountRepository.findById(accountId);
+    const queryBuilder = this.boardCommentRepository
+      .createQueryBuilder('boardComment')
+      .innerJoinAndSelect('boardComment.board', 'board')
+      // .leftJoinAndSelect('boardComment.userAccount', 'userAccount')
+      // .leftJoinAndSelect('userAccount.user', 'user')
+      .where('boardComment.userAccountId = :accountId', { accountId })
+      .andWhere('boardComment.deletedAt IS NULL')
+      .orderBy('boardComment.createdAt', 'DESC')
+      .skip((page - 1) * LIST_LIMIT)
+      .take(LIST_LIMIT);
 
-    const board = await this.boardRepository.findOne({
-      where: { id: boardId, deletedAt: null },
-      relations: ['userAccount'],
-    });
+    const [boardComments, total] = await queryBuilder.getManyAndCount();
 
-    if (accountId !== board.userAccount.id) {
-      throw new BadRequestException('게시물 작성자만 수정할 수 있습니다.');
-    }
+    const nestedComments = this._nestComments(boardComments);
 
-    await this.boardArticleRepository.findByBoardId(boardId);
+    const hasNextPage = page * LIST_LIMIT < total;
+    const nextPage = hasNextPage ? Number(page) + 1 : null;
+
+    return { boardComments: nestedComments, total, nextPage };
   }
 
-  // 게시판 댓글
   async getBoardCommentList(params: { boardId: number; query: GetBoardCommentListDto }) {
     const { boardId, query } = params;
     const { page } = query;
@@ -214,30 +218,6 @@ export class BoardService {
     const nextPage = hasNextPage ? Number(page) + 1 : null;
 
     return { boardComments: nestedComments, total, nextPage };
-  }
-
-  async getMyBoardCommentList(params: { page: number; req: Request }) {
-    // const { page, req } = params;
-    // const { userSeq } = req.user;
-    //
-    // const LIMIT = 10;
-    //
-    // const queryBuilder: SelectQueryBuilder<BoardComment> = this.boardCommentRepository
-    //   .createQueryBuilder('boardComment')
-    //   .leftJoinAndSelect('boardComment.board', 'board')
-    //   .leftJoinAndSelect('boardComment.user', 'user')
-    //   .where('boardComment.isDeleted = :isDeleted', { isDeleted: false })
-    //   .andWhere('user.userSeq = :userSeq', { userSeq })
-    //   .orderBy('boardComment.createdAt', 'DESC')
-    //   .skip((page - 1) * LIMIT)
-    //   .take(LIMIT);
-    //
-    // const [boardComments, total] = await queryBuilder.getManyAndCount();
-    //
-    // const hasNextPage = page * LIMIT < total;
-    // const nextPage = hasNextPage ? Number(page) + 1 : null;
-    //
-    // return { boardComments, total, nextPage };
   }
 
   async createBoardComment(params: { boardId: number; accountId: number; dto: CreateBoardCommentDto }) {
@@ -311,6 +291,23 @@ export class BoardService {
     //
     //     await this.boardLikeRepository.save(newBoardLike);
     //   }
+  }
+
+  async _checkBoard(params: { accountId: number; boardId: number }) {
+    const { accountId, boardId } = params;
+
+    await this.userAccountRepository.findById(accountId);
+
+    const board = await this.boardRepository.findOne({
+      where: { id: boardId, deletedAt: null },
+      relations: ['userAccount'],
+    });
+
+    if (accountId !== board.userAccount.id) {
+      throw new BadRequestException('게시물 작성자만 수정할 수 있습니다.');
+    }
+
+    await this.boardArticleRepository.findByBoardId(boardId);
   }
 
   _nestComments = (comments: BoardComment[]) => {

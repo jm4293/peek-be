@@ -24,6 +24,19 @@ export class BoardController {
   constructor(private readonly boardService: BoardService) {}
 
   // 게시판
+  @Get('mine')
+  async getMyBoardList(@Query() query: GetBoardListDto, @Req() req: Request) {
+    const { accountId } = ParseReqHandler.parseReq(req);
+
+    const ret = await this.boardService.getMyBoardList({ query, accountId });
+
+    return {
+      boards: ret.boards.map((item) => new Board(item)),
+      total: ret.total,
+      nextPage: ret.nextPage,
+    };
+  }
+
   @Public()
   @Get(':boardId')
   async getBoardDetail(@Param() param: GetBoardDto) {
@@ -31,7 +44,6 @@ export class BoardController {
 
     const ret = await this.boardService.getBoardDetail(boardId);
 
-    // return new Board(ret);
     return {
       board: new Board(ret),
     };
@@ -47,13 +59,6 @@ export class BoardController {
       total,
       nextPage,
     };
-  }
-
-  @Get('mine')
-  async getMyBoardList(@Query('page', ParseIntPipe) page: number, @Req() req: Request) {
-    // const ret = await this.boardService.getMyBoardList({ page, req });
-    //
-    // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
   @Post()
@@ -79,6 +84,19 @@ export class BoardController {
   }
 
   // 게시판 댓글
+  @Get('mine/comment')
+  async getMyBoardCommentList(@Query() query: GetBoardCommentListDto, @Req() req: Request) {
+    const { accountId } = ParseReqHandler.parseReq(req);
+
+    const ret = await this.boardService.getMyBoardCommentList({ query, accountId });
+
+    return {
+      boardComments: ret.boardComments.map((item) => new BoardComment(item)),
+      total: ret.total,
+      nextPage: ret.nextPage,
+    };
+  }
+
   @Public()
   @Get(':boardId/comments')
   async getBoardCommentList(@Param() param: GetBoardDto, @Query() query: GetBoardCommentListDto, @Req() req: Request) {
@@ -91,13 +109,6 @@ export class BoardController {
       total: ret.total,
       nextPage: ret.nextPage,
     };
-  }
-
-  @Get('comment/mine')
-  async getMyBoardCommentList(@Query('page', ParseIntPipe) page: number, @Req() req: Request) {
-    // const ret = await this.boardService.getMyBoardCommentList({ page, req });
-    //
-    // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
   @Post(':boardId/comment')
