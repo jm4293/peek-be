@@ -4,6 +4,7 @@ import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
 
 import { ACCESS_TOKEN_NAME } from '@peek/constant/cookie';
 import { Public } from '@peek/decorator/public';
+import { ParseReqHandler } from '@peek/handler/parseReq';
 
 import { ACCESS_TOKEN_COOKIE_TIME } from '@constant/jwt';
 
@@ -102,18 +103,19 @@ export class AuthController {
     }
   }
 
-  @Public()
   @Post('logout')
   async logout(@Req() req: Request, @Res() res: Response) {
-    await this.authService.logout({ req });
+    const { accountId } = ParseReqHandler.parseReq(req);
 
-    // const cookies = req.cookies;
+    await this.authService.logout({ req, accountId });
 
-    // for (const cookie in cookies) {
-    //   if (cookies.hasOwnProperty(cookie)) {
-    //     res.clearCookie(cookie);
-    //   }
-    // }
+    const cookies = req.cookies;
+
+    for (const cookie in cookies) {
+      if (cookies.hasOwnProperty(cookie)) {
+        res.clearCookie(cookie);
+      }
+    }
 
     res.status(200).json({});
   }

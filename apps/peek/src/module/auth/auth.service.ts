@@ -128,9 +128,8 @@ export class AuthService {
     }
   }
 
-  async logout(params: { req: Request }) {
-    const { req } = params;
-    const { accountId } = req.userAccount;
+  async logout(params: { req: Request; accountId: number }) {
+    const { req, accountId } = params;
 
     await this.userAccountRepository.update({ id: accountId }, { refreshToken: null });
 
