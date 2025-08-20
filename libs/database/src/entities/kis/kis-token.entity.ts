@@ -9,16 +9,16 @@ export class KisToken {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 512 })
-  accessToken: string;
+  @Column({ type: 'varchar', length: 512, nullable: false })
+  token: string;
 
-  @Column({ type: 'varchar', length: 32 })
-  accessTokenExpired: string;
+  @Column({ type: 'varchar', length: 32, nullable: true })
+  tokenExpired: string;
 
-  @Column({ type: 'varchar', length: 8 })
+  @Column({ type: 'varchar', length: 8, nullable: true })
   tokenType: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   expiresIn: number;
 
   @KoreanTime()
