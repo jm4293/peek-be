@@ -2,7 +2,7 @@ import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Up
 
 import { KoreanTime } from '@database/decorators';
 
-import { User } from '../user';
+import { User, UserAccount } from '../user';
 import { KisToken } from './kis-token.entity';
 
 @Entity()
@@ -30,6 +30,6 @@ export class KisTokenIssue {
   @ManyToOne(() => KisToken, (kisToken) => kisToken.kisTokenIssues, { onDelete: 'CASCADE' })
   kisToken: KisToken;
 
-  @ManyToOne(() => User, (user) => user.kisTokenIssues, { onDelete: 'CASCADE' })
-  user: User;
+  @ManyToOne(() => UserAccount, (userAccount) => userAccount.kisTokenIssues, { onDelete: 'CASCADE' })
+  userAccount: UserAccount;
 }

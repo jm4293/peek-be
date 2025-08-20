@@ -66,7 +66,4 @@ export class User {
 
   @OneToMany(() => UserPushToken, (userPushToken) => userPushToken.user)
   userPushTokens: UserPushToken[];
-
-  @OneToMany(() => KisTokenIssue, (kisTokenIssue) => kisTokenIssue.user)
-  kisTokenIssues: KisTokenIssue[];
 }
