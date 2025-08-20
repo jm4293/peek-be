@@ -2,6 +2,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
@@ -16,6 +17,7 @@ import { BoardModule } from './module/board';
 import { EmailVerificationModule } from './module/email-verification';
 import { HomeModule } from './module/home';
 import { ImageModule } from './module/image';
+import { KisTokenScheduleModule } from './module/schedule/kis-token';
 import { StockModule } from './module/stock';
 import { UserModule } from './module/user';
 
@@ -30,6 +32,7 @@ import { UserModule } from './module/user';
   imports: [
     ConfigModule.forRoot(configModuleConfig),
     TypeOrmModule.forRootAsync(typeormModuleConfig),
+    ScheduleModule.forRoot(),
 
     CacheModule.register(cacheModuleConfig),
 
@@ -41,6 +44,8 @@ import { UserModule } from './module/user';
     ImageModule,
     StockModule,
     UserModule,
+
+    KisTokenScheduleModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuardConfig }, AppService],
