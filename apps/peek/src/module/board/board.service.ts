@@ -176,6 +176,7 @@ export class BoardService {
     const queryBuilder = this.boardCommentRepository
       .createQueryBuilder('boardComment')
       .innerJoinAndSelect('boardComment.board', 'board')
+      .leftJoinAndSelect('board.category', 'category')
       // .leftJoinAndSelect('boardComment.userAccount', 'userAccount')
       // .leftJoinAndSelect('userAccount.user', 'user')
       .where('boardComment.userAccountId = :accountId', { accountId })
