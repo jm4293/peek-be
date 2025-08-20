@@ -11,5 +11,5 @@ export class LoginOauthDto {
   @Transform(({ value }) => value.trim())
   @IsString()
   @IsNotEmpty()
-  access_token: string;
+  token: string;
 }

@@ -118,11 +118,13 @@ export class AuthService {
 
   async loginOauth(params: { dto: LoginOauthDto; req: Request }) {
     const { dto, req } = params;
-    const { userAccountType, access_token } = dto;
+    const { userAccountType, token } = dto;
 
     switch (userAccountType) {
       case UserAccountTypeEnum.GOOGLE:
-        return await this._googleOauthLogin({ req, access_token });
+        return await this._googleOauthLogin({ req, token });
+      case UserAccountTypeEnum.KAKAO:
+        return await this._kakaoOauthLogin({ req, token });
       default:
         break;
     }
@@ -133,7 +135,7 @@ export class AuthService {
 
     await this.userAccountRepository.update({ id: accountId }, { refreshToken: null });
 
-    await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_OUT_EMAIL, userAccountId: accountId });
+    await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_OUT, userAccountId: accountId });
   }
 
   async refreshToken(params: { req: Request }) {
@@ -197,16 +199,16 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private async _googleOauthLogin(params: { req: Request; access_token: string }) {
-    const { req, access_token } = params;
+  private async _googleOauthLogin(params: { req: Request; token: string }) {
+    const { req, token } = params;
 
-    const googleResponse = await firstValueFrom(
+    const response = await firstValueFrom(
       this.httpService
         .get<{
           email: string;
           name: string;
           picture: string;
-        }>(`${this.configService.get('GOOGLE_OAUTH_URL')}?access_token=${access_token}`)
+        }>(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`)
         .pipe(
           catchError((error) => {
             throw new BadRequestException(`구글 OAuth 인증에 실패했습니다: ${error.message}`);
@@ -214,22 +216,90 @@ export class AuthService {
         ),
     );
 
-    const { email, name, picture } = googleResponse.data;
+    const { email, name, picture } = response.data;
+
+    return await this._OAuthLogin({
+      type: UserAccountTypeEnum.GOOGLE,
+      imageUrl: picture,
+      email,
+      name,
+      nickname: name,
+      req,
+    });
+  }
+
+  private async _kakaoOauthLogin(params: { req: Request; token: string }) {
+    const { req, token } = params;
+
+    const response = await firstValueFrom(
+      this.httpService
+        .get<{
+          access_token: string;
+        }>(
+          `https://kauth.kakao.com/oauth/token?grant_type=authorization_code&client_id=${this.configService.get('KAKAO_APP_KEY')}&redirect_uri=${this.configService.get('KAKAO_REDIRECT_URI')}&code=${token}&client_secret=${this.configService.get('KAKAO_CLIENT_SECRET')}`,
+        )
+        .pipe(
+          catchError((error) => {
+            throw new BadRequestException(`카카오 OAuth 인증에 실패했습니다: ${error.message}`);
+          }),
+        ),
+    );
+
+    const { access_token } = response.data;
+
+    const userInfo = await firstValueFrom(
+      this.httpService
+        .get<{
+          kakao_account: {
+            email: string;
+            profile: {
+              nickname: string;
+            };
+          };
+        }>(
+          `https://kapi.kakao.com/v2/user/me?secure_resource=${this.configService.get('NODE_ENV') ? 'true' : 'false'}`,
+          {
+            headers: {
+              Authorization: `Bearer ${access_token}`,
+              'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+            },
+          },
+        )
+        .pipe(
+          catchError((error) => {
+            throw new BadRequestException(`카카오 유저 정보 조회에 실패했습니다: ${error.message}`);
+          }),
+        ),
+    );
+
+    const { kakao_account } = userInfo.data;
+    const { email, profile } = kakao_account;
+    const { nickname } = profile;
+
+    return await this._OAuthLogin({
+      type: UserAccountTypeEnum.KAKAO,
+      imageUrl: null,
+      email,
+      name: nickname,
+      nickname,
+      req,
+    });
+  }
+
+  private async _OAuthLogin(params: {
+    imageUrl: string;
+    type: UserAccountTypeEnum;
+    email: string;
+    name: string;
+    nickname: string;
+    req: Request;
+  }) {
+    const { imageUrl, type, email, name, nickname, req } = params;
+
     let thumbnail = null;
 
-    // if (picture) {
-    //   const imageResponse = await firstValueFrom(this.httpService.get(picture, { responseType: 'arraybuffer' }));
-    //   const blob = new Blob([imageResponse.data], { type: 'image/jpeg' });
-    //   const image = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
-
-    //   const ret = await this.awsService.uploadImage({
-    //     file: image,
-    //     type: IMAGE_TYPE.THUMBNAIL,
-    //   });
-    // }
-
-    if (picture) {
-      const imageResponse = await firstValueFrom(this.httpService.get(picture, { responseType: 'arraybuffer' }));
+    if (imageUrl) {
+      const imageResponse = await firstValueFrom(this.httpService.get(imageUrl, { responseType: 'arraybuffer' }));
 
       const imageBuffer = Buffer.from(imageResponse.data);
 
@@ -252,35 +322,35 @@ export class AuthService {
       });
     }
 
-    const googleAccount = await this.userAccountRepository.findOne({
-      where: { email, userAccountType: UserAccountTypeEnum.GOOGLE },
+    const oauthAccount = await this.userAccountRepository.findOne({
+      where: { email, userAccountType: type },
       relations: ['user'],
     });
 
-    // 구글 계정이 있는 경우 로그인으로 진행
-    if (googleAccount) {
-      await this.userRepository.update({ id: googleAccount.user.id }, { nickname: name, name, thumbnail });
+    // 계정이 있는 경우 로그인으로 진행
+    if (oauthAccount) {
+      await this.userRepository.update({ id: oauthAccount.user.id }, { nickname, name, thumbnail });
 
       return await this._login({
         req,
-        type: UserVisitTypeEnum.SIGN_IN_OAUTH_GOOGLE,
-        user: googleAccount.user,
-        userAccount: googleAccount,
+        type: UserVisitTypeEnum.SIGN_IN_OAUTH,
+        user: oauthAccount.user,
+        userAccount: oauthAccount,
       });
     }
 
-    const account = await this.userAccountRepository.findOne({
+    const emailAccount = await this.userAccountRepository.findOne({
       where: { email, userAccountType: UserAccountTypeEnum.EMAIL },
       relations: ['user'],
     });
 
-    // 이메일 계정이 있으나 구글 계정이 없는 경우
-    if (account) {
-      await this.userRepository.update({ id: account.user.id }, { nickname: name, name, thumbnail });
+    // 존재하는 계정이 이메일 타입 계정이면
+    if (emailAccount) {
+      await this.userRepository.update({ id: emailAccount.user.id }, { nickname, name, thumbnail });
 
       const savedGoogleAccount = this.userAccountRepository.create({
-        userId: account.user.id,
-        userAccountType: UserAccountTypeEnum.GOOGLE,
+        userId: emailAccount.user.id,
+        userAccountType: type,
         email,
       });
 
@@ -288,15 +358,15 @@ export class AuthService {
 
       return await this._login({
         req,
-        type: UserVisitTypeEnum.SIGN_IN_OAUTH_GOOGLE,
-        user: account.user,
-        userAccount: account,
+        type: UserVisitTypeEnum.SIGN_IN_OAUTH,
+        user: emailAccount.user,
+        userAccount: emailAccount,
       });
     }
 
-    // 구글 회원가입
+    // OAuth 회원가입
     const savedUser = this.userRepository.create({
-      nickname: name,
+      nickname,
       name,
       policy: true,
       birthday: undefined,
@@ -305,19 +375,19 @@ export class AuthService {
 
     const newUser = await this.userRepository.save(savedUser);
 
-    const savedGoogleAccount = this.userAccountRepository.create({
-      userAccountType: UserAccountTypeEnum.GOOGLE,
+    const savedAccount = this.userAccountRepository.create({
+      userAccountType: type,
       email,
       user: newUser,
     });
 
-    const newUserAccount = await this.userAccountRepository.save(savedGoogleAccount);
+    const newAccount = await this.userAccountRepository.save(savedAccount);
 
     return await this._login({
       req,
-      type: UserVisitTypeEnum.SIGN_IN_OAUTH_GOOGLE,
+      type: UserVisitTypeEnum.SIGN_IN_OAUTH,
       user: newUser,
-      userAccount: newUserAccount,
+      userAccount: newAccount,
     });
   }
 
