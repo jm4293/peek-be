@@ -125,6 +125,8 @@ export class AuthService {
         return await this._googleOauthLogin({ req, token });
       case UserAccountTypeEnum.KAKAO:
         return await this._kakaoOauthLogin({ req, token });
+      case UserAccountTypeEnum.NAVER:
+        return await this._naverOauthLogin({ req, token });
       default:
         break;
     }
@@ -286,6 +288,60 @@ export class AuthService {
     });
   }
 
+  private async _naverOauthLogin(params: { req: Request; token: string }) {
+    const { req, token } = params;
+
+    const response = await firstValueFrom(
+      this.httpService
+        .get<{
+          access_token: string;
+          token_type: string;
+        }>(
+          `https://nid.naver.com/oauth2.0/token?client_id=${this.configService.get('NAVER_CLIENT_ID')}&client_secret=${this.configService.get('NAVER_CLIENT_SECRET')}&grant_type=authorization_code&state=peek&code=${token}`,
+        )
+        .pipe(
+          catchError((error) => {
+            throw new BadRequestException(`네이버 OAuth 인증에 실패했습니다: ${error.message}`);
+          }),
+        ),
+    );
+
+    const { access_token, token_type } = response.data;
+
+    const userInfo = await firstValueFrom(
+      this.httpService
+        .get<{
+          response: {
+            email: string;
+            name: string;
+            nickname: string;
+            profile_image: string;
+          };
+        }>('https://openapi.naver.com/v1/nid/me', {
+          headers: {
+            Authorization: `${token_type} ${access_token}`,
+            'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+          },
+        })
+        .pipe(
+          catchError((error) => {
+            throw new BadRequestException(`카카오 유저 정보 조회에 실패했습니다: ${error.message}`);
+          }),
+        ),
+    );
+
+    const { email, name, nickname, profile_image } = userInfo.data.response;
+
+    return await this._OAuthLogin({
+      type: UserAccountTypeEnum.NAVER,
+      imageUrl: profile_image,
+      email,
+      name,
+      nickname,
+      req,
+    });
+  }
+
   private async _OAuthLogin(params: {
     imageUrl: string;
     type: UserAccountTypeEnum;
@@ -297,6 +353,23 @@ export class AuthService {
     const { imageUrl, type, email, name, nickname, req } = params;
 
     let thumbnail = null;
+
+    const oauthAccount = await this.userAccountRepository.findOne({
+      where: { email, userAccountType: type },
+      relations: ['user'],
+    });
+
+    // 계정이 있는 경우 로그인으로 진행
+    if (oauthAccount) {
+      await this.userRepository.update({ id: oauthAccount.user.id }, { nickname, name });
+
+      return await this._login({
+        req,
+        type: UserVisitTypeEnum.SIGN_IN_OAUTH,
+        user: oauthAccount.user,
+        userAccount: oauthAccount,
+      });
+    }
 
     if (imageUrl) {
       const imageResponse = await firstValueFrom(this.httpService.get(imageUrl, { responseType: 'arraybuffer' }));
@@ -319,23 +392,6 @@ export class AuthService {
       thumbnail = await this.awsService.uploadImage({
         file: mockFile,
         type: IMAGE_TYPE.THUMBNAIL,
-      });
-    }
-
-    const oauthAccount = await this.userAccountRepository.findOne({
-      where: { email, userAccountType: type },
-      relations: ['user'],
-    });
-
-    // 계정이 있는 경우 로그인으로 진행
-    if (oauthAccount) {
-      await this.userRepository.update({ id: oauthAccount.user.id }, { nickname, name, thumbnail });
-
-      return await this._login({
-        req,
-        type: UserVisitTypeEnum.SIGN_IN_OAUTH,
-        user: oauthAccount.user,
-        userAccount: oauthAccount,
       });
     }
 

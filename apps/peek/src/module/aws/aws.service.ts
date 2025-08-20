@@ -42,7 +42,19 @@ export class AWSService {
 
     const now = Date.now();
 
-    const fileName = `${now}-${file.originalname}`;
+    // 확장자 추출
+    const extension = file.originalname.split('.').pop() || 'jpg';
+
+    // 파일명에서 확장자 제거하고 안전한 문자만 추출
+    const nameWithoutExt = file.originalname.replace(/\.[^/.]+$/, '');
+    const safeName = nameWithoutExt
+      .replace(/[^\w\-_.]/g, '') // 영문, 숫자, 하이픈, 언더스코어, 점만 허용
+      .replace(/\s+/g, '-'); // 공백을 하이픈으로 변경
+
+    // 안전한 파일명이 비어있거나 너무 짧으면 기본값 사용
+    const finalName = safeName && safeName.length > 0 ? safeName : 'thumbnail-image';
+
+    const fileName = `${now}-${finalName}.${extension}`;
     const key = `${type}/${fileName}`;
 
     try {
@@ -52,7 +64,8 @@ export class AWSService {
         Body: file.buffer,
         ContentType: file.mimetype,
         Metadata: {
-          originalname: file.originalname,
+          // Base64로 인코딩하여 안전하게 저장
+          originalname: Buffer.from(file.originalname, 'utf8').toString('base64'),
           size: file.size.toString(),
           mimetype: file.mimetype,
         },
