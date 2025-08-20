@@ -29,7 +29,7 @@ async function bootstrap() {
   // 전역 인터셉터 설정 끝
 
   app.enableCors({
-    origin: ['http://localhost:31180', 'https://peek-ruddy.vercel.app', 'https://stock.peek.run'],
+    origin: ['http://localhost:3000', 'https://peek-ruddy.vercel.app', 'https://stock.peek.run'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
