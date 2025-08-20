@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 
 import { Controller, Get, Param, ParseEnumPipe, ParseIntPipe, Query, Req, Res } from '@nestjs/common';
 
-import { ResConfig } from '@peek/config/_res.config';
 import { Public } from '@peek/decorator/public';
 
 import { StockCategoryEnum } from '@constant/enum/stock';
@@ -26,11 +25,12 @@ export class StockController {
   }
 
   // 토큰
-  @Get('oauth-token')
-  async getOuathToken(@Req() req: Request, @Res() res: Response) {
-    const ret = await this.stockService.getOuathToken({ req });
+  @Public()
+  @Get('token')
+  async getToken() {
+    const { token } = await this.stockService.getToken();
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    return { token };
   }
 
   // 종목 코드 조회
@@ -39,7 +39,7 @@ export class StockController {
   async getCodeList(@Query('kind') kind: StockCategoryEnum, @Query('text') text: string, @Res() res: Response) {
     const ret = await this.stockService.getCodeList({ kind, text: text?.trim() });
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
   // 종목 상세 조회
@@ -52,6 +52,6 @@ export class StockController {
   ) {
     const ret = await this.stockService.getCodeDetail({ code, kind });
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 }

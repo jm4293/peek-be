@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 
 import { KisTokenIssueRepository, KisTokenRepository } from '@database/repositories/kis';
 import { StockCategoryRepository, StockCompanyRepository } from '@database/repositories/stock';
-import { UserRepository } from '@database/repositories/user';
+import { UserAccountRepository, UserRepository } from '@database/repositories/user';
 
 import { StockController } from './stock.controller';
 import { StockService } from './stock.service';
@@ -21,6 +21,7 @@ import { StockService } from './stock.service';
     KisTokenIssueRepository,
 
     UserRepository,
+    UserAccountRepository,
   ],
   exports: [],
 })
