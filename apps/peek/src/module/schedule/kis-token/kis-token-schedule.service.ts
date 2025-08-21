@@ -72,7 +72,7 @@ export class KisTokenScheduleService implements OnModuleInit {
 
     await firstValueFrom(
       this.httpService.post(`${this.configService.get('KIS_APP_URL')}/oauth2/revokeP`, {
-        token: kisToken[0].accessToken,
+        token: kisToken.token,
         appkey: this.configService.get('KIS_APP_KEY'),
         appsecret: this.configService.get('KIS_APP_SECRET'),
       }),
