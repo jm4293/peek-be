@@ -371,29 +371,29 @@ export class AuthService {
       });
     }
 
-    if (imageUrl) {
-      const imageResponse = await firstValueFrom(this.httpService.get(imageUrl, { responseType: 'arraybuffer' }));
+    // if (imageUrl) {
+    //   const imageResponse = await firstValueFrom(this.httpService.get(imageUrl, { responseType: 'arraybuffer' }));
 
-      const imageBuffer = Buffer.from(imageResponse.data);
+    //   const imageBuffer = Buffer.from(imageResponse.data);
 
-      const mockFile: Express.Multer.File = {
-        buffer: imageBuffer,
-        originalname: `${name}.jpg`,
-        mimetype: 'image/jpeg',
-        size: imageBuffer.length,
-        fieldname: 'file',
-        encoding: '7bit',
-        filename: `${name}.jpg`,
-        destination: '',
-        path: '',
-        stream: null as any,
-      };
+    //   const mockFile: Express.Multer.File = {
+    //     buffer: imageBuffer,
+    //     originalname: `${name}.jpg`,
+    //     mimetype: 'image/jpeg',
+    //     size: imageBuffer.length,
+    //     fieldname: 'file',
+    //     encoding: '7bit',
+    //     filename: `${name}.jpg`,
+    //     destination: '',
+    //     path: '',
+    //     stream: null as any,
+    //   };
 
-      thumbnail = await this.awsService.uploadImage({
-        file: mockFile,
-        type: IMAGE_TYPE.THUMBNAIL,
-      });
-    }
+    //   thumbnail = await this.awsService.uploadImage({
+    //     file: mockFile,
+    //     type: IMAGE_TYPE.THUMBNAIL,
+    //   });
+    // }
 
     const emailAccount = await this.userAccountRepository.findOne({
       where: { email, userAccountType: UserAccountTypeEnum.EMAIL },
