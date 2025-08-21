@@ -361,7 +361,7 @@ export class AuthService {
 
     // 계정이 있는 경우 로그인으로 진행
     if (oauthAccount) {
-      await this.userRepository.update({ id: oauthAccount.user.id }, { nickname, name });
+      // await this.userRepository.update({ id: oauthAccount.user.id }, { nickname, name });
 
       return await this._login({
         req,
