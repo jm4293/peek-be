@@ -187,12 +187,12 @@ export class BoardService {
 
     const [boardComments, total] = await queryBuilder.getManyAndCount();
 
-    const nestedComments = this._nestComments(boardComments);
+    // const nestedComments = this._nestComments(boardComments);
 
     const hasNextPage = page * LIST_LIMIT < total;
     const nextPage = hasNextPage ? Number(page) + 1 : null;
 
-    return { boardComments: nestedComments, total, nextPage };
+    return { boardComments: boardComments, total, nextPage };
   }
 
   async getBoardCommentList(params: { boardId: number; query: GetBoardCommentListDto }) {
