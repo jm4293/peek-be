@@ -19,8 +19,10 @@ export class KisTokenScheduleService implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      await this._deleteKisToken();
-      await this._getKisTokenSchedule();
+      if (this.configService.get('NODE_ENV') === 'production') {
+        await this._deleteKisToken();
+        await this._getKisTokenSchedule();
+      }
     } catch (error) {
       console.error('KisTokenScheduleService onModuleInit 에러:', error);
     }
