@@ -120,9 +120,8 @@ export class BoardService {
     const { dto, accountId } = params;
     const { categoryId, title, content } = dto;
 
-    await this.userAccountRepository.findById(accountId);
-
-    await this.stockCategoryRepository.findById(categoryId);
+    // await this.userAccountRepository.findById(accountId);
+    // await this.stockCategoryRepository.findById(categoryId);
 
     await this.dataSource.transaction(async (manager) => {
       const board = manager.getRepository(Board).create({
@@ -156,9 +155,8 @@ export class BoardService {
     });
   }
 
-  async deleteBoard(params: { boardId: number; req: Request }) {
-    const { boardId, req } = params;
-    const { accountId } = req.userAccount;
+  async deleteBoard(params: { boardId: number; accountId: number }) {
+    const { boardId, accountId } = params;
 
     await this._checkBoard({ accountId, boardId });
 
@@ -199,14 +197,14 @@ export class BoardService {
     const { boardId, query } = params;
     const { page } = query;
 
-    await this.boardRepository.findById(boardId);
+    // await this.boardRepository.findById(boardId);
 
     const queryBuilder = this.boardCommentRepository
       .createQueryBuilder('boardComment')
       .leftJoinAndSelect('boardComment.userAccount', 'userAccount')
       .leftJoinAndSelect('userAccount.user', 'user')
       .where('boardComment.boardId = :boardId', { boardId })
-      .andWhere('boardComment.deletedAt IS NULL')
+      // .withDeleted()
       .orderBy('boardComment.createdAt', 'ASC')
       .skip((page - 1) * LIST_LIMIT)
       .take(LIST_LIMIT);
@@ -225,9 +223,8 @@ export class BoardService {
     const { boardId, dto, accountId } = params;
     const { content, commentId } = dto;
 
-    await this.userAccountRepository.findById(accountId);
-
-    await this.boardRepository.findById(boardId);
+    // await this.userAccountRepository.findById(accountId);
+    // await this.boardRepository.findById(boardId);
 
     const comment = this.boardCommentRepository.create({
       content,
@@ -248,8 +245,8 @@ export class BoardService {
     const { boardId, boardCommentId, accountId, dto } = params;
     const { content } = dto;
 
-    await this.userAccountRepository.findById(accountId);
-    await this.boardRepository.findById(boardId);
+    // await this.userAccountRepository.findById(accountId);
+    // await this.boardRepository.findById(boardId);
     const comment = await this.boardCommentRepository.findById(boardCommentId);
 
     if (comment.userAccount.id !== accountId) {
@@ -262,12 +259,21 @@ export class BoardService {
   async deleteBoardComment(params: { boardId: number; boardCommentId: number; accountId: number }) {
     const { boardId, boardCommentId, accountId } = params;
 
-    await this.userAccountRepository.findById(accountId);
-    await this.boardRepository.findById(boardId);
+    // await this.userAccountRepository.findById(accountId);
+    // await this.boardRepository.findById(boardId);
+
     const comment = await this.boardCommentRepository.findById(boardCommentId);
 
     if (comment.userAccountId !== accountId) {
       throw new BadRequestException('댓글 작성자만 삭제할 수 있습니다.');
+    }
+
+    const isParent = await this.boardCommentRepository.exists({
+      where: { parentCommentId: boardCommentId },
+    });
+
+    if (isParent) {
+      throw new BadRequestException('하위 댓글이 있는 댓글은 삭제할 수 없습니다.');
     }
 
     await this.boardCommentRepository.update({ id: boardCommentId }, { deletedAt: new Date() });
@@ -294,7 +300,7 @@ export class BoardService {
     //   }
   }
 
-  async _checkBoard(params: { accountId: number; boardId: number }) {
+  private async _checkBoard(params: { accountId: number; boardId: number }) {
     const { accountId, boardId } = params;
 
     await this.userAccountRepository.findById(accountId);
@@ -311,7 +317,7 @@ export class BoardService {
     await this.boardArticleRepository.findByBoardId(boardId);
   }
 
-  _nestComments = (comments: BoardComment[]) => {
+  private _nestComments = (comments: BoardComment[]) => {
     const map = comments.reduce(
       (acc, comment) => {
         acc[comment.id] = { ...comment, replies: [] };
@@ -322,6 +328,15 @@ export class BoardService {
     );
 
     return comments.reduce((acc, comment) => {
+      // if (comment.deletedAt) {
+      //   if (comment.parentCommentId) {
+      //     return acc; // 삭제된 대댓글은 숨김
+      //   } else {
+      //     map[comment.id].content = '삭제된 댓글입니다.'; // 삭제된 부모댓글은 내용만 변경
+      //     map[comment.id].userAccount.user.nickname = '-'; // 사용자 이름도 변경
+      //   }
+      // }
+
       if (comment.parentCommentId) {
         map[comment.parentCommentId].replies.push(map[comment.id]);
       } else {

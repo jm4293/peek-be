@@ -79,8 +79,9 @@ export class BoardController {
   @Delete(':boardId')
   async deleteBoard(@Param() param: GetBoardDto, @Req() req: Request) {
     const { boardId } = param;
+    const { accountId } = ParseReqHandler.parseReq(req);
 
-    await this.boardService.deleteBoard({ boardId, req });
+    await this.boardService.deleteBoard({ boardId, accountId });
   }
 
   // 게시판 댓글
