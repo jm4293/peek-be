@@ -64,9 +64,9 @@ export class UserController {
   @Patch('password')
   @HttpCode(200)
   async updatePassword(@Body() dto: UpdateUserPasswordDto, @Req() req: Request) {
-    // await this.userService.updatePassword({ dto, req });
-    //
-    // return;
+    const { accountId } = ParseReqHandler.parseReq(req);
+
+    await this.userService.updatePassword({ dto, accountId });
   }
 
   @Delete()

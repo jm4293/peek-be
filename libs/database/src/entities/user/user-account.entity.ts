@@ -39,7 +39,6 @@ export class UserAccount {
   @Column({ type: 'enum', enum: UserAccountStatusEnum, default: UserAccountStatusEnum.ACTIVE })
   status: UserAccountStatusEnum;
 
-  @Exclude()
   @Column({ type: 'enum', enum: UserAccountTypeEnum })
   userAccountType: UserAccountTypeEnum;
 

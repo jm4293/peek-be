@@ -9,7 +9,7 @@ export class UpdateUserDto {
 
   @Transform(({ value }) => value.trim())
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   name: string;
 
   @Transform(({ value }) => value.trim())
