@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 import { UserAccountTypeEnum } from '@constant/enum/user';
 
@@ -12,4 +12,12 @@ export class LoginOauthDto {
   @IsString()
   @IsNotEmpty()
   token: string;
+
+  @IsString()
+  @IsOptional()
+  tokenType: string | null;
+
+  @IsNumber()
+  @IsOptional()
+  expire: number | null;
 }

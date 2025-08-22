@@ -4,7 +4,12 @@ import { JwtModule } from '@nestjs/jwt';
 
 import { jwtModuleConfig } from '@peek/config/jwt';
 
-import { UserAccountRepository, UserRepository, UserVisitRepository } from '@database/repositories/user';
+import {
+  UserAccountRepository,
+  UserOauthTokenRepository,
+  UserRepository,
+  UserVisitRepository,
+} from '@database/repositories/user';
 
 import { AWSService } from '../aws';
 import { EmailVerificationService } from '../email-verification';
@@ -23,6 +28,7 @@ import { AuthService } from './auth.service';
     UserAccountRepository,
     UserVisitRepository,
     // UserPushTokenRepository,
+    UserOauthTokenRepository,
   ],
   exports: [JwtModule],
 })

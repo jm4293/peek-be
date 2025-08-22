@@ -17,7 +17,12 @@ import { UserAccountTypeEnum, UserVisitTypeEnum, userAccountTypeDescription } fr
 import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from '@constant/jwt/index';
 
 import { User, UserAccount } from '@database/entities/user';
-import { UserAccountRepository, UserRepository, UserVisitRepository } from '@database/repositories/user';
+import {
+  UserAccountRepository,
+  UserOauthTokenRepository,
+  UserRepository,
+  UserVisitRepository,
+} from '@database/repositories/user';
 
 import { AWSService } from '../aws';
 import { EmailVerificationService } from '../email-verification';
@@ -35,6 +40,7 @@ export class AuthService {
     private readonly userRepository: UserRepository,
     private readonly userAccountRepository: UserAccountRepository,
     private readonly userVisitRepository: UserVisitRepository,
+    private readonly userOauthTokenRepository: UserOauthTokenRepository,
 
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
@@ -99,7 +105,10 @@ export class AuthService {
     const { dto, req } = params;
     const { email, password } = dto;
 
-    const userAccount = await this.userAccountRepository.findByEmail(email);
+    const userAccount = await this.userAccountRepository.findOne({
+      where: { email, userAccountType: UserAccountTypeEnum.EMAIL },
+      relations: ['user'],
+    });
 
     if (userAccount.userAccountType !== UserAccountTypeEnum.EMAIL) {
       throw new BadRequestException(
@@ -118,11 +127,11 @@ export class AuthService {
 
   async loginOauth(params: { dto: LoginOauthDto; req: Request }) {
     const { dto, req } = params;
-    const { userAccountType, token } = dto;
+    const { userAccountType, token, tokenType, expire } = dto;
 
     switch (userAccountType) {
       case UserAccountTypeEnum.GOOGLE:
-        return await this._googleOauthLogin({ req, token });
+        return await this._googleOauthLogin({ req, token, tokenType, expire });
       case UserAccountTypeEnum.KAKAO:
         return await this._kakaoOauthLogin({ req, token });
       case UserAccountTypeEnum.NAVER:
@@ -136,6 +145,16 @@ export class AuthService {
     const { req, accountId } = params;
 
     await this.userAccountRepository.update({ id: accountId }, { refreshToken: null });
+    await this.userOauthTokenRepository.update(
+      { userAccountId: accountId },
+      {
+        tokenType: null,
+        accessToken: null,
+        accessTokenExpire: null,
+        refreshToken: null,
+        refreshTokenExpire: null,
+      },
+    );
 
     await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_OUT, userAccountId: accountId });
   }
@@ -201,8 +220,8 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private async _googleOauthLogin(params: { req: Request; token: string }) {
-    const { req, token } = params;
+  private async _googleOauthLogin(params: { req: Request; token: string; tokenType: string; expire: number }) {
+    const { req, token, tokenType, expire } = params;
 
     const response = await firstValueFrom(
       this.httpService
@@ -226,6 +245,11 @@ export class AuthService {
       email,
       name,
       nickname: name,
+      tokenType,
+      accessToken: token,
+      accessTokenExpire: expire,
+      refreshToken: null,
+      refreshTokenExpire: null,
       req,
     });
   }
@@ -236,7 +260,11 @@ export class AuthService {
     const response = await firstValueFrom(
       this.httpService
         .get<{
+          token_type: string;
           access_token: string;
+          expires_in: number;
+          refresh_token: string;
+          refresh_token_expires_in: number;
         }>(
           `https://kauth.kakao.com/oauth/token?grant_type=authorization_code&client_id=${this.configService.get('KAKAO_APP_KEY')}&redirect_uri=${this.configService.get('KAKAO_REDIRECT_URI')}&code=${token}&client_secret=${this.configService.get('KAKAO_CLIENT_SECRET')}`,
         )
@@ -247,7 +275,7 @@ export class AuthService {
         ),
     );
 
-    const { access_token } = response.data;
+    const { token_type, access_token, expires_in, refresh_token, refresh_token_expires_in } = response.data;
 
     const userInfo = await firstValueFrom(
       this.httpService
@@ -262,7 +290,7 @@ export class AuthService {
           `https://kapi.kakao.com/v2/user/me?secure_resource=${this.configService.get('NODE_ENV') ? 'true' : 'false'}`,
           {
             headers: {
-              Authorization: `Bearer ${access_token}`,
+              Authorization: `${token_type} ${access_token}`,
               'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
             },
           },
@@ -284,6 +312,11 @@ export class AuthService {
       email,
       name: nickname,
       nickname,
+      tokenType: token_type,
+      accessToken: access_token,
+      accessTokenExpire: expires_in,
+      refreshToken: refresh_token,
+      refreshTokenExpire: refresh_token_expires_in,
       req,
     });
   }
@@ -294,8 +327,10 @@ export class AuthService {
     const response = await firstValueFrom(
       this.httpService
         .get<{
-          access_token: string;
           token_type: string;
+          access_token: string;
+          expires_in: number;
+          refresh_token: string;
         }>(
           `https://nid.naver.com/oauth2.0/token?client_id=${this.configService.get('NAVER_CLIENT_ID')}&client_secret=${this.configService.get('NAVER_CLIENT_SECRET')}&grant_type=authorization_code&state=peek&code=${token}`,
         )
@@ -306,7 +341,7 @@ export class AuthService {
         ),
     );
 
-    const { access_token, token_type } = response.data;
+    const { token_type, access_token, expires_in, refresh_token } = response.data;
 
     const userInfo = await firstValueFrom(
       this.httpService
@@ -338,6 +373,11 @@ export class AuthService {
       email,
       name,
       nickname,
+      tokenType: token_type,
+      accessToken: access_token,
+      accessTokenExpire: expires_in,
+      refreshToken: refresh_token,
+      refreshTokenExpire: null,
       req,
     });
   }
@@ -348,9 +388,26 @@ export class AuthService {
     email: string;
     name: string;
     nickname: string;
+    tokenType: string;
+    accessToken: string;
+    accessTokenExpire: number;
+    refreshToken: string | null;
+    refreshTokenExpire: number | null;
     req: Request;
   }) {
-    const { imageUrl, type, email, name, nickname, req } = params;
+    const {
+      imageUrl,
+      type,
+      email,
+      name,
+      nickname,
+      accessToken,
+      tokenType,
+      accessTokenExpire,
+      refreshToken,
+      refreshTokenExpire,
+      req,
+    } = params;
 
     let thumbnail = null;
 
@@ -362,6 +419,16 @@ export class AuthService {
     // 계정이 있는 경우 로그인으로 진행
     if (oauthAccount) {
       // await this.userRepository.update({ id: oauthAccount.user.id }, { nickname, name });
+
+      await this._oauthTokenSave({
+        accountId: oauthAccount.id,
+        accountType: type,
+        tokenType,
+        accessToken,
+        accessTokenExpire,
+        refreshToken,
+        refreshTokenExpire,
+      });
 
       return await this._login({
         req,
@@ -412,6 +479,16 @@ export class AuthService {
 
       await this.userAccountRepository.save(savedGoogleAccount);
 
+      await this._oauthTokenSave({
+        accountId: emailAccount.id,
+        accountType: type,
+        tokenType,
+        accessToken,
+        accessTokenExpire,
+        refreshToken,
+        refreshTokenExpire,
+      });
+
       return await this._login({
         req,
         type: UserVisitTypeEnum.SIGN_IN_OAUTH,
@@ -439,12 +516,47 @@ export class AuthService {
 
     const newAccount = await this.userAccountRepository.save(savedAccount);
 
+    await this._oauthTokenSave({
+      accountId: newAccount.id,
+      accountType: type,
+      tokenType,
+      accessToken,
+      accessTokenExpire,
+      refreshToken,
+      refreshTokenExpire,
+    });
+
     return await this._login({
       req,
       type: UserVisitTypeEnum.SIGN_IN_OAUTH,
       user: newUser,
       userAccount: newAccount,
     });
+  }
+
+  private async _oauthTokenSave(params: {
+    accountId: number;
+    accountType: UserAccountTypeEnum;
+    tokenType: string;
+    accessToken: string;
+    accessTokenExpire: number | null;
+    refreshToken: string | null;
+    refreshTokenExpire: number | null;
+  }) {
+    const { accountId, accountType, tokenType, accessToken, accessTokenExpire, refreshToken, refreshTokenExpire } =
+      params;
+
+    const newOauthToken = await this.userOauthTokenRepository.create({
+      userAccountId: accountId,
+      userAccountType: accountType,
+      tokenType,
+      accessToken,
+      accessTokenExpire,
+      refreshToken,
+      refreshTokenExpire,
+    });
+
+    await this.userOauthTokenRepository.save(newOauthToken);
   }
 
   // private async _resizingImage(params: { imageFile: File }) {
