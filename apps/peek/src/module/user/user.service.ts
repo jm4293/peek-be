@@ -114,14 +114,11 @@ export class UserService {
             const ret = await firstValueFrom(
               this.httpService.post(`https://oauth2.googleapis.com/revoke?token=${accessToken}`).pipe(
                 catchError((error) => {
-                  console.log('구글 회원 탈퇴 에러:', error);
-
                   throw new BadRequestException(`구글 회원 탈퇴에 실패했습니다: ${error.message}`);
                 }),
               ),
             );
 
-            console.log('구글 회원 탈퇴 결과:', ret);
             break;
           }
           case UserAccountTypeEnum.KAKAO: {
@@ -224,10 +221,8 @@ export class UserService {
         }
       });
 
-      console.error('회원 탈퇴이 완료되었습니다:', accountId);
+      console.info('회원 탈퇴이 완료되었습니다:', accountId);
     } catch (error) {
-      console.log('회원 탈퇴 중 오류가 발생했습니다:', error);
-
       throw new BadRequestException('회원 탈퇴에 실패했습니다. 다시 시도해주세요.');
     }
   }
