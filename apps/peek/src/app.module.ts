@@ -17,6 +17,7 @@ import { BoardModule } from './module/board';
 import { EmailVerificationModule } from './module/email-verification';
 import { HomeModule } from './module/home';
 import { ImageModule } from './module/image';
+import { KisWebSocketModule } from './module/kis-websocket';
 import { KisTokenScheduleModule } from './module/schedule/kis-token';
 import { StockModule } from './module/stock';
 import { UserModule } from './module/user';
@@ -46,6 +47,8 @@ import { UserModule } from './module/user';
     UserModule,
 
     KisTokenScheduleModule,
+
+    KisWebSocketModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuardConfig }, AppService],
