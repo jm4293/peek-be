@@ -1,18 +1,22 @@
 import { Request } from 'express';
+import { catchError, firstValueFrom } from 'rxjs';
 import { DataSource } from 'typeorm';
 
+import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 import { BcryptHandler } from '@peek/handler/bcrypt';
 
-import { UserAccountStatusEnum } from '@constant/enum/user';
+import { UserAccountStatusEnum, UserAccountTypeEnum } from '@constant/enum/user';
 
 import { Board, BoardComment } from '@database/entities/board';
 import { User, UserAccount, UserNotification, UserPushToken } from '@database/entities/user';
 import {
   UserAccountRepository,
   UserNotificationRepository,
+  UserOauthTokenRepository,
   UserPushTokenRepository,
   UserRepository,
   UserVisitRepository,
@@ -31,12 +35,15 @@ import {
 export class UserService {
   constructor(
     private readonly awsService: AWSService,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
 
     private readonly userRepository: UserRepository,
     private readonly userAccountRepository: UserAccountRepository,
     private readonly userPushTokenRepository: UserPushTokenRepository,
     private readonly userNotificationRepository: UserNotificationRepository,
     private readonly userVisitRepository: UserVisitRepository,
+    private readonly userOauthTokenRepository: UserOauthTokenRepository,
 
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
@@ -93,44 +100,136 @@ export class UserService {
   }
 
   async deleteUser(accountId: number) {
-    // const accountList = await this.userAccountRepository.find({ where: { id: accountId } });
-
-    const { userId } = await this.userAccountRepository.findById(accountId);
+    const { userId, userAccountType } = await this.userAccountRepository.findById(accountId);
 
     const accountList = await this.userAccountRepository.find({ where: { userId } });
+    const oauthToken = await this.userOauthTokenRepository.findOne({ where: { userAccountId: accountId } });
 
-    await this.dataSource.transaction(async (manager) => {
-      await manager.update(Board, { userAccountId: accountId }, { deletedAt: new Date() });
-      await manager.update(BoardComment, { userAccountId: accountId }, { deletedAt: new Date() });
-      await manager.update(
-        UserAccount,
-        { id: accountId },
-        {
-          password: null,
-          refreshToken: null,
-          status: UserAccountStatusEnum.DELETE,
-          deletedAt: new Date(),
-        },
-      );
+    try {
+      if (oauthToken) {
+        const { tokenType, accessToken } = oauthToken;
 
-      if (accountList.length === 1) {
-        const account = accountList[0];
+        switch (userAccountType) {
+          case UserAccountTypeEnum.GOOGLE: {
+            const ret = await firstValueFrom(
+              this.httpService.post(`https://oauth2.googleapis.com/revoke?token=${accessToken}`).pipe(
+                catchError((error) => {
+                  console.log('구글 회원 탈퇴 에러:', error);
 
-        await manager.delete(UserNotification, { userId: account.userId });
-        await manager.delete(UserPushToken, { userId: account.userId });
+                  throw new BadRequestException(`구글 회원 탈퇴에 실패했습니다: ${error.message}`);
+                }),
+              ),
+            );
+
+            console.log('구글 회원 탈퇴 결과:', ret);
+            break;
+          }
+          case UserAccountTypeEnum.KAKAO: {
+            const user = await firstValueFrom(
+              this.httpService
+                .get<{
+                  id: string;
+                }>(
+                  `https://kapi.kakao.com/v2/user/me?secure_resource=${this.configService.get('NODE_ENV') === 'production' ? 'true' : 'false'}`,
+                  {
+                    headers: {
+                      Authorization: `${tokenType} ${accessToken}`,
+                      'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+                    },
+                  },
+                )
+                .pipe(
+                  catchError((error) => {
+                    throw new BadRequestException(`카카오 회원 탈퇴에 실패했습니다: ${error.message}`);
+                  }),
+                ),
+            );
+
+            await firstValueFrom(
+              this.httpService
+                .post(
+                  'https://kapi.kakao.com/v1/user/unlink',
+                  {
+                    target_id_type: 'user_id',
+                    target_id: user.data.id,
+                  },
+                  {
+                    headers: {
+                      Authorization: `${tokenType} ${accessToken}`,
+                    },
+                  },
+                )
+                .pipe(
+                  catchError((error) => {
+                    throw new BadRequestException(`카카오 회원 탈퇴에 실패했습니다: ${error.message}`);
+                  }),
+                ),
+            );
+
+            break;
+          }
+          case UserAccountTypeEnum.NAVER: {
+            const ret = await firstValueFrom(
+              this.httpService
+                .post(
+                  `https://nid.naver.com/oauth2.0/token?grant_type=delete&client_id=${this.configService.get('NAVER_CLIENT_ID')}&client_secret=${this.configService.get('NAVER_CLIENT_SECRET')}&access_token=${encodeURIComponent(accessToken)}&service_provider=NAVER`,
+                )
+                .pipe(
+                  catchError((error) => {
+                    throw new BadRequestException(`네이버 회원 탈퇴에 실패했습니다: ${error.message}`);
+                  }),
+                ),
+            );
+
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+
+        await this.userOauthTokenRepository.delete({ userAccountId: accountId });
+      }
+
+      await this.dataSource.transaction(async (manager) => {
+        await manager.update(Board, { userAccountId: accountId }, { deletedAt: new Date() });
+        await manager.update(BoardComment, { userAccountId: accountId }, { deletedAt: new Date() });
         await manager.update(
-          User,
-          { id: account.userId },
+          UserAccount,
+          { id: accountId },
           {
-            nickname: null,
-            name: null,
-            birthday: null,
-            thumbnail: null,
+            password: null,
+            refreshToken: null,
+            status: UserAccountStatusEnum.DELETE,
             deletedAt: new Date(),
           },
         );
-      }
-    });
+
+        if (accountList.length === 1) {
+          const account = accountList[0];
+
+          await manager.delete(UserNotification, { userId: account.userId });
+          await manager.delete(UserPushToken, { userId: account.userId });
+          await manager.update(
+            User,
+            { id: account.userId },
+            {
+              nickname: null,
+              name: null,
+              birthday: null,
+              thumbnail: null,
+              deletedAt: new Date(),
+            },
+          );
+        }
+      });
+
+      console.error('회원 탈퇴이 완료되었습니다:', accountId);
+    } catch (error) {
+      console.log('회원 탈퇴 중 오류가 발생했습니다:', error);
+
+      throw new BadRequestException('회원 탈퇴에 실패했습니다. 다시 시도해주세요.');
+    }
   }
 
   async registerPushToken(params: { dto: RegisterUserPushTokenDto; req: Request }) {
@@ -212,5 +311,14 @@ export class UserService {
     // await this.userRepository.findByUserSeq(userSeq);
     //
     // await this.userNotificationRepository.update({ userNotificationSeq }, { isDeleted: true, deletedAt: new Date() });
+  }
+
+  private async _oauthDeleteAccount(userId: number) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      // throw new NotFoundException('User not found');
+    }
+
+    await this.userRepository.remove(user);
   }
 }

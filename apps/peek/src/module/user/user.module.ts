@@ -1,8 +1,10 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 
 import {
   UserAccountRepository,
   UserNotificationRepository,
+  UserOauthTokenRepository,
   UserPushTokenRepository,
   UserRepository,
   UserVisitRepository,
@@ -13,7 +15,7 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
 @Module({
-  imports: [],
+  imports: [HttpModule],
   controllers: [UserController],
   providers: [
     UserService,
@@ -24,6 +26,7 @@ import { UserService } from './user.service';
     UserPushTokenRepository,
     UserNotificationRepository,
     UserVisitRepository,
+    UserOauthTokenRepository,
   ],
   exports: [],
 })
