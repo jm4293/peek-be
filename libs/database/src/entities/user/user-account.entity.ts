@@ -7,6 +7,7 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -17,6 +18,7 @@ import { KoreanTime } from '@database/decorators';
 
 import { Board, BoardComment, BoardLike } from '../board';
 import { KisTokenIssue } from '../kis';
+import { UserOauthToken } from './user-oauth-token.entity';
 import { UserVisit } from './user-visit.entity';
 import { User } from './user.entity';
 
@@ -71,6 +73,9 @@ export class UserAccount {
   @ManyToOne(() => User, (user) => user.userAccounts)
   @JoinColumn({ name: 'userId' })
   user: User;
+
+  @OneToOne(() => UserOauthToken, (userOauthToken) => userOauthToken.userAccount)
+  userOauthToken: UserOauthToken;
 
   @OneToMany(() => UserVisit, (userVisit) => userVisit.userAccount)
   userVisits: UserVisit[];
