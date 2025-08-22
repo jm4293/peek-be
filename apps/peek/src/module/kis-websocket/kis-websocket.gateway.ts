@@ -34,8 +34,6 @@ export class KisWebSocketGateway implements OnGatewayConnection, OnGatewayDiscon
     if (this.connectedClients.size === 1) {
       await this.connectToKisWebSocket();
     }
-
-    await this.connectToKisWebSocket();
   }
 
   async handleDisconnect(client: Socket) {
