@@ -17,28 +17,25 @@ export class StockController {
   @Public()
   @Get('category')
   async getStockCategoryList() {
-    const ret = await this.stockService.getStockCategoryList();
-
-    return {
-      stockCategoryList: ret.map((item) => new StockCategory(item)),
-    };
+    // const ret = await this.stockService.getStockCategoryList();
+    // return {
+    //   stockCategoryList: ret.map((item) => new StockCategory(item)),
+    // };
   }
 
   // 토큰
   @Public()
   @Get('token')
   async getToken() {
-    const { token } = await this.stockService.getToken();
-
-    return { token };
+    // const { token } = await this.stockService.getToken();
+    // return { token };
   }
 
   // 종목 코드 조회
   @Public()
   @Get()
   async getCodeList(@Query('kind') kind: StockCategoryEnum, @Query('text') text: string, @Res() res: Response) {
-    const ret = await this.stockService.getCodeList({ kind, text: text?.trim() });
-
+    // const ret = await this.stockService.getCodeList({ kind, text: text?.trim() });
     // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
@@ -50,8 +47,7 @@ export class StockController {
     @Query('kind', new ParseEnumPipe(StockCategoryEnum)) kind: StockCategoryEnum,
     @Res() res: Response,
   ) {
-    const ret = await this.stockService.getCodeDetail({ code, kind });
-
+    // const ret = await this.stockService.getCodeDetail({ code, kind });
     // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 }

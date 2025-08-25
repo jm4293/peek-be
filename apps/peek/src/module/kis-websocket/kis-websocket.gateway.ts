@@ -1,8 +1,6 @@
 import { Server, Socket } from 'socket.io';
 import { WebSocket } from 'ws';
 
-// default import로 변경
-
 import { Inject, Logger, OnModuleInit } from '@nestjs/common';
 import {
   ConnectedSocket,
@@ -33,8 +31,6 @@ interface Subscription {
   namespace: '/kis-websocket',
 })
 export class KisWebSocketGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
-  constructor(private readonly kisTokenRepository: KisTokenRepository) {}
-
   @WebSocketServer()
   server: Server;
 
@@ -42,6 +38,8 @@ export class KisWebSocketGateway implements OnGatewayConnection, OnGatewayDiscon
   private kisWebSocket: WebSocket | null = null;
   private connectedClients = new Set<Socket>();
   private subscriptions = new Map<string, Subscription>();
+
+  constructor(private readonly kisTokenRepository: KisTokenRepository) {}
 
   async onModuleInit() {
     // console.log('KisWebSocketGateway initialized');

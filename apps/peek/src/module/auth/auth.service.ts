@@ -9,7 +9,6 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 import { REFRESH_TOKEN_NAME } from '@peek/constant/cookie';
-import { IMAGE_TYPE } from '@peek/constant/image-type';
 import { BcryptHandler } from '@peek/handler/bcrypt';
 import { IJwtToken } from '@peek/type/interface';
 

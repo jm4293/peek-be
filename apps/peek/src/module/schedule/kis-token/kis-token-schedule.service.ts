@@ -2,7 +2,7 @@ import { AxiosResponse } from 'axios';
 import { firstValueFrom } from 'rxjs';
 
 import { HttpService } from '@nestjs/axios';
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
@@ -10,6 +10,8 @@ import { KisTokenRepository } from '@database/repositories/kis';
 
 @Injectable()
 export class KisTokenScheduleService implements OnModuleInit {
+  private readonly logger = new Logger(KisTokenScheduleService.name);
+
   constructor(
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
@@ -24,13 +26,13 @@ export class KisTokenScheduleService implements OnModuleInit {
         await this._getKisTokenSchedule();
       }
     } catch (error) {
-      console.error('KisTokenScheduleService onModuleInit 에러:', error);
+      this.logger.error('KisTokenScheduleService onModuleInit 에러:', error);
     }
   }
 
   @Cron(CronExpression.EVERY_12_HOURS, { name: 'stock Token', timeZone: 'Asia/Seoul' })
   private async _getKisTokenSchedule() {
-    const now = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+    // const now = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
 
     const ret = await firstValueFrom<AxiosResponse<{ approval_key: string }>>(
       this.httpService.post(`${this.configService.get('KIS_APP_URL')}/oauth2/Approval`, {
@@ -62,7 +64,7 @@ export class KisTokenScheduleService implements OnModuleInit {
       await this.kisTokenRepository.save(token);
     }
 
-    console.info(`ADMIN SERVER: [${now}] Scheduler 'kis Token' 생성 완료`);
+    this.logger.log(`KIS Token 생성 완료: ${approval_key}`);
   }
 
   private async _deleteKisToken() {
@@ -80,6 +82,6 @@ export class KisTokenScheduleService implements OnModuleInit {
       }),
     );
 
-    console.info(`ADMIN SERVER: Scheduler 'kis Token' 삭제 완료`);
+    this.logger.log(`KIS Token 삭제 완료: ${kisToken.token}`);
   }
 }
