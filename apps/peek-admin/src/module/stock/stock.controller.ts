@@ -13,19 +13,24 @@ export class StockController {
   constructor(private readonly stockService: StockService) {}
 
   @Get(':code')
-  async getStockCompany(@Param() param: GetStockCodeDto, @Res() res: Response) {
+  async getStockCompany(@Param() param: GetStockCodeDto) {
     const { code } = param;
 
     const ret = await this.stockService.getStockCompany(code);
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
   @Get()
-  async getStockCompanyList(@Query() query: GetStockCodeListDto, @Res() res: Response) {
+  async getStockCompanyList(@Query() query: GetStockCodeListDto) {
     const [stockCompanies, total] = await this.stockService.getStockCompanyList(query);
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: { stockCompanies, total } });
+    // return ResConfig.Success({ res, statusCode: 'OK', data: { stockCompanies, total } });
+
+    return {
+      stockCompanyList: stockCompanies,
+      total,
+    };
   }
 
   @Delete()
@@ -35,17 +40,17 @@ export class StockController {
 
   @Post('upload/kospi')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadKOSPI(@UploadedFile() file: Express.Multer.File, @Res() res: Response) {
+  async uploadKOSPI(@UploadedFile() file: Express.Multer.File) {
     await this.stockService.uploadStock({ file, dataType: 'KOSPI' });
 
-    return ResConfig.Success({ res, statusCode: 'OK' });
+    // return ResConfig.Success({ res, statusCode: 'OK' });
   }
 
   @Post('upload/kosdaq')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadKODDAQ(@UploadedFile() file: Express.Multer.File, @Res() res: Response) {
+  async uploadKODDAQ(@UploadedFile() file: Express.Multer.File) {
     await this.stockService.uploadStock({ file, dataType: 'KOSDAQ' });
 
-    return ResConfig.Success({ res, statusCode: 'OK' });
+    // return ResConfig.Success({ res, statusCode: 'OK' });
   }
 }

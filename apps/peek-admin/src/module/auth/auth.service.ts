@@ -7,7 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { BcryptHandler } from '@peek-admin/handler/bcrypt';
 import { LoginDto } from '@peek-admin/type/dto';
 
-import { UserTypeEnum, UserVisitTypeEnum } from '@constant/enum/user';
+import { UserAccountTypeEnum, UserTypeEnum, UserVisitTypeEnum } from '@constant/enum/user';
 import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from '@constant/jwt/index';
 
 import { UserAccountRepository, UserVisitRepository } from '@database/repositories/user';
@@ -26,7 +26,14 @@ export class AuthService {
     const { dto, req } = params;
     const { email, password } = dto;
 
-    const userAccount = await this.userAccountRepository.findByEmail(email);
+    const userAccount = await this.userAccountRepository.findOne({
+      where: { email, userAccountType: UserAccountTypeEnum.EMAIL },
+      relations: ['user'],
+    });
+
+    if (!userAccount) {
+      throw new BadRequestException('어드민 계정이 아닙니다.');
+    }
 
     const adminAccount = await this.userAccountRepository.findOne({
       where: { email, user: { type: UserTypeEnum.ADMIN } },
@@ -36,7 +43,7 @@ export class AuthService {
       throw new BadRequestException('어드민 계정이 아닙니다.');
     }
 
-    const isMatch = await BcryptHandler.comparePassword(password, adminAccount.password as string);
+    const isMatch = await BcryptHandler.comparePassword(password, userAccount.password as string);
 
     if (!isMatch) {
       throw new BadRequestException('비밀번호가 일치하지 않습니다.');

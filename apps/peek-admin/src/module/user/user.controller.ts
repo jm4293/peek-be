@@ -12,19 +12,22 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get(':userId')
-  async getUser(@Param() param: GetUserDto, @Res() res: Response) {
+  async getUser(@Param() param: GetUserDto) {
     const { userId } = param;
 
     const ret = await this.userService.getUser(userId);
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+    // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 
   @Get()
-  async getUsers(@Query() query: GetUserListDto, @Res() res: Response) {
-    const [users, total] = await this.userService.getUsers(query);
+  async getUserList(@Query() query: GetUserListDto) {
+    const [users, total] = await this.userService.getUserList(query);
 
-    return ResConfig.Success({ res, statusCode: 'OK', data: { users, total } });
+    return {
+      userList: users,
+      total,
+    };
   }
 
   @Put(':userSeq')

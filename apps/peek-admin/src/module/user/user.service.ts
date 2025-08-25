@@ -13,7 +13,7 @@ export class UserService {
     return await this.userRepository.findById(userId);
   }
 
-  async getUsers(query: GetUserListDto) {
+  async getUserList(query: GetUserListDto) {
     const { page } = query;
 
     return await this.userRepository.findAndCount({

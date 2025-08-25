@@ -12,7 +12,7 @@ export const typeormModuleConfig: TypeOrmModuleAsyncOptions = {
     database: configService.get('DB_DATABASE'),
     // entities: [__dirname + '../../database/entity/**/*.entity{.ts,.js}'],
     entities: ['dist/**/*.entity{.ts,.js}'],
-    synchronize: configService.get('NODE_ENV') !== 'production',
+    synchronize: false,
     logging: false,
     timezone: 'Z', // UTC로 설정
     extra: {

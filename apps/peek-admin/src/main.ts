@@ -1,6 +1,11 @@
+import cookieParser from 'cookie-parser';
+
+import { ClassSerializerInterceptor } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
+import { validationPipeConfig } from '@peek/config/validation-pipe';
 
 import { AppModule } from './app.module';
 
@@ -11,11 +16,17 @@ async function bootstrap() {
 
   // configService.get('NODE_ENV') === 'development' && app.setGlobalPrefix('api');
 
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
   app.enableCors({
     origin: ['http://localhost:29980'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
+
+  app.useGlobalPipes(validationPipeConfig);
+
+  app.use(cookieParser());
 
   // Swagger 설정
   const config = new DocumentBuilder().setTitle('PEEK API Documentation').setVersion('1.0').build();

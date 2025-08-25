@@ -2,9 +2,11 @@ import { Request, Response } from 'express';
 
 import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 
+import { ACCESS_TOKEN_NAME, REFRESH_TOKEN_NAME } from '@peek/constant/cookie';
+
 import { LoginDto } from '@peek-admin/type/dto';
 
-import { REFRESH_TOKEN_COOKIE_TIME } from '@constant/jwt/index';
+import { ACCESS_TOKEN_COOKIE_TIME, REFRESH_TOKEN_COOKIE_TIME } from '@constant/jwt/index';
 
 import { AuthService } from './auth.service';
 
@@ -16,7 +18,14 @@ export class AuthController {
   async login(@Body() dto: LoginDto, @Req() req: Request, @Res() res: Response) {
     const { accessToken, refreshToken } = await this.authService.login({ dto, req });
 
-    res.cookie('__rt', refreshToken, {
+    res.cookie(ACCESS_TOKEN_NAME, accessToken, {
+      httpOnly: true,
+      // secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: ACCESS_TOKEN_COOKIE_TIME,
+    });
+
+    res.cookie(REFRESH_TOKEN_NAME, refreshToken, {
       httpOnly: true,
       // secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
