@@ -17,7 +17,7 @@ export class AuthController {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production' ? true : false,
     sameSite: 'lax' as 'lax' | 'strict' | 'none',
-    domain: '.peek.run',
+    domain: process.env.NODE_ENV === 'production' ? '.peek.run' : 'localhost',
   };
 
   constructor(private readonly authService: AuthService) {}
@@ -99,7 +99,7 @@ export class AuthController {
         }
       }
 
-      res.status(200).json({});
+      res.status(403).json({});
     }
   }
 
