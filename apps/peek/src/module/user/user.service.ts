@@ -94,15 +94,19 @@ export class UserService {
 
     const userAccount = await this.userAccountRepository.findOne({ where: { email } });
 
-    if (!userAccount) {
-      throw new BadRequestException('이메일이 존재하지 않습니다.');
-    }
+    try {
+      if (!userAccount) {
+        throw new BadRequestException('이메일이 존재하지 않습니다.');
+      }
 
-    if (userAccount.userAccountType !== UserAccountTypeEnum.EMAIL) {
-      throw new BadRequestException('이메일로 가입한 회원이 아닙니다.');
-    }
+      if (userAccount.userAccountType !== UserAccountTypeEnum.EMAIL) {
+        throw new BadRequestException('이메일로 가입한 회원이 아닙니다.');
+      }
 
-    await this.emailVerificationService.sendVerificationCode(email);
+      await this.emailVerificationService.sendVerificationCode(email);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async checkEmailCode(dto: CheckEmailCodeDto) {
