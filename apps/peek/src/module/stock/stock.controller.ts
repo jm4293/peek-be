@@ -8,6 +8,7 @@ import { StockCategoryEnum } from '@constant/enum/stock';
 
 import { StockCategory } from '@database/entities/stock';
 
+import { GetCodeKoreanListDto } from './dto';
 import { StockService } from './stock.service';
 
 @Controller('stock')
@@ -34,10 +35,14 @@ export class StockController {
 
   // 종목 코드 조회
   @Public()
-  @Get()
-  async getCodeList(@Query('kind') kind: StockCategoryEnum, @Query('text') text: string, @Res() res: Response) {
-    // const ret = await this.stockService.getCodeList({ kind, text: text?.trim() });
-    // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
+  @Get('code/korean')
+  async getCodeKoreanList(@Query() query: GetCodeKoreanListDto) {
+    const { codeList, total } = await this.stockService.getCodeKoreanList(query);
+
+    return {
+      codeList,
+      total,
+    };
   }
 
   // 종목 상세 조회

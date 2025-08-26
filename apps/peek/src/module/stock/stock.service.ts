@@ -1,12 +1,19 @@
+import { FindOptionsOrder, Like } from 'typeorm';
+
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { LIST_LIMIT } from '@peek/constant/list';
+
 import { StockCategoryEnum } from '@constant/enum/stock';
 
+import { StockCompany } from '@database/entities/stock';
 import { KisTokenIssueRepository, KisTokenRepository } from '@database/repositories/kis';
 import { StockCategoryRepository, StockCompanyRepository } from '@database/repositories/stock';
 import { UserAccountRepository, UserRepository } from '@database/repositories/user';
+
+import { GetCodeKoreanListDto } from './dto';
 
 @Injectable()
 export class StockService {
@@ -44,26 +51,36 @@ export class StockService {
     // return { token: kisToken.token };
   }
 
-  async getCodeList(params: { kind: StockCategoryEnum; text: string }) {
-    // const { kind, text } = params;
-    //
-    // let whereCondition = {};
-    // let orderCondition: FindOptionsOrder<StockCompany> = { companyName: 'ASC' };
-    //
-    // if (kind) {
-    //   whereCondition = { ...whereCondition, marketType: kind };
-    // }
-    //
-    // if (text) {
-    //   whereCondition = { ...whereCondition, companyName: Like(`%${text}%`) };
-    // }
-    //
-    // const [stocks, total] = await this.stockRepository.findAndCount({
-    //   where: whereCondition,
-    //   order: orderCondition,
-    // });
-    //
-    // return { stocks, total };
+  async getCodeKoreanList(dto: GetCodeKoreanListDto) {
+    const { kind, text } = dto;
+
+    let whereCondition = {};
+    let orderCondition: FindOptionsOrder<StockCompany> = { companyName: 'ASC' };
+
+    if (kind) {
+      whereCondition = { ...whereCondition, marketType: kind };
+    }
+
+    if (text) {
+      whereCondition = { ...whereCondition, companyName: Like(`%${text}%`) };
+    }
+
+    const [data, total] = await this.stockRepository.findAndCount({
+      // skip: (page - 1) * LIST_LIMIT,
+      // take: LIST_LIMIT,
+      where: whereCondition,
+      order: orderCondition,
+    });
+
+    // const hasNextPage = page * LIST_LIMIT < total;
+    // const nextPage = hasNextPage ? Number(page) + 1 : null;
+
+    // return { codeList: data, total, nextPage };
+
+    return {
+      codeList: data,
+      total,
+    };
   }
 
   async getCodeDetail(params: { code: number; kind: StockCategoryEnum }) {
