@@ -1,4 +1,4 @@
-import { Request } from 'express';
+import { Request, Response } from 'express';
 
 import {
   Body,
@@ -13,6 +13,7 @@ import {
   Put,
   Query,
   Req,
+  Res,
 } from '@nestjs/common';
 
 import { ParseReqHandler } from '@peek/handler/parseReq';
@@ -70,10 +71,20 @@ export class UserController {
   }
 
   @Delete()
-  async deleteUser(@Req() req: Request) {
+  async deleteUser(@Req() req: Request, @Res() res: Response) {
     const { accountId } = ParseReqHandler.parseReq(req);
 
     await this.userService.deleteUser(accountId);
+
+    const cookies = req.cookies;
+
+    for (const cookie in cookies) {
+      if (cookies.hasOwnProperty(cookie)) {
+        res.clearCookie(cookie);
+      }
+    }
+
+    res.status(200).json({});
   }
 
   @Post('push-token')

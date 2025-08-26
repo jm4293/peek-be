@@ -109,6 +109,10 @@ export class AuthService {
       relations: ['user'],
     });
 
+    if (!userAccount) {
+      throw new BadRequestException('존재하지 않는 이메일계정입니다.');
+    }
+
     if (userAccount.userAccountType !== UserAccountTypeEnum.EMAIL) {
       throw new BadRequestException(
         `이메일: ${email}은 ${userAccountTypeDescription[userAccount.userAccountType]} 간편로그인 회원입니다.`,

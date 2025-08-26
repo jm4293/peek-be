@@ -26,7 +26,7 @@ export class StockService {
   ) {}
 
   async getStockCategoryList() {
-    // return await this.stockCategoryRepository.find();
+    return await this.stockCategoryRepository.find();
   }
 
   // 토큰

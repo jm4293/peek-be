@@ -20,6 +20,7 @@ async function bootstrap() {
     AppModule,
     // { httpsOptions }
   );
+
   const configService = app.get(ConfigService);
 
   // configService.get('NODE_ENV') === 'development' && app.setGlobalPrefix('api');
@@ -29,7 +30,7 @@ async function bootstrap() {
   // 전역 인터셉터 설정 끝
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://peek-ruddy.vercel.app', 'https://stock.peek.run'],
+    origin: ['http://localhost:3000', 'https://stock.peek.run'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
@@ -43,15 +44,15 @@ async function bootstrap() {
   // cookie-parser 미들웨어 추가 끝
 
   // Firebase Admin SDK 초기화
-  const serviceAccount = {
-    projectId: configService.get('FIREBASE_PROJECT_ID'),
-    clientEmail: configService.get('FIREBASE_CLIENT_EMAIL'),
-    privateKey: configService.get('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n'),
-  };
-
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
+  // const serviceAccount = {
+  //   projectId: configService.get('FIREBASE_PROJECT_ID'),
+  //   clientEmail: configService.get('FIREBASE_CLIENT_EMAIL'),
+  //   privateKey: configService.get('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n'),
+  // };
+  //
+  // admin.initializeApp({
+  //   credential: admin.credential.cert(serviceAccount),
+  // });
   // Firebase Admin SDK 초기화 끝
 
   // Swagger 설정

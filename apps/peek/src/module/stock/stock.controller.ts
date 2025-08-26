@@ -17,10 +17,11 @@ export class StockController {
   @Public()
   @Get('category')
   async getStockCategoryList() {
-    // const ret = await this.stockService.getStockCategoryList();
-    // return {
-    //   stockCategoryList: ret.map((item) => new StockCategory(item)),
-    // };
+    const ret = await this.stockService.getStockCategoryList();
+
+    return {
+      stockCategoryList: ret.map((item) => new StockCategory(item)),
+    };
   }
 
   // 토큰
