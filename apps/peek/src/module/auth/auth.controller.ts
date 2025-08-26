@@ -17,6 +17,7 @@ export class AuthController {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production' ? true : false,
     sameSite: 'lax' as 'lax' | 'strict' | 'none',
+    domain: '.peek.run',
   };
 
   constructor(private readonly authService: AuthService) {}
