@@ -52,17 +52,21 @@ export class EmailVerificationService {
       const cachedCode = await this.cacheManager.get<string>(cacheKey);
 
       if (!cachedCode) {
-        return {
-          success: false,
-          message: '인증 코드가 만료되었거나 존재하지 않습니다.',
-        };
+        // return {
+        //   success: false,
+        //   message: '인증 코드가 만료되었거나 존재하지 않습니다.',
+        // };
+
+        throw new BadRequestException('인증 코드가 만료되었거나 존재하지 않습니다.');
       }
 
       if (cachedCode !== code) {
-        return {
-          success: false,
-          message: '잘못된 인증 코드입니다.',
-        };
+        // return {
+        //   success: false,
+        //   message: '잘못된 인증 코드입니다.',
+        // };
+
+        throw new BadRequestException('잘못된 인증 코드입니다.');
       }
 
       await this.cacheManager.del(cacheKey);
@@ -72,7 +76,7 @@ export class EmailVerificationService {
         message: '이메일 인증이 완료되었습니다.',
       };
     } catch (error) {
-      throw new BadRequestException('인증 과정에서 오류가 발생했습니다.');
+      throw error;
     }
   }
 

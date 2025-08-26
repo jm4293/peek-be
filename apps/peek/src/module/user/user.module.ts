@@ -11,6 +11,7 @@ import {
 } from '@database/repositories/user';
 
 import { AWSService } from '../aws';
+import { EmailVerificationService } from '../email-verification';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
@@ -20,6 +21,7 @@ import { UserService } from './user.service';
   providers: [
     UserService,
     AWSService,
+    EmailVerificationService,
 
     UserRepository,
     UserAccountRepository,

@@ -16,13 +16,16 @@ import {
   Res,
 } from '@nestjs/common';
 
+import { Public } from '@peek/decorator/public';
 import { ParseReqHandler } from '@peek/handler/parseReq';
 
 import { UserAccount } from '@database/entities/user';
 
+import { CheckEmailCodeDto, CheckEmailDto } from '../auth/dto';
 import {
   ReadUserNotificationDto,
   RegisterUserPushTokenDto,
+  ResetUserPasswordDto,
   UpdateUserDto,
   UpdateUserPasswordDto,
   UpdateUserThumbnailDto,
@@ -59,6 +62,29 @@ export class UserController {
     const { accountId } = ParseReqHandler.parseReq(req);
 
     await this.userService.updateThumbnail({ dto, accountId });
+  }
+
+  @Public()
+  @Post('check-email')
+  @HttpCode(200)
+  async checkEmail(@Body() dto: CheckEmailDto) {
+    return await this.userService.checkEmail(dto);
+  }
+
+  @Public()
+  @Post('check-email-code')
+  @HttpCode(200)
+  async checkEmailCode(@Body() dto: CheckEmailCodeDto) {
+    const { randomCode } = await this.userService.checkEmailCode(dto);
+
+    return { success: true, code: randomCode };
+  }
+
+  @Public()
+  @Patch('password/reset')
+  @HttpCode(200)
+  async resetPassword(@Body() dto: ResetUserPasswordDto) {
+    await this.userService.resetPassword(dto);
   }
 
   // 유저 비밀번호 수정

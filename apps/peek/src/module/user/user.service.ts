@@ -1,9 +1,11 @@
+import { Cache } from 'cache-manager';
 import { Request } from 'express';
 import { catchError, firstValueFrom } from 'rxjs';
 import { DataSource } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectDataSource } from '@nestjs/typeorm';
 
@@ -22,10 +24,13 @@ import {
   UserVisitRepository,
 } from '@database/repositories/user';
 
+import { CheckEmailCodeDto, CheckEmailDto } from '../auth/dto';
 import { AWSService } from '../aws';
+import { EmailVerificationService } from '../email-verification';
 import {
   ReadUserNotificationDto,
   RegisterUserPushTokenDto,
+  ResetUserPasswordDto,
   UpdateUserDto,
   UpdateUserPasswordDto,
   UpdateUserThumbnailDto,
@@ -37,6 +42,7 @@ export class UserService {
     private readonly awsService: AWSService,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
+    private readonly emailVerificationService: EmailVerificationService,
 
     private readonly userRepository: UserRepository,
     private readonly userAccountRepository: UserAccountRepository,
@@ -46,6 +52,7 @@ export class UserService {
     private readonly userOauthTokenRepository: UserOauthTokenRepository,
 
     @InjectDataSource() private readonly dataSource: DataSource,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async getMyInfo(accountId: number) {
@@ -80,6 +87,55 @@ export class UserService {
     user.thumbnail = thumbnail;
 
     await this.userRepository.save(user);
+  }
+
+  async checkEmail(dto: CheckEmailDto) {
+    const { email } = dto;
+
+    const userAccount = await this.userAccountRepository.findOne({ where: { email } });
+
+    if (!userAccount) {
+      throw new BadRequestException('이메일이 존재하지 않습니다.');
+    }
+
+    if (userAccount.userAccountType !== UserAccountTypeEnum.EMAIL) {
+      throw new BadRequestException('이메일로 가입한 회원이 아닙니다.');
+    }
+
+    await this.emailVerificationService.sendVerificationCode(email);
+  }
+
+  async checkEmailCode(dto: CheckEmailCodeDto) {
+    const { email, code } = dto;
+
+    const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const cacheKey = `email_verification_code_${email}`;
+
+    try {
+      await this.cacheManager.set(cacheKey, randomCode, 300000); // 5분
+      await this.emailVerificationService.verifyCode(email, code);
+
+      return { success: true, randomCode };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async resetPassword(dto: ResetUserPasswordDto) {
+    const { email, code, password } = dto;
+
+    const cacheKey = `email_verification_code_${email}`;
+    const cachedCode = await this.cacheManager.get<string>(cacheKey);
+
+    if (!cachedCode) {
+      throw new BadRequestException('비정상적인 접근입니다. 다시 시도해주세요.');
+    }
+
+    if (cachedCode !== code) {
+      throw new BadRequestException('비정상적인 접근입니다. 다시 시도해주세요.');
+    }
+
+    await this.userAccountRepository.update({ email }, { password: await BcryptHandler.hashPassword(password) });
   }
 
   async updatePassword(params: { dto: UpdateUserPasswordDto; accountId: number }) {
