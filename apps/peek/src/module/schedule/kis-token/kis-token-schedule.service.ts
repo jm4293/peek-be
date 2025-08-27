@@ -81,23 +81,23 @@ export class KisTokenScheduleService implements OnModuleInit {
   }
 
   private async _deleteKisToken() {
-    const socket = await this.kisTokenRepository.findOne({ where: { tokenType: KisTokenType.SOCKET } });
+    // const socket = await this.kisTokenRepository.findOne({ where: { tokenType: KisTokenType.SOCKET } });
     const oauth = await this.kisTokenRepository.findOne({ where: { tokenType: KisTokenType.OAUTH } });
 
-    if (socket) {
-      await firstValueFrom(
-        this.httpService.post(`${this.configService.get('KIS_APP_URL')}/oauth2/revokeP`, {
-          token: socket.token,
-          appkey: this.configService.get('KIS_APP_KEY'),
-          appsecret: this.configService.get('KIS_APP_SECRET'),
-        }),
-      );
-    }
+    // if (socket) {
+    //   await firstValueFrom(
+    //     this.httpService.post(`${this.configService.get('KIS_APP_URL')}/oauth2/revokeP`, {
+    //       token: socket.token,
+    //       appkey: this.configService.get('KIS_APP_KEY'),
+    //       appsecret: this.configService.get('KIS_APP_SECRET'),
+    //     }),
+    //   );
+    // }
 
     if (oauth) {
       await firstValueFrom(
         this.httpService.post(`${this.configService.get('KIS_APP_URL')}/oauth2/revokeP`, {
-          token: oauth.token,
+          token: `Bearer ${oauth.token}`,
           appkey: this.configService.get('KIS_APP_KEY'),
           appsecret: this.configService.get('KIS_APP_SECRET'),
         }),
