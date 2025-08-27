@@ -1,14 +1,10 @@
-import { Request, Response } from 'express';
-
-import { Controller, Get, Param, ParseEnumPipe, ParseIntPipe, Query, Req, Res } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 
 import { Public } from '@peek/decorator/public';
 
-import { StockCategoryEnum } from '@constant/enum/stock';
-
 import { StockCategory } from '@database/entities/stock';
 
-import { GetCodeKoreanListDto } from './dto';
+import { GetStockKoreanDto, GetStockKoreanListDto } from './dto';
 import { StockService } from './stock.service';
 
 @Controller('stock')
@@ -25,36 +21,29 @@ export class StockController {
     };
   }
 
-  // 토큰
+  // 종목 상세 조회
   @Public()
-  @Get('token')
-  async getToken() {
-    // const { token } = await this.stockService.getToken();
-    // return { token };
+  @Get('korean/:code')
+  async getStockKorean(@Param() param: GetStockKoreanDto) {
+    const { code } = param;
+
+    const ret = await this.stockService.getStockKorean(code);
+
+    return {
+      stockKorean: ret,
+    };
   }
 
   // 종목 코드 조회
   @Public()
-  @Get('code/korean')
-  async getStockCodeKoreanList(@Query() query: GetCodeKoreanListDto) {
-    const { stockCodeList, total, nextPage } = await this.stockService.getStockCodeKoreanList(query);
+  @Get('korean')
+  async getStockKoreanList(@Query() query: GetStockKoreanListDto) {
+    const { stockKoreanList, total, nextPage } = await this.stockService.getStockKoreanList(query);
 
     return {
-      stockCodeList,
+      stockKoreanList,
       total,
       nextPage,
     };
-  }
-
-  // 종목 상세 조회
-  @Public()
-  @Get(':code')
-  async getCodeDetail(
-    @Param('code', ParseIntPipe) code: number,
-    @Query('kind', new ParseEnumPipe(StockCategoryEnum)) kind: StockCategoryEnum,
-    @Res() res: Response,
-  ) {
-    // const ret = await this.stockService.getCodeDetail({ code, kind });
-    // return ResConfig.Success({ res, statusCode: 'OK', data: ret });
   }
 }

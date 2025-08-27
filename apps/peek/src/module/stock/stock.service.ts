@@ -1,3 +1,5 @@
+import { AxiosResponse } from 'axios';
+import { firstValueFrom } from 'rxjs';
 import { FindOptionsOrder, Like } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
@@ -13,7 +15,7 @@ import { KisTokenIssueRepository, KisTokenRepository } from '@database/repositor
 import { StockCategoryRepository, StockCompanyRepository } from '@database/repositories/stock';
 import { UserAccountRepository, UserRepository } from '@database/repositories/user';
 
-import { GetCodeKoreanListDto } from './dto';
+import { GetStockKoreanListDto } from './dto';
 
 @Injectable()
 export class StockService {
@@ -36,22 +38,31 @@ export class StockService {
     return await this.stockCategoryRepository.find();
   }
 
-  // 토큰
-  async getToken() {
-    // const { req } = params;
-    // const { headers, ip = null, userAccount } = req;
-    // const { 'user-agent': userAgent = null, referer = null } = headers;
-    // const { accountId } = userAccount;
-    //
-    // const account = await this.userAccountRepository.findById(accountId);
-    // const kisToken = await this.kisTokenRepository.getToken();
-    //
-    // await this.kisTokenIssueRepository.save({ ip, userAgent, referer, kisToken, userAccount: account });
-    //
-    // return { token: kisToken.token };
+  async getStockKorean(code: string) {
+    const token = await this.kisTokenRepository.getOAuthToken();
+
+    const ret = await firstValueFrom<AxiosResponse<{ output: any }>>(
+      this.httpService.get(
+        `${this.configService.get('KIS_APP_URL')}/uapi/domestic-stock/v1/quotations/search-info?PDNO=${code}&PRDT_TYPE_CD=300`,
+        {
+          headers: {
+            'content-type': 'application/json; charset=utf-8',
+            authorization: `Bearer ${token.token}`,
+            appkey: this.configService.get('KIS_APP_KEY'),
+            appsecret: this.configService.get('KIS_APP_SECRET'),
+            tr_id: 'CTPF1604R',
+            custtype: 'P',
+          },
+        },
+      ),
+    );
+
+    const { output } = ret.data;
+
+    return output;
   }
 
-  async getStockCodeKoreanList(dto: GetCodeKoreanListDto) {
+  async getStockKoreanList(dto: GetStockKoreanListDto) {
     const { page, kind, text } = dto;
 
     let whereCondition = {};
@@ -75,31 +86,6 @@ export class StockService {
     const hasNextPage = page * LIST_LIMIT < total;
     const nextPage = hasNextPage ? Number(page) + 1 : null;
 
-    return { stockCodeList: data, total, nextPage };
-
-    // return {
-    //   codeList: data,
-    //   total,
-    // };
-  }
-
-  async getCodeDetail(params: { code: number; kind: StockCategoryEnum }) {
-    // const { code } = params;
-    //
-    // return await this.stockRepository.findOne({ where: { code } });
-  }
-
-  private async _getKisToken() {
-    //   if (!this.kisToken) {
-    //     const kisToken = await this.kisTokenRepository.find();
-    //
-    //     if (!kisToken || !kisToken[0]) {
-    //       console.error('Kis token이 DB에 존재하지 않습니다.');
-    //     }
-    //
-    //     this.kisToken = kisToken[0];
-    //   }
-    //
-    //   return this.kisToken;
+    return { stockKoreanList: data, total, nextPage };
   }
 }

@@ -30,7 +30,7 @@ async function bootstrap() {
   // 전역 인터셉터 설정 끝
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://stock.peek.run'],
+    origin: ['http://localhost:3000', 'http://8134293.iptime.org:42930', 'https://stock.peek.run'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
