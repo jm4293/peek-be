@@ -36,12 +36,13 @@ export class StockController {
   // 종목 코드 조회
   @Public()
   @Get('code/korean')
-  async getCodeKoreanList(@Query() query: GetCodeKoreanListDto) {
-    const { codeList, total } = await this.stockService.getCodeKoreanList(query);
+  async getStockCodeKoreanList(@Query() query: GetCodeKoreanListDto) {
+    const { stockCodeList, total, nextPage } = await this.stockService.getStockCodeKoreanList(query);
 
     return {
-      codeList,
+      stockCodeList,
       total,
+      nextPage,
     };
   }
 

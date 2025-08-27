@@ -51,8 +51,8 @@ export class StockService {
     // return { token: kisToken.token };
   }
 
-  async getCodeKoreanList(dto: GetCodeKoreanListDto) {
-    const { kind, text } = dto;
+  async getStockCodeKoreanList(dto: GetCodeKoreanListDto) {
+    const { page, kind, text } = dto;
 
     let whereCondition = {};
     let orderCondition: FindOptionsOrder<StockCompany> = { companyName: 'ASC' };
@@ -66,21 +66,21 @@ export class StockService {
     }
 
     const [data, total] = await this.stockRepository.findAndCount({
-      // skip: (page - 1) * LIST_LIMIT,
-      // take: LIST_LIMIT,
+      skip: (page - 1) * LIST_LIMIT,
+      take: LIST_LIMIT,
       where: whereCondition,
       order: orderCondition,
     });
 
-    // const hasNextPage = page * LIST_LIMIT < total;
-    // const nextPage = hasNextPage ? Number(page) + 1 : null;
+    const hasNextPage = page * LIST_LIMIT < total;
+    const nextPage = hasNextPage ? Number(page) + 1 : null;
 
-    // return { codeList: data, total, nextPage };
+    return { stockCodeList: data, total, nextPage };
 
-    return {
-      codeList: data,
-      total,
-    };
+    // return {
+    //   codeList: data,
+    //   total,
+    // };
   }
 
   async getCodeDetail(params: { code: number; kind: StockCategoryEnum }) {
