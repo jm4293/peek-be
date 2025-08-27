@@ -106,7 +106,12 @@ export class UserController {
 
     for (const cookie in cookies) {
       if (cookies.hasOwnProperty(cookie)) {
-        res.clearCookie(cookie);
+        res.clearCookie(cookie, {
+          domain: process.env.NODE_ENV === 'production' ? '.peek.run' : 'localhost',
+          path: '/',
+          secure: process.env.NODE_ENV === 'production' ? true : false,
+          sameSite: 'lax',
+        });
       }
     }
 
