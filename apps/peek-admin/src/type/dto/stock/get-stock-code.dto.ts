@@ -1,9 +1,8 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsNotEmpty } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString } from 'class-validator';
 
 export class GetStockCodeDto {
-  @IsInt()
-  @Type(() => Number)
+  @IsString()
   @IsNotEmpty()
-  code: number;
+  code: string;
 }

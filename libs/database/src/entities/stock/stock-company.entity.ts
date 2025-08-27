@@ -18,8 +18,8 @@ export class StockCompany {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'int', nullable: true })
-  code: number;
+  @Column({ type: 'varchar', nullable: true })
+  code: string;
 
   @Column({ type: 'varchar', nullable: true })
   companyName: string;

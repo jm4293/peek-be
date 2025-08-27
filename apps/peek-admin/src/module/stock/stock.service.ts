@@ -40,7 +40,7 @@ export class StockService {
     });
   }
 
-  async getStockCompany(code: number) {
+  async getStockCompany(code: string) {
     return await this.stockRepository.findOne({ where: { code } });
   }
 
@@ -121,13 +121,13 @@ export class StockService {
       const entities = arr.map((row) => {
         const entity = new StockCompany();
 
-        entity.companyName = row[0] as string;
-        entity.code = row[1] as number;
-        entity.industry = row[2] as string;
-        entity.products = row[3] as string;
+        entity.companyName = row[0];
+        entity.code = String(row[1]).padStart(6, '0');
+        entity.industry = row[2];
+        entity.products = row[3];
         entity.listingAt = excelDateToJSDate(row[4]);
-        entity.ceo = row[6] as string;
-        entity.homePage = row[7] as string;
+        entity.ceo = row[6];
+        entity.homePage = row[7];
         entity.stockCategoryId = stockCategoryId;
 
         return entity;
@@ -140,13 +140,13 @@ export class StockService {
       const entities = arr.map((row) => {
         const entity = new StockCompany();
 
-        entity.companyName = row[0] as string;
-        entity.code = row[1] as number;
-        entity.industry = row[2] as string;
-        entity.products = row[3] as string;
+        entity.companyName = row[0];
+        entity.code = String(row[1]).padStart(6, '0');
+        entity.industry = row[2];
+        entity.products = row[3];
         entity.listingAt = excelDateToJSDate(row[4]);
-        entity.ceo = row[6] as string;
-        entity.homePage = row[7] as string;
+        entity.ceo = row[6];
+        entity.homePage = row[7];
         entity.stockCategoryId = stockCategoryId;
 
         return entity;
