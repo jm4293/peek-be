@@ -1,5 +1,7 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
+import { KisTokenType } from '@constant/enum/kis';
+
 import { KoreanTime } from '@database/decorators';
 
 import { KisTokenIssue } from './kis-token-issue.entity';
@@ -16,7 +18,7 @@ export class KisToken {
   tokenExpired: string;
 
   @Column({ type: 'varchar', length: 8, nullable: true })
-  tokenType: string;
+  tokenType: KisTokenType;
 
   @Column({ type: 'int', nullable: true })
   expiresIn: number;

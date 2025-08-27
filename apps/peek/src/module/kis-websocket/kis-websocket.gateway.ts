@@ -209,7 +209,7 @@ export class KisWebSocketGateway implements OnGatewayConnection, OnGatewayDiscon
       this.kisWebSocket = new WebSocket('ws://ops.koreainvestment.com:21000');
 
       this.kisWebSocket.onopen = async () => {
-        const { token } = await this.kisTokenRepository.getToken();
+        const { token } = await this.kisTokenRepository.getSocketToken();
 
         const messageKOSPI = {
           header: {
