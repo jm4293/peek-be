@@ -73,14 +73,13 @@ const indexKeys = [
   },
   namespace: '/kis/korean/index',
 })
-export class KisIndexGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
+export class KisIndexGateway implements OnModuleInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
   private readonly logger = new Logger(KisIndexGateway.name);
   private kisWebSocket: WebSocket | null = null;
   private kisWebSocketToken: string | null = null;
-
   private kospiIndex: IIndex = {
     bstp_cls_code: '0001',
     bsop_hour: null,
@@ -168,13 +167,16 @@ export class KisIndexGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
 
     this.kisWebSocket.onopen = async () => {
-      this.reconnectAttempts = 0; // 연결 성공 시 초기화
-      try {
-        const { token } = await this.kisTokenRepository.getSocketToken();
+      if (!this.kisWebSocketToken) {
+        await this._setKisToken();
+      }
 
+      this.reconnectAttempts = 0;
+
+      try {
         const messageKOSPI = {
           header: {
-            approval_key: token,
+            approval_key: this.kisWebSocketToken,
             custtype: 'P',
             tr_type: '1',
             'content-type': 'utf-8',
@@ -189,7 +191,7 @@ export class KisIndexGateway implements OnGatewayConnection, OnGatewayDisconnect
 
         const messageKOSDAQ = {
           header: {
-            approval_key: token,
+            approval_key: this.kisWebSocketToken,
             custtype: 'P',
             tr_type: '1',
             'content-type': 'utf-8',
@@ -252,7 +254,13 @@ export class KisIndexGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   private async _setKisToken() {
-    const ret = await this.kisTokenRepository.getSocketToken();
-    this.kisWebSocketToken = ret.token;
+    try {
+      const ret = await this.kisTokenRepository.getSocketToken();
+      this.kisWebSocketToken = ret.token;
+      this.logger.log('KIS 토큰 갱신 완료');
+    } catch (error) {
+      this.logger.error('KIS 토큰 갱신 실패:', error);
+      throw error;
+    }
   }
 }

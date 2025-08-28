@@ -22,14 +22,14 @@ interface Subscription {
   cors: {
     origin: ['http://localhost:3000', 'https://stock.peek.run'],
   },
-  namespace: '/kis/korean/stock',
+  namespace: '/kis/domestic/stock',
 })
-export class KisStockGateway implements OnModuleInit, OnGatewayConnection, OnGatewayDisconnect {
+export class KisDomesticStockGateway implements OnModuleInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  private readonly logger = new Logger(KisStockGateway.name);
-  private readonly TR_ID = 'H0STCNT0'; // tr_id 상수로 정의
+  private readonly logger = new Logger(KisDomesticStockGateway.name);
+  private readonly TR_ID = 'HDFSASP0'; // tr_id 상수로 정의
   private kisWebSocket: WebSocket | null = null;
   private kisWebSocketToken: string | null = null;
   private clientList: Set<Socket> = new Set();
@@ -131,8 +131,10 @@ export class KisStockGateway implements OnModuleInit, OnGatewayConnection, OnGat
 
       this.kisWebSocket.onmessage = (event) => {
         try {
-          const data = JSON.parse(event.data.toString());
-          this._handleKisMessage(data);
+          //   const data = JSON.parse(event.data.toString());
+          //   this._handleKisMessage(data);
+
+          console.log('12312321312321312', event.data.toString());
         } catch (error) {
           this.logger.error('KIS 메시지 파싱 오류:', error);
         }
@@ -286,6 +288,8 @@ export class KisStockGateway implements OnModuleInit, OnGatewayConnection, OnGat
         },
       },
     };
+
+    console.log('messagemessagemessage', message);
 
     try {
       this.kisWebSocket.send(JSON.stringify(message));
