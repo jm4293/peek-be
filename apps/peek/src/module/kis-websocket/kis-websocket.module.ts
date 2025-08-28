@@ -2,12 +2,12 @@ import { Module } from '@nestjs/common';
 
 import { KisTokenRepository } from '@database/repositories/kis';
 
-import { KisWebSocketGateway } from './kis-websocket.gateway';
+import { KisIndexGateway } from './kis-index.gateway';
 
 @Module({
   imports: [],
   controllers: [],
-  providers: [KisWebSocketGateway, KisTokenRepository],
+  providers: [KisIndexGateway, KisTokenRepository],
   exports: [],
 })
 export class KisWebSocketModule {}
