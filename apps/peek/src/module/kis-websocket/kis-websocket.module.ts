@@ -10,7 +10,7 @@ import { KisStockGateway } from './kis-stock.gateway';
   imports: [],
   controllers: [],
   providers: [
-    // KisIndexGateway,
+    KisIndexGateway,
     // KisStockGateway,
     // KisDomesticStockGateway,
     KisTokenRepository,
