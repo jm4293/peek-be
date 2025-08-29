@@ -18,6 +18,7 @@ import { GetStockKoreanListDto } from './dto';
 @Injectable()
 export class StockService {
   // private kisToken: KisToken | null = null;
+  private kisURL = 'https://openapi.koreainvestment.com:9443';
 
   constructor(
     private readonly configService: ConfigService,
@@ -40,7 +41,7 @@ export class StockService {
 
     const ret = await firstValueFrom<AxiosResponse<{ output: any }>>(
       this.httpService.get(
-        `${this.configService.get('KIS_APP_URL')}/uapi/domestic-stock/v1/quotations/search-info?PDNO=${code}&PRDT_TYPE_CD=300`,
+        `${this.kisURL}/uapi/domestic-stock/v1/quotations/search-info?PDNO=${code}&PRDT_TYPE_CD=300`,
         {
           headers: {
             'content-type': 'application/json; charset=utf-8',

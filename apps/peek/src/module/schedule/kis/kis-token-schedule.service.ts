@@ -15,6 +15,7 @@ import { TokenRepository } from '@database/repositories/token';
 
 @Injectable()
 export class KisTokenScheduleService implements OnModuleInit {
+  private kisURL = 'https://openapi.koreainvestment.com:9443';
   private readonly logger = new Logger(KisTokenScheduleService.name);
 
   constructor(
@@ -42,7 +43,7 @@ export class KisTokenScheduleService implements OnModuleInit {
     // const now = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
 
     const ret_socket = await firstValueFrom<AxiosResponse<{ approval_key: string }>>(
-      this.httpService.post(`${this.configService.get('KIS_APP_URL')}/oauth2/Approval`, {
+      this.httpService.post(`${this.kisURL}/oauth2/Approval`, {
         grant_type: 'client_credentials',
         appkey: this.configService.get('KIS_APP_KEY'),
         secretkey: this.configService.get('KIS_APP_SECRET'),
@@ -50,7 +51,7 @@ export class KisTokenScheduleService implements OnModuleInit {
     );
 
     const ret_oauth = await firstValueFrom<AxiosResponse<{ access_token: string; access_token_token_expired: string }>>(
-      this.httpService.post(`${this.configService.get('KIS_APP_URL')}/oauth2/tokenP`, {
+      this.httpService.post(`${this.kisURL}/oauth2/tokenP`, {
         grant_type: 'client_credentials',
         appkey: this.configService.get('KIS_APP_KEY'),
         appsecret: this.configService.get('KIS_APP_SECRET'),
@@ -85,7 +86,7 @@ export class KisTokenScheduleService implements OnModuleInit {
 
     if (oauth) {
       await firstValueFrom(
-        this.httpService.post(`${this.configService.get('KIS_APP_URL')}/oauth2/revokeP`, {
+        this.httpService.post(`${this.kisURL}/oauth2/revokeP`, {
           token: `Bearer ${oauth.token}`,
           appkey: this.configService.get('KIS_APP_KEY'),
           appsecret: this.configService.get('KIS_APP_SECRET'),

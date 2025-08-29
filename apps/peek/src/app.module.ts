@@ -20,6 +20,7 @@ import { ImageModule } from './module/image';
 import { KisScheduleModule } from './module/schedule/kis';
 import { StockModule } from './module/stock';
 import { UserModule } from './module/user';
+import { KisWebSocketModule } from './module/websocket/kis';
 
 /**
  * imports: 다른 모듈을 가져오기
@@ -46,7 +47,7 @@ import { UserModule } from './module/user';
 
     KisScheduleModule,
 
-    KisScheduleModule,
+    KisWebSocketModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuardConfig }, AppService],
