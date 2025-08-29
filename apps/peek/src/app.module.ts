@@ -17,8 +17,7 @@ import { BoardModule } from './module/board';
 import { EmailVerificationModule } from './module/email-verification';
 import { HomeModule } from './module/home';
 import { ImageModule } from './module/image';
-import { KisWebSocketModule } from './module/kis-websocket';
-import { KisTokenScheduleModule } from './module/schedule/kis-token';
+import { KisScheduleModule } from './module/schedule/kis';
 import { StockModule } from './module/stock';
 import { UserModule } from './module/user';
 
@@ -34,7 +33,6 @@ import { UserModule } from './module/user';
     ConfigModule.forRoot(configModuleConfig),
     TypeOrmModule.forRootAsync(typeormModuleConfig),
     ScheduleModule.forRoot(),
-
     CacheModule.register(cacheModuleConfig),
 
     AuthModule,
@@ -46,9 +44,9 @@ import { UserModule } from './module/user';
     StockModule,
     UserModule,
 
-    KisTokenScheduleModule,
+    KisScheduleModule,
 
-    KisWebSocketModule,
+    KisScheduleModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuardConfig }, AppService],

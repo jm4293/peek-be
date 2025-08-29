@@ -8,10 +8,10 @@ import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectDataSource } from '@nestjs/typeorm';
 
-import { KisTokenType } from '@constant/enum/kis';
+import { TokenTypeEnum } from '@constant/enum/token';
 
-import { KisToken } from '@database/entities/kis';
-import { KisTokenRepository } from '@database/repositories/kis';
+import { Token } from '@database/entities/token';
+import { TokenRepository } from '@database/repositories/token';
 
 @Injectable()
 export class KisTokenScheduleService implements OnModuleInit {
@@ -21,7 +21,7 @@ export class KisTokenScheduleService implements OnModuleInit {
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
 
-    private readonly kisTokenRepository: KisTokenRepository,
+    private readonly tokenRepository: TokenRepository,
 
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
@@ -58,41 +58,30 @@ export class KisTokenScheduleService implements OnModuleInit {
     );
 
     await this.dataSource.transaction(async (manager) => {
-      await manager.getRepository(KisToken).delete({ tokenType: KisTokenType.SOCKET });
-      await manager.getRepository(KisToken).delete({ tokenType: KisTokenType.OAUTH });
+      await manager.getRepository(Token).delete({ tokenType: TokenTypeEnum.SOCKET });
+      await manager.getRepository(Token).delete({ tokenType: TokenTypeEnum.OAUTH });
 
-      const socket = manager.getRepository(KisToken).create({
+      const socket = manager.getRepository(Token).create({
         token: ret_socket.data.approval_key,
         tokenExpired: null,
-        tokenType: KisTokenType.SOCKET,
+        tokenType: TokenTypeEnum.SOCKET,
         expiresIn: null,
       });
 
-      const oauth = manager.getRepository(KisToken).create({
+      const oauth = manager.getRepository(Token).create({
         token: ret_oauth.data.access_token,
         tokenExpired: ret_oauth.data.access_token_token_expired,
-        tokenType: KisTokenType.OAUTH,
+        tokenType: TokenTypeEnum.OAUTH,
         expiresIn: null,
       });
 
-      await manager.getRepository(KisToken).save(socket);
-      await manager.getRepository(KisToken).save(oauth);
+      await manager.getRepository(Token).save(socket);
+      await manager.getRepository(Token).save(oauth);
     });
   }
 
   private async _deleteKisToken() {
-    // const socket = await this.kisTokenRepository.findOne({ where: { tokenType: KisTokenType.SOCKET } });
-    const oauth = await this.kisTokenRepository.findOne({ where: { tokenType: KisTokenType.OAUTH } });
-
-    // if (socket) {
-    //   await firstValueFrom(
-    //     this.httpService.post(`${this.configService.get('KIS_APP_URL')}/oauth2/revokeP`, {
-    //       token: socket.token,
-    //       appkey: this.configService.get('KIS_APP_KEY'),
-    //       appsecret: this.configService.get('KIS_APP_SECRET'),
-    //     }),
-    //   );
-    // }
+    const oauth = await this.tokenRepository.findOne({ where: { tokenType: TokenTypeEnum.OAUTH } });
 
     if (oauth) {
       await firstValueFrom(

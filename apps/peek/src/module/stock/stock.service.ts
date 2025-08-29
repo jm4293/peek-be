@@ -8,11 +8,9 @@ import { ConfigService } from '@nestjs/config';
 
 import { LIST_LIMIT } from '@peek/constant/list';
 
-import { StockCategoryEnum } from '@constant/enum/stock';
-
 import { StockCompany } from '@database/entities/stock';
-import { KisTokenIssueRepository, KisTokenRepository } from '@database/repositories/kis';
 import { StockCategoryRepository, StockCompanyRepository } from '@database/repositories/stock';
+import { TokenRepository } from '@database/repositories/token';
 import { UserAccountRepository, UserRepository } from '@database/repositories/user';
 
 import { GetStockKoreanListDto } from './dto';
@@ -28,8 +26,7 @@ export class StockService {
     private readonly stockCategoryRepository: StockCategoryRepository,
     private readonly stockRepository: StockCompanyRepository,
 
-    private readonly kisTokenRepository: KisTokenRepository,
-    private readonly kisTokenIssueRepository: KisTokenIssueRepository,
+    private readonly tokenRepository: TokenRepository,
     private readonly userRepository: UserRepository,
     private readonly userAccountRepository: UserAccountRepository,
   ) {}
@@ -39,7 +36,7 @@ export class StockService {
   }
 
   async getStockKorean(code: string) {
-    const token = await this.kisTokenRepository.getOAuthToken();
+    const token = await this.tokenRepository.getOAuthToken();
 
     const ret = await firstValueFrom<AxiosResponse<{ output: any }>>(
       this.httpService.get(

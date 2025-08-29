@@ -6,7 +6,6 @@ import { configModuleConfig } from './config/config-module';
 import { typeormModuleConfig } from './config/typeorm';
 import { AuthModule } from './module/auth';
 import { BoardModule } from './module/board';
-import { KisTokenScheduleModule } from './module/schedule';
 import { StockModule } from './module/stock';
 import { UserModule } from './module/user';
 
@@ -26,8 +25,6 @@ import { UserModule } from './module/user';
     BoardModule,
     StockModule,
     UserModule,
-
-    KisTokenScheduleModule,
   ],
   controllers: [],
   providers: [],

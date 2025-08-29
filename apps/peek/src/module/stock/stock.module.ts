@@ -1,8 +1,8 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 
-import { KisTokenIssueRepository, KisTokenRepository } from '@database/repositories/kis';
 import { StockCategoryRepository, StockCompanyRepository } from '@database/repositories/stock';
+import { TokenRepository } from '@database/repositories/token';
 import { UserAccountRepository, UserRepository } from '@database/repositories/user';
 
 import { StockController } from './stock.controller';
@@ -17,8 +17,7 @@ import { StockService } from './stock.service';
     StockCategoryRepository,
     StockCompanyRepository,
 
-    KisTokenRepository,
-    KisTokenIssueRepository,
+    TokenRepository,
 
     UserRepository,
     UserAccountRepository,
