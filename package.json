@@ -10,7 +10,7 @@
     "build": "nest build",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "start": "concurrently --names \"PEEK,ADMIN\" -c \"blue,green\" \"nest start peek\" \"nest start peek-admin\"",
-    "start:dev": "concurrently --names \"PEEK,ADMIN\" -c \"blue,green\" \"nest start --watch peek\" \"nest start --watch peek-admin\"",
+    "start:dev": "concurrently --names \"PEEK\" -c \"blue\" \"nest start --watch peek\"",
     "start:debug": "concurrently --names \"PEEK,ADMIN\" -c \"blue,green\" \"nest start --debug --watch peek\" \"nest start --debug --watch peek-admin\"",
     "start-dev:debug": "concurrently --names \"ADMIN\" -c \"green\" \"nest start --debug --watch peek-admin\"",
     "start:prod": "concurrently --names \"PEEK,ADMIN\" -c \"blue,green\" \"node dist/apps/peek/main\" \"node dist/apps/peek-admin/main\"",
