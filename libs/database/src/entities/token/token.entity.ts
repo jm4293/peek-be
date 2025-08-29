@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-import { TokenTypeEnum } from '@constant/enum/token';
+import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
 import { KoreanTime } from '@database/decorators';
 
@@ -9,13 +9,16 @@ export class Token {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'tinyint', nullable: false, enum: TokenProviderEnum })
+  provider: TokenProviderEnum;
+
   @Column({ type: 'varchar', length: 512, nullable: false })
   token: string;
 
   @Column({ type: 'varchar', length: 32, nullable: true })
   tokenExpired: string;
 
-  @Column({ type: 'varchar', length: 8, nullable: true })
+  @Column({ type: 'tinyint', nullable: false, enum: TokenTypeEnum })
   tokenType: TokenTypeEnum;
 
   @Column({ type: 'int', nullable: true })

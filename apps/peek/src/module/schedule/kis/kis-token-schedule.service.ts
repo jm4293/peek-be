@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectDataSource } from '@nestjs/typeorm';
 
-import { TokenTypeEnum } from '@constant/enum/token';
+import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
 import { Token } from '@database/entities/token';
 import { TokenRepository } from '@database/repositories/token';
@@ -34,7 +34,7 @@ export class KisTokenScheduleService implements OnModuleInit {
         await this._getKisTokenSchedule();
       }
     } catch (error) {
-      this.logger.error('KisTokenScheduleService onModuleInit 에러:', error);
+      this.logger.error('KisTokenScheduleService onModuleInit 에러:');
     }
   }
 
@@ -59,10 +59,11 @@ export class KisTokenScheduleService implements OnModuleInit {
     );
 
     await this.dataSource.transaction(async (manager) => {
-      await manager.getRepository(Token).delete({ tokenType: TokenTypeEnum.SOCKET });
-      await manager.getRepository(Token).delete({ tokenType: TokenTypeEnum.OAUTH });
+      await manager.getRepository(Token).delete({ provider: TokenProviderEnum.KIS, tokenType: TokenTypeEnum.SOCKET });
+      await manager.getRepository(Token).delete({ provider: TokenProviderEnum.KIS, tokenType: TokenTypeEnum.OAUTH });
 
       const socket = manager.getRepository(Token).create({
+        provider: TokenProviderEnum.KIS,
         token: ret_socket.data.approval_key,
         tokenExpired: null,
         tokenType: TokenTypeEnum.SOCKET,
@@ -70,6 +71,7 @@ export class KisTokenScheduleService implements OnModuleInit {
       });
 
       const oauth = manager.getRepository(Token).create({
+        provider: TokenProviderEnum.KIS,
         token: ret_oauth.data.access_token,
         tokenExpired: ret_oauth.data.access_token_token_expired,
         tokenType: TokenTypeEnum.OAUTH,
@@ -82,7 +84,9 @@ export class KisTokenScheduleService implements OnModuleInit {
   }
 
   private async _deleteKisToken() {
-    const oauth = await this.tokenRepository.findOne({ where: { tokenType: TokenTypeEnum.OAUTH } });
+    const oauth = await this.tokenRepository.findOne({
+      where: { provider: TokenProviderEnum.KIS, tokenType: TokenTypeEnum.OAUTH },
+    });
 
     if (oauth) {
       await firstValueFrom(
