@@ -17,7 +17,6 @@ import { UserAccountStatusEnum, UserAccountTypeEnum } from '@constant/enum/user'
 import { KoreanTime } from '@database/decorators';
 
 import { Board, BoardComment, BoardLike } from '../board';
-import { KisTokenIssue } from '../kis';
 import { UserOauthToken } from './user-oauth-token.entity';
 import { UserVisit } from './user-visit.entity';
 import { User } from './user.entity';
@@ -88,7 +87,4 @@ export class UserAccount {
 
   @OneToMany(() => BoardLike, (boardLike) => boardLike.userAccount)
   boardLikes: BoardLike[];
-
-  @OneToMany(() => KisTokenIssue, (kisTokenIssue) => kisTokenIssue.userAccount)
-  kisTokenIssues: KisTokenIssue[];
 }

@@ -13,7 +13,6 @@ import { UserTypeEnum } from '@constant/enum/user';
 
 import { KoreanTime } from '@database/decorators';
 
-import { KisTokenIssue } from '../kis';
 import { UserAccount } from './user-account.entity';
 import { UserNotification } from './user-notification.entity';
 import { UserPushToken } from './user-push-token.entity';

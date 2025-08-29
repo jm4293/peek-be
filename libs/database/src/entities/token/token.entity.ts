@@ -1,13 +1,11 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-import { KisTokenType } from '@constant/enum/kis';
+import { TokenTypeEnum } from '@constant/enum/token';
 
 import { KoreanTime } from '@database/decorators';
 
-import { KisTokenIssue } from './kis-token-issue.entity';
-
 @Entity()
-export class KisToken {
+export class Token {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -18,7 +16,7 @@ export class KisToken {
   tokenExpired: string;
 
   @Column({ type: 'varchar', length: 8, nullable: true })
-  tokenType: KisTokenType;
+  tokenType: TokenTypeEnum;
 
   @Column({ type: 'int', nullable: true })
   expiresIn: number;
@@ -30,7 +28,4 @@ export class KisToken {
   @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
-
-  @OneToMany(() => KisTokenIssue, (kisTokenIssue) => kisTokenIssue.kisToken)
-  kisTokenIssues: KisTokenIssue[];
 }

@@ -1,4 +1,4 @@
-export enum KisTokenType {
+export enum TokenTypeEnum {
   SOCKET = 'socket',
   OAUTH = 'oauth',
 }

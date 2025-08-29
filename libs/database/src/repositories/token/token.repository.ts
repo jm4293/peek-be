@@ -2,18 +2,18 @@ import { EntityManager, Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 
-import { KisTokenType } from '@constant/enum/kis';
+import { TokenTypeEnum } from '@constant/enum/token';
 
-import { KisToken } from '@database/entities/kis';
+import { Token } from '@database/entities/token';
 
 @Injectable()
-export class KisTokenRepository extends Repository<KisToken> {
+export class TokenRepository extends Repository<Token> {
   constructor(manager: EntityManager) {
-    super(KisToken, manager);
+    super(Token, manager);
   }
 
   async getSocketToken() {
-    const ret = await this.findOne({ where: { tokenType: KisTokenType.SOCKET } });
+    const ret = await this.findOne({ where: { tokenType: TokenTypeEnum.SOCKET } });
 
     if (!ret) {
       throw new Error('socket token이 DB에 존재하지 않습니다.');
@@ -23,7 +23,7 @@ export class KisTokenRepository extends Repository<KisToken> {
   }
 
   async getOAuthToken() {
-    const ret = await this.findOne({ where: { tokenType: KisTokenType.OAUTH } });
+    const ret = await this.findOne({ where: { tokenType: TokenTypeEnum.OAUTH } });
 
     if (!ret) {
       throw new Error('oauth token이 DB에 존재하지 않습니다.');
