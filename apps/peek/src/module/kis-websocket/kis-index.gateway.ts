@@ -14,8 +14,8 @@ interface IIndex {
   bstp_nmix_prdy_vrss: string; // 업종 지수 전일 대비
   acml_vol: string; // 누적 거래량
   acml_tr_pbmn: string; // 누적 거래 대금
-  //   pcas_vol: string ; // 건별 거래량
-  //   pcas_tr_pbmn: string ; // 건별 거래 대금
+  pcas_vol: string; // 건별 거래량
+  pcas_tr_pbmn: string; // 건별 거래 대금
   prdy_ctrt: string; // 전일 대비율
   oprc_nmix: string; // 시가 지수
   nmix_hgpr: string; // 지수 최고가
@@ -34,9 +34,9 @@ interface IIndex {
   stnr_issu_cnt: string; // 보합 종목 수
   down_issu_cnt: string; // 하락 종목 수
   lslm_issu_cnt: string; // 하한 종목 수
-  //   qtqt_ascn_issu_cnt: string ; // 기세 상승 종목수
-  //   qtqt_down_issu_cnt: string ; // 기세 하락 종목수
-  //   tick_vrss: string ; // TICK대비
+  qtqt_ascn_issu_cnt: string; // 기세 상승 종목수
+  qtqt_down_issu_cnt: string; // 기세 하락 종목수
+  tick_vrss: string; // TICK대비
 }
 
 const indexKeys = [
@@ -47,6 +47,8 @@ const indexKeys = [
   'bstp_nmix_prdy_vrss',
   'acml_vol',
   'acml_tr_pbmn',
+  'pcas_vol',
+  'pcas_tr_pbmn',
   'prdy_ctrt',
   'oprc_nmix',
   'nmix_hgpr',
@@ -65,6 +67,9 @@ const indexKeys = [
   'stnr_issu_cnt',
   'down_issu_cnt',
   'lslm_issu_cnt',
+  'qtqt_ascn_issu_cnt',
+  'qtqt_down_issu_cnt',
+  'tick_vrss',
 ];
 
 @WebSocketGateway({
@@ -88,6 +93,8 @@ export class KisIndexGateway implements OnModuleInit, OnGatewayConnection, OnGat
     bstp_nmix_prdy_vrss: null,
     acml_vol: null,
     acml_tr_pbmn: null,
+    pcas_vol: null,
+    pcas_tr_pbmn: null,
     prdy_ctrt: null,
     oprc_nmix: null,
     nmix_hgpr: null,
@@ -106,6 +113,9 @@ export class KisIndexGateway implements OnModuleInit, OnGatewayConnection, OnGat
     stnr_issu_cnt: null,
     down_issu_cnt: null,
     lslm_issu_cnt: null,
+    qtqt_ascn_issu_cnt: null,
+    qtqt_down_issu_cnt: null,
+    tick_vrss: null,
   };
   private kosdaqIndex: IIndex = {
     bstp_cls_code: '1001',
@@ -115,6 +125,8 @@ export class KisIndexGateway implements OnModuleInit, OnGatewayConnection, OnGat
     bstp_nmix_prdy_vrss: null,
     acml_vol: null,
     acml_tr_pbmn: null,
+    pcas_vol: null,
+    pcas_tr_pbmn: null,
     prdy_ctrt: null,
     oprc_nmix: null,
     nmix_hgpr: null,
@@ -133,6 +145,9 @@ export class KisIndexGateway implements OnModuleInit, OnGatewayConnection, OnGat
     stnr_issu_cnt: null,
     down_issu_cnt: null,
     lslm_issu_cnt: null,
+    qtqt_ascn_issu_cnt: null,
+    qtqt_down_issu_cnt: null,
+    tick_vrss: null,
   };
 
   private reconnectAttempts = 0;
