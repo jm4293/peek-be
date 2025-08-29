@@ -4,6 +4,8 @@ import { WebSocket } from 'ws';
 import { Logger, OnModuleInit } from '@nestjs/common';
 import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 
+import { TokenProviderEnum } from '@constant/enum/token';
+
 import { TokenRepository } from '@database/repositories/token';
 
 interface IIndex {
@@ -271,11 +273,14 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
 
   private async _setKisToken() {
     try {
-      const ret = await this.tokenRepository.getSocketToken();
+      const ret = await this.tokenRepository.getSocketToken(TokenProviderEnum.KIS);
+
       this.kisWebSocketToken = ret.token;
+
       this.logger.log('KIS 토큰 갱신 완료');
     } catch (error) {
       this.logger.error('KIS 토큰 갱신 실패:', error);
+
       throw error;
     }
   }

@@ -8,6 +8,8 @@ import { ConfigService } from '@nestjs/config';
 
 import { LIST_LIMIT } from '@peek/constant/list';
 
+import { TokenProviderEnum } from '@constant/enum/token';
+
 import { StockCompany } from '@database/entities/stock';
 import { StockCategoryRepository, StockCompanyRepository } from '@database/repositories/stock';
 import { TokenRepository } from '@database/repositories/token';
@@ -17,7 +19,6 @@ import { GetStockKoreanListDto } from './dto';
 
 @Injectable()
 export class StockService {
-  // private kisToken: KisToken | null = null;
   private kisURL = 'https://openapi.koreainvestment.com:9443';
 
   constructor(
@@ -37,7 +38,7 @@ export class StockService {
   }
 
   async getStockKorean(code: string) {
-    const token = await this.tokenRepository.getOAuthToken();
+    const token = await this.tokenRepository.getOAuthToken(TokenProviderEnum.KIS);
 
     const ret = await firstValueFrom<AxiosResponse<{ output: any }>>(
       this.httpService.get(

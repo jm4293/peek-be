@@ -16,13 +16,10 @@ export class Token {
   token: string;
 
   @Column({ type: 'varchar', length: 32, nullable: true })
-  tokenExpired: string;
+  expire: string;
 
   @Column({ type: 'tinyint', nullable: false, enum: TokenTypeEnum })
-  tokenType: TokenTypeEnum;
-
-  @Column({ type: 'int', nullable: true })
-  expiresIn: number;
+  type: TokenTypeEnum;
 
   @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })

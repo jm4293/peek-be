@@ -40,8 +40,6 @@ export class KisTokenScheduleService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_12_HOURS, { name: 'stock Token', timeZone: 'Asia/Seoul' })
   private async _getKisTokenSchedule() {
-    // const now = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
-
     const ret_socket = await firstValueFrom<AxiosResponse<{ approval_key: string }>>(
       this.httpService.post(`${this.kisURL}/oauth2/Approval`, {
         grant_type: 'client_credentials',
@@ -59,23 +57,21 @@ export class KisTokenScheduleService implements OnModuleInit {
     );
 
     await this.dataSource.transaction(async (manager) => {
-      await manager.getRepository(Token).delete({ provider: TokenProviderEnum.KIS, tokenType: TokenTypeEnum.SOCKET });
-      await manager.getRepository(Token).delete({ provider: TokenProviderEnum.KIS, tokenType: TokenTypeEnum.OAUTH });
+      await manager.getRepository(Token).delete({ provider: TokenProviderEnum.KIS, type: TokenTypeEnum.SOCKET });
+      await manager.getRepository(Token).delete({ provider: TokenProviderEnum.KIS, type: TokenTypeEnum.OAUTH });
 
       const socket = manager.getRepository(Token).create({
         provider: TokenProviderEnum.KIS,
         token: ret_socket.data.approval_key,
-        tokenExpired: null,
-        tokenType: TokenTypeEnum.SOCKET,
-        expiresIn: null,
+        expire: null,
+        type: TokenTypeEnum.SOCKET,
       });
 
       const oauth = manager.getRepository(Token).create({
         provider: TokenProviderEnum.KIS,
         token: ret_oauth.data.access_token,
-        tokenExpired: ret_oauth.data.access_token_token_expired,
-        tokenType: TokenTypeEnum.OAUTH,
-        expiresIn: null,
+        expire: ret_oauth.data.access_token_token_expired,
+        type: TokenTypeEnum.OAUTH,
       });
 
       await manager.getRepository(Token).save(socket);
@@ -85,7 +81,7 @@ export class KisTokenScheduleService implements OnModuleInit {
 
   private async _deleteKisToken() {
     const oauth = await this.tokenRepository.findOne({
-      where: { provider: TokenProviderEnum.KIS, tokenType: TokenTypeEnum.OAUTH },
+      where: { provider: TokenProviderEnum.KIS, type: TokenTypeEnum.OAUTH },
     });
 
     if (oauth) {
