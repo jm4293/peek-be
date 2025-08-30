@@ -17,10 +17,10 @@ import { BoardModule } from './module/board';
 import { EmailVerificationModule } from './module/email-verification';
 import { HomeModule } from './module/home';
 import { ImageModule } from './module/image';
-import { KisScheduleModule } from './module/schedule/kis';
+import { KisScheduleModule, LsScheduleModule } from './module/schedule';
 import { StockModule } from './module/stock';
 import { UserModule } from './module/user';
-import { KisWebSocketModule } from './module/websocket/kis';
+import { KisWebSocketModule, LsWebSocketModule } from './module/websocket';
 
 /**
  * imports: 다른 모듈을 가져오기
@@ -46,8 +46,10 @@ import { KisWebSocketModule } from './module/websocket/kis';
     UserModule,
 
     KisScheduleModule,
+    // LsScheduleModule,
 
     KisWebSocketModule,
+    // LsWebSocketModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuardConfig }, AppService],

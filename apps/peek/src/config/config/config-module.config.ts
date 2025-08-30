@@ -36,5 +36,8 @@ export const configModuleConfig: ConfigModuleOptions = {
 
     KIS_APP_KEY: Joi.string().required(),
     KIS_APP_SECRET: Joi.string().required(),
+
+    LS_APP_KEY: Joi.string().required(),
+    LS_APP_SECRET: Joi.string().required(),
   }),
 };

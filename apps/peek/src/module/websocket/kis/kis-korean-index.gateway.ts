@@ -166,14 +166,14 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
   }
 
   async handleConnection(client: Socket) {
-    this.logger.log(`클라이언트 연결: ${client.id}`);
+    this.logger.log(`KIS 클라이언트 연결: ${client.id}`);
 
     client.emit(`${this.kospiIndex.bstp_cls_code}`, this.kospiIndex);
     client.emit(`${this.kosdaqIndex.bstp_cls_code}`, this.kosdaqIndex);
   }
 
   async handleDisconnect(client: Socket) {
-    this.logger.log(`클라이언트 연결 해제: ${client.id}`);
+    this.logger.log(`KIS 클라이언트 연결 해제: ${client.id}`);
   }
 
   private async _connectToKis() {
