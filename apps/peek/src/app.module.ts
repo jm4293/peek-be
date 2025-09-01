@@ -49,7 +49,7 @@ import { KisWebSocketModule, LsWebSocketModule } from './module/websocket';
     KiwoomScheduleModule,
     LsScheduleModule,
 
-    // KisWebSocketModule,
+    KisWebSocketModule,
     // LsWebSocketModule,
   ],
   controllers: [AppController],
