@@ -81,12 +81,20 @@ export class LsTokenScheduleService implements OnModuleInit {
 
     if (oauth) {
       await firstValueFrom(
-        this.httpService.post(`${this.lsURL}/oauth2/revoke`, {
-          appkey: this.configService.get('LS_APP_KEY'),
-          appsecretkey: this.configService.get('LS_APP_SECRET'),
-          token_type_hint: 'access_token',
-          token: oauth.token,
-        }),
+        this.httpService.post(
+          `${this.lsURL}/oauth2/revoke`,
+          {
+            appkey: this.configService.get('LS_APP_KEY'),
+            appsecretkey: this.configService.get('LS_APP_SECRET'),
+            token_type_hint: 'access_token',
+            token: oauth.token,
+          },
+          {
+            headers: {
+              'content-type': 'application/x-www-form-urlencoded',
+            },
+          },
+        ),
       );
     }
 
