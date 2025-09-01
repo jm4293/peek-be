@@ -77,6 +77,8 @@ export class KisTokenScheduleService implements OnModuleInit {
       await manager.getRepository(Token).save(socket);
       await manager.getRepository(Token).save(oauth);
     });
+
+    this.logger.log(`KIS Token 갱신 완료`);
   }
 
   private async _deleteKisToken() {

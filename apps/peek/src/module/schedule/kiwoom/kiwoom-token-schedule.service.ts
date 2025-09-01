@@ -14,9 +14,9 @@ import { Token } from '@database/entities/token';
 import { TokenRepository } from '@database/repositories/token';
 
 @Injectable()
-export class LsTokenScheduleService implements OnModuleInit {
-  private lsURL = 'https://openapi.ls-sec.co.kr:8080';
-  private readonly logger = new Logger(LsTokenScheduleService.name);
+export class KiwoomTokenScheduleService implements OnModuleInit {
+  private KiwoomURL = '	https://api.kiwoom.com';
+  private readonly logger = new Logger(KiwoomTokenScheduleService.name);
 
   constructor(
     private readonly configService: ConfigService,
@@ -30,66 +30,64 @@ export class LsTokenScheduleService implements OnModuleInit {
   async onModuleInit() {
     try {
       if (this.configService.get('NODE_ENV') === 'production') {
-        await this._deleteLsToken();
-        await this._getLsTokenSchedule();
+        await this._deleteKiwoomToken();
+        await this._getKiwoomTokenSchedule();
       }
     } catch (error) {
       console.log('error', error);
-      this.logger.error('LS TokenScheduleService onModuleInit 에러:');
+      this.logger.error('Kiwoom TokenScheduleService onModuleInit 에러:');
     }
   }
 
   @Cron(CronExpression.EVERY_12_HOURS, { name: 'stock Token', timeZone: 'Asia/Seoul' })
-  private async _getLsTokenSchedule() {
-    const ret_oauth = await firstValueFrom<AxiosResponse<{ access_token: string; expires_in: string }>>(
+  private async _getKiwoomTokenSchedule() {
+    const ret_oauth = await firstValueFrom<AxiosResponse<{ token: string; expires_dt: string }>>(
       this.httpService.post(
-        `${this.lsURL}/oauth2/token`,
+        `${this.KiwoomURL}/oauth2/token`,
         {
           grant_type: 'client_credentials',
-          appkey: this.configService.get('LS_APP_KEY'),
-          appsecretkey: this.configService.get('LS_APP_SECRET'),
-          scope: 'oob',
+          appkey: this.configService.get('KIWOOM_APP_KEY'),
+          secretkey: this.configService.get('KIWOOM_APP_SECRET'),
         },
         {
           headers: {
-            'content-type': 'application/x-www-form-urlencoded',
+            'content-type': 'application/json;charset=UTF-8',
           },
         },
       ),
     );
 
     await this.dataSource.transaction(async (manager) => {
-      await manager.getRepository(Token).delete({ provider: TokenProviderEnum.LS, type: TokenTypeEnum.OAUTH });
+      await manager.getRepository(Token).delete({ provider: TokenProviderEnum.KIWOOM, type: TokenTypeEnum.OAUTH });
 
       const oauth = manager.getRepository(Token).create({
-        provider: TokenProviderEnum.LS,
-        token: ret_oauth.data.access_token,
-        expire: ret_oauth.data.expires_in,
+        provider: TokenProviderEnum.KIWOOM,
+        token: ret_oauth.data.token,
+        expire: String(ret_oauth.data.expires_dt),
         type: TokenTypeEnum.OAUTH,
       });
 
       await manager.getRepository(Token).save(oauth);
     });
 
-    this.logger.log(`LS Token 갱신 완료`);
+    this.logger.log(`KIWOOM Token 갱신 완료`);
   }
 
-  private async _deleteLsToken() {
+  private async _deleteKiwoomToken() {
     const oauth = await this.tokenRepository.findOne({
-      where: { provider: TokenProviderEnum.LS, type: TokenTypeEnum.OAUTH },
+      where: { provider: TokenProviderEnum.KIWOOM, type: TokenTypeEnum.OAUTH },
     });
 
     if (oauth) {
       await firstValueFrom(
-        this.httpService.post(`${this.lsURL}/oauth2/revoke`, {
-          appkey: this.configService.get('LS_APP_KEY'),
-          appsecretkey: this.configService.get('LS_APP_SECRET'),
-          token_type_hint: 'access_token',
+        this.httpService.post(`${this.KiwoomURL}/oauth2/revoke`, {
+          appkey: this.configService.get('KIWOOM_APP_KEY'),
+          secretkey: this.configService.get('KIWOOM_APP_SECRET'),
           token: oauth.token,
         }),
       );
     }
 
-    this.logger.log(`LS Token 삭제 완료`);
+    this.logger.log(`KIWOOM Token 삭제 완료`);
   }
 }
