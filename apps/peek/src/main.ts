@@ -44,15 +44,15 @@ async function bootstrap() {
   // cookie-parser 미들웨어 추가 끝
 
   // Firebase Admin SDK 초기화
-  // const serviceAccount = {
-  //   projectId: configService.get('FIREBASE_PROJECT_ID'),
-  //   clientEmail: configService.get('FIREBASE_CLIENT_EMAIL'),
-  //   privateKey: configService.get('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n'),
-  // };
-  //
-  // admin.initializeApp({
-  //   credential: admin.credential.cert(serviceAccount),
-  // });
+  const serviceAccount = {
+    projectId: configService.get('FIREBASE_PROJECT_ID'),
+    clientEmail: configService.get('FIREBASE_CLIENT_EMAIL'),
+    privateKey: configService.get('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n'),
+  };
+
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
   // Firebase Admin SDK 초기화 끝
 
   // Swagger 설정

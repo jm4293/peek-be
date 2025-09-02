@@ -1,3 +1,5 @@
+import * as firebaseAdmin from 'firebase-admin';
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -17,20 +19,20 @@ export class NotificationHandler {
     pushToken: string | null;
     message: string;
     userNotificationType: UserNotificationTypeEnum;
-    userSeq: number;
+    accountId: number;
   }) {
-    const { pushToken, message, userNotificationType, userSeq } = params;
+    const { pushToken, message, userNotificationType, accountId } = params;
 
     try {
-      // await admin.messaging().send({ token: pushToken, notification: { title: 'PEEK 알림', body: message } });
-      //
-      // const userNotification = this.userNotificationRepository.create({
-      //   userNotificationType,
-      //   message,
-      //   user: { userSeq },
-      // });
-      //
-      // await this.userNotificationRepository.save(userNotification);
+      await firebaseAdmin.messaging().send({ token: pushToken, notification: { title: 'PEEK 알림', body: message } });
+
+      const userNotification = this.userNotificationRepository.create({
+        userNotificationType,
+        message,
+        userAccountId: accountId,
+      });
+
+      await this.userNotificationRepository.save(userNotification);
     } catch (error) {
       console.error('Error sending push notification:', error);
     }

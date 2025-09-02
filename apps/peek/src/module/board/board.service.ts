@@ -5,8 +5,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 import { LIST_LIMIT } from '@peek/constant/list';
+import { NotificationHandler } from '@peek/handler/notification';
 
 import { BoardTypeEnum } from '@constant/enum/board';
+import { UserNotificationTypeEnum } from '@constant/enum/user';
 
 import { Board, BoardArticle, BoardComment } from '@database/entities/board';
 import {
@@ -16,7 +18,7 @@ import {
   BoardRepository,
 } from '@database/repositories/board';
 import { StockCategoryRepository } from '@database/repositories/stock';
-import { UserAccountRepository, UserRepository } from '@database/repositories/user';
+import { UserAccountRepository, UserPushTokenRepository, UserRepository } from '@database/repositories/user';
 
 import {
   CreateBoardCommentDto,
@@ -39,6 +41,9 @@ export class BoardService {
 
     private readonly userRepository: UserRepository,
     private readonly userAccountRepository: UserAccountRepository,
+    private readonly userPushTokenRepository: UserPushTokenRepository,
+
+    private readonly notificationHandler: NotificationHandler,
 
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
@@ -223,8 +228,9 @@ export class BoardService {
     const { boardId, dto, accountId } = params;
     const { content, commentId } = dto;
 
-    // await this.userAccountRepository.findById(accountId);
-    // await this.boardRepository.findById(boardId);
+    const board = await this.boardRepository.findById(boardId);
+
+    const userPushToken = await this.userPushTokenRepository.findOne({ where: { userAccountId: board.userAccountId } });
 
     const comment = this.boardCommentRepository.create({
       content,
@@ -234,6 +240,15 @@ export class BoardService {
     });
 
     await this.boardCommentRepository.save(comment);
+
+    if (!commentId) {
+      await this.notificationHandler.sendPushNotification({
+        pushToken: userPushToken.pushToken,
+        message: content,
+        userNotificationType: UserNotificationTypeEnum.BOARD_COMMENT,
+        accountId: board.userAccountId,
+      });
+    }
   }
 
   async updateBoardComment(params: {
