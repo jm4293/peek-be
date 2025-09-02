@@ -14,6 +14,7 @@ import { typeormModuleConfig } from './config/typeorm';
 import { AuthModule } from './module/auth';
 import { AWSModule } from './module/aws';
 import { BoardModule } from './module/board';
+import { CurrencyModule } from './module/currency';
 import { EmailVerificationModule } from './module/email-verification';
 import { HomeModule } from './module/home';
 import { ImageModule } from './module/image';
@@ -39,6 +40,7 @@ import { KisWebSocketModule, LsWebSocketModule } from './module/websocket';
     AuthModule,
     AWSModule,
     BoardModule,
+    CurrencyModule,
     EmailVerificationModule,
     HomeModule,
     ImageModule,

@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { CurrencyUnitEnum } from '@constant/enum/currnecy';
+import { CurrencyUnitEnum } from '@constant/enum/currency';
 
 import { KoreanTime } from '@database/decorators';
 
