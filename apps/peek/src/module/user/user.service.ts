@@ -287,24 +287,24 @@ export class UserService {
     }
   }
 
-  async registerPushToken(params: { dto: RegisterUserPushTokenDto; req: Request }) {
-    // const { dto, req } = params;
-    // const { pushToken } = dto;
+  async registerPushToken(params: { dto: RegisterUserPushTokenDto; accountId: number; platform: string }) {
+    const { dto, accountId, platform } = params;
+    const { pushToken } = dto;
     // const { userSeq } = req.user;
     // const { 'sec-ch-ua-platform': platform } = req.headers;
-    //
+
     // const user = await this.userRepository.findByUserSeq(userSeq);
-    //
-    // const userPushToken = await this.userPushTokenRepository.findOne({ where: { user: { userSeq } } });
-    //
-    // if (userPushToken) {
-    //   userPushToken.pushToken = pushToken;
-    //   userPushToken.deviceNo = String(platform);
-    //
-    //   await this.userPushTokenRepository.save(userPushToken);
-    // } else {
-    //   await this.userPushTokenRepository.save({ user, pushToken, deviceNo: String(platform) });
-    // }
+
+    const userPushToken = await this.userPushTokenRepository.findOne({ where: { userAccountId: accountId } });
+
+    if (userPushToken) {
+      userPushToken.pushToken = pushToken;
+      userPushToken.deviceNo = String(platform);
+
+      await this.userPushTokenRepository.save(userPushToken);
+    } else {
+      await this.userPushTokenRepository.save({ pushToken, deviceNo: String(platform), userAccountId: accountId });
+    }
   }
 
   async getNotificationList(params: { page: number; req: Request }) {

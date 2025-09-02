@@ -62,7 +62,4 @@ export class User {
 
   @OneToMany(() => UserNotification, (userNotification) => userNotification.user)
   userNotifications: UserNotification[];
-
-  @OneToMany(() => UserPushToken, (userPushToken) => userPushToken.user)
-  userPushTokens: UserPushToken[];
 }

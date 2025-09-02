@@ -119,10 +119,11 @@ export class UserController {
   }
 
   @Post('push-token')
-  async registerPushToken(@Body() dto: RegisterUserPushTokenDto) {
-    // await this.userService.registerPushToken({ dto, req });
-    //
-    // return ResConfig.Success({ res, statusCode: 'OK' });
+  async registerPushToken(@Body() dto: RegisterUserPushTokenDto, @Req() req: Request) {
+    const { accountId } = ParseReqHandler.parseReq(req);
+    const { 'sec-ch-ua-platform': platform } = req.headers;
+
+    await this.userService.registerPushToken({ dto, accountId, platform: String(platform) });
   }
 
   // 알림

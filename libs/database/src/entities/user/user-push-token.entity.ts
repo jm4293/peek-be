@@ -5,12 +5,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 import { KoreanTime } from '@database/decorators';
 
+import { UserAccount } from './user-account.entity';
 import { User } from './user.entity';
 
 @Entity()
@@ -38,9 +40,9 @@ export class UserPushToken {
 
   @Exclude()
   @Column()
-  userId: number;
+  userAccountId: number;
 
-  @ManyToOne(() => User, (user) => user.userPushTokens)
-  @JoinColumn({ name: 'userId' })
-  user: User;
+  @OneToOne(() => UserAccount, (userAccount) => userAccount.userPushToken)
+  @JoinColumn({ name: 'userAccountId', referencedColumnName: 'id' })
+  userAccount: UserAccount;
 }

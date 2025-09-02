@@ -18,6 +18,7 @@ import { KoreanTime } from '@database/decorators';
 
 import { Board, BoardComment, BoardLike } from '../board';
 import { UserOauthToken } from './user-oauth-token.entity';
+import { UserPushToken } from './user-push-token.entity';
 import { UserVisit } from './user-visit.entity';
 import { User } from './user.entity';
 
@@ -75,6 +76,9 @@ export class UserAccount {
 
   @OneToOne(() => UserOauthToken, (userOauthToken) => userOauthToken.userAccount)
   userOauthToken: UserOauthToken;
+
+  @OneToOne(() => UserPushToken, (userPushToken) => userPushToken.userAccount)
+  userPushToken: UserPushToken;
 
   @OneToMany(() => UserVisit, (userVisit) => userVisit.userAccount)
   userVisits: UserVisit[];
