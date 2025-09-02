@@ -59,7 +59,4 @@ export class User {
 
   @OneToMany(() => UserAccount, (userAccount) => userAccount.user)
   userAccounts: UserAccount[];
-
-  @OneToMany(() => UserNotification, (userNotification) => userNotification.user)
-  userNotifications: UserNotification[];
 }

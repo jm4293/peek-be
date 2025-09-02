@@ -14,7 +14,7 @@ import { UserNotificationTypeEnum } from '@constant/enum/user';
 
 import { KoreanTime } from '@database/decorators';
 
-import { User } from './user.entity';
+import { UserAccount } from './user-account.entity';
 
 @Entity()
 export class UserNotification {
@@ -48,9 +48,9 @@ export class UserNotification {
 
   @Exclude()
   @Column()
-  userId: number;
+  userAccountId: number;
 
-  @ManyToOne(() => User, (user) => user.userNotifications)
-  @JoinColumn({ name: 'userId' })
-  user: User;
+  @ManyToOne(() => UserAccount, (userAccount) => userAccount.userNotifications)
+  @JoinColumn({ name: 'userAccountId' })
+  userAccount: UserAccount;
 }
