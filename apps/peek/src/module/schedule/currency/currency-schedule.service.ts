@@ -3,14 +3,14 @@ import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
-import { CurrencyUnitEnum } from '@constant/enum/currnecy';
+import { CurrencyUnitEnum } from '@constant/enum/currency';
 
 import { CurrencyHistoryRepository } from '@database/repositories/currency';
 
 @Injectable()
-export class CurrencyService implements OnModuleInit {
+export class CurrencyScheduleService implements OnModuleInit {
   private readonly URL = 'https://oapi.koreaexim.go.kr/site/program/financial/exchangeJSON';
-  private readonly logger = new Logger(CurrencyService.name);
+  private readonly logger = new Logger(CurrencyScheduleService.name);
   private appKey: string | null = null;
 
   constructor(
@@ -23,8 +23,9 @@ export class CurrencyService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    console.log('121212', this.appKey);
-    this._getCurrencySchedule();
+    if (this.configService.get('NODE_ENV') === 'production') {
+      this._getCurrencySchedule();
+    }
   }
 
   @Cron(CronExpression.EVERY_5_MINUTES, { name: 'currency', timeZone: 'Asia/Seoul' })

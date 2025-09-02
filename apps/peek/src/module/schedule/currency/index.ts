@@ -1,2 +1,2 @@
 export * from './currency-schedule.module';
-export * from './currency.service';
+export * from './currency-schedule.service';
