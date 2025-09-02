@@ -36,8 +36,8 @@ export class StockService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    await this._getKiwoomToken();
-    await this._getLSToken();
+    // await this._getKiwoomToken();
+    // await this._getLSToken();
   }
 
   async getStockCategoryList() {
@@ -45,6 +45,10 @@ export class StockService implements OnModuleInit {
   }
 
   async getStockKorean(code: string) {
+    if (!this.KiwoomToken) {
+      await this._getKiwoomToken();
+    }
+
     const ret = await this.httpService.axiosRef.get(`${this.KiwoomURL}/api/dostk/stkinfo`, {
       headers: {
         'content-type': 'application/json; charset=utf-8',
@@ -97,6 +101,10 @@ export class StockService implements OnModuleInit {
     //     },
     //   },
     // );
+
+    if (!this.LSWebSocketToken) {
+      await this._getLSToken();
+    }
 
     const { page, type } = dto;
 

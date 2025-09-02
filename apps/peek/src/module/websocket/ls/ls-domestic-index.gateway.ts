@@ -34,8 +34,8 @@ export class LsDomesticIndexGateway implements OnModuleInit, OnGatewayConnection
   constructor(private readonly tokenRepository: TokenRepository) {}
 
   async onModuleInit() {
-    await this._setLsToken();
-    await this._connectToLs();
+    // await this._setLsToken();
+    // await this._connectToLs();
 
     this.logger.log(`Ls WebSocket token initialized: ${this.lsWebSocketToken}`);
   }
