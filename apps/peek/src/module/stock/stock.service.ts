@@ -110,8 +110,8 @@ export class StockService implements OnModuleInit {
 
     if (page > 5) {
       return {
-        stockKoreanRank: [],
-        total: 0,
+        data: [],
+        total: 100,
         nextPage: null,
       };
     }
