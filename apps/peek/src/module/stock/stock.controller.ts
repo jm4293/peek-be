@@ -4,7 +4,7 @@ import { Public } from '@peek/decorator/public';
 
 import { StockCategory } from '@database/entities/stock';
 
-import { GetStockKoreanDto, GetStockKoreanListDto } from './dto';
+import { GetStockKoreanDto, GetStockKoreanListDto, GetStockKoreanRankDto } from './dto';
 import { StockService } from './stock.service';
 
 @Controller('stock')
@@ -23,7 +23,7 @@ export class StockController {
 
   // 종목 상세 조회
   @Public()
-  @Get('korean/:code')
+  @Get('korean/detail/:code')
   async getStockKorean(@Param() param: GetStockKoreanDto) {
     const { code } = param;
 
@@ -38,10 +38,22 @@ export class StockController {
   @Public()
   @Get('korean')
   async getStockKoreanList(@Query() query: GetStockKoreanListDto) {
-    const { stockKoreanList, total, nextPage } = await this.stockService.getStockKoreanList(query);
+    const { data, total, nextPage } = await this.stockService.getStockKoreanList(query);
 
     return {
-      stockKoreanList,
+      stockKoreanList: data,
+      total,
+      nextPage,
+    };
+  }
+
+  @Public()
+  @Get('korean/rank')
+  async getStockKoreanRank(@Query() query: GetStockKoreanRankDto) {
+    const { data, total, nextPage } = await this.stockService.getStockKoreanRank(query);
+
+    return {
+      stockKoreanRankList: data,
       total,
       nextPage,
     };

@@ -1,9 +1,7 @@
-import { AxiosResponse } from 'axios';
-import { firstValueFrom } from 'rxjs';
 import { FindOptionsOrder, Like } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { LIST_LIMIT } from '@peek/constant/list';
@@ -15,11 +13,15 @@ import { StockCategoryRepository, StockCompanyRepository } from '@database/repos
 import { TokenRepository } from '@database/repositories/token';
 import { UserAccountRepository, UserRepository } from '@database/repositories/user';
 
-import { GetStockKoreanListDto } from './dto';
+import { GetStockKoreanListDto, GetStockKoreanRankDto } from './dto';
 
 @Injectable()
-export class StockService {
-  private kisURL = 'https://openapi.koreainvestment.com:9443';
+export class StockService implements OnModuleInit {
+  private readonly KiwoomURL = 'https://api.kiwoom.com';
+  private KiwoomToken: string | null = null;
+
+  private readonly LSURL = 'https://openapi.ls-sec.co.kr:8080';
+  private LSWebSocketToken: string | null = null;
 
   constructor(
     private readonly configService: ConfigService,
@@ -33,28 +35,23 @@ export class StockService {
     private readonly userAccountRepository: UserAccountRepository,
   ) {}
 
+  async onModuleInit() {
+    await this._getKiwoomToken();
+    await this._getLSToken();
+  }
+
   async getStockCategoryList() {
     return await this.stockCategoryRepository.find();
   }
 
   async getStockKorean(code: string) {
-    const token = await this.tokenRepository.getOAuthToken(TokenProviderEnum.KIS);
-
-    const ret = await firstValueFrom<AxiosResponse<{ output: any }>>(
-      this.httpService.get(
-        `${this.kisURL}/uapi/domestic-stock/v1/quotations/search-info?PDNO=${code}&PRDT_TYPE_CD=300`,
-        {
-          headers: {
-            'content-type': 'application/json; charset=utf-8',
-            authorization: `Bearer ${token.token}`,
-            appkey: this.configService.get('KIS_APP_KEY'),
-            appsecret: this.configService.get('KIS_APP_SECRET'),
-            tr_id: 'CTPF1604R',
-            custtype: 'P',
-          },
-        },
-      ),
-    );
+    const ret = await this.httpService.axiosRef.get(`${this.KiwoomURL}/api/dostk/stkinfo`, {
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        authorization: `Bearer ${this.KiwoomToken}`,
+        'api-id': 'ka00198',
+      },
+    });
 
     const { output } = ret.data;
 
@@ -85,6 +82,67 @@ export class StockService {
     const hasNextPage = page * LIST_LIMIT < total;
     const nextPage = hasNextPage ? Number(page) + 1 : null;
 
-    return { stockKoreanList: data, total, nextPage };
+    return { data, total, nextPage };
+  }
+
+  async getStockKoreanRank(dto: GetStockKoreanRankDto) {
+    // const ret = await this.httpService.axiosRef.post(
+    //   `${this.KiwoomURL}/api/dostk/stkinfo`,
+    //   { qry_tp: '4' },
+    //   {
+    //     headers: {
+    //       'content-type': 'application/json; charset=utf-8',
+    //       authorization: `Bearer ${this.KiwoomToken}`,
+    //       'api-id': 'ka00198',
+    //     },
+    //   },
+    // );
+
+    const { page, type } = dto;
+
+    if (page > 5) {
+      return {
+        stockKoreanRank: [],
+        total: 0,
+        nextPage: null,
+      };
+    }
+
+    const ret = await this.httpService.axiosRef.post<{ t1444OutBlock1: [] }>(
+      `${this.LSURL}/stock/high-item`,
+      { t1444InBlock: { upcode: '001', idx: (page - 1) * 20 } },
+      {
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+          authorization: `Bearer ${this.LSWebSocketToken}`,
+          tr_cd: type,
+          tr_cont: 'Y',
+        },
+      },
+    );
+
+    const { t1444OutBlock1 } = ret.data;
+
+    return { data: t1444OutBlock1, total: 100, nextPage: Number(page) + 1 };
+  }
+
+  private async _getKiwoomToken() {
+    const ret = await this.tokenRepository.getOAuthToken(TokenProviderEnum.KIWOOM);
+
+    if (!ret) {
+      throw new Error('Kiwoom token이 존재하지 않습니다.');
+    }
+
+    this.KiwoomToken = ret.token;
+  }
+
+  private async _getLSToken() {
+    const ret = await this.tokenRepository.getOAuthToken(TokenProviderEnum.LS);
+
+    if (!ret) {
+      throw new Error('Ls token이 존재하지 않습니다.');
+    }
+
+    this.LSWebSocketToken = ret.token;
   }
 }
