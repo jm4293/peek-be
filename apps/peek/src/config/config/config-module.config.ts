@@ -39,5 +39,10 @@ export const configModuleConfig: ConfigModuleOptions = {
 
     LS_APP_KEY: Joi.string().required(),
     LS_APP_SECRET: Joi.string().required(),
+
+    KIWOOM_APP_KEY: Joi.string().required(),
+    KIWOOM_APP_SECRET: Joi.string().required(),
+
+    OPEN_API_KOREA_EXIM: Joi.string().required(),
   }),
 };

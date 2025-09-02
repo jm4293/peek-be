@@ -17,7 +17,7 @@ import { BoardModule } from './module/board';
 import { EmailVerificationModule } from './module/email-verification';
 import { HomeModule } from './module/home';
 import { ImageModule } from './module/image';
-import { KisScheduleModule, KiwoomScheduleModule, LsScheduleModule } from './module/schedule';
+import { CurrencyScheduleModule, KisScheduleModule, KiwoomScheduleModule, LsScheduleModule } from './module/schedule';
 import { StockModule } from './module/stock';
 import { UserModule } from './module/user';
 import { KisWebSocketModule, LsWebSocketModule } from './module/websocket';
@@ -45,6 +45,7 @@ import { KisWebSocketModule, LsWebSocketModule } from './module/websocket';
     StockModule,
     UserModule,
 
+    CurrencyScheduleModule,
     KisScheduleModule,
     KiwoomScheduleModule,
     LsScheduleModule,

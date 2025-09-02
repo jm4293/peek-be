@@ -15,7 +15,7 @@ import { TokenRepository } from '@database/repositories/token';
 
 @Injectable()
 export class LsTokenScheduleService implements OnModuleInit {
-  private lsURL = 'https://openapi.ls-sec.co.kr:8080';
+  private readonly URL = 'https://openapi.ls-sec.co.kr:8080';
   private readonly logger = new Logger(LsTokenScheduleService.name);
 
   constructor(
@@ -43,7 +43,7 @@ export class LsTokenScheduleService implements OnModuleInit {
   private async _getLsTokenSchedule() {
     const ret_oauth = await firstValueFrom<AxiosResponse<{ access_token: string; expires_in: string }>>(
       this.httpService.post(
-        `${this.lsURL}/oauth2/token`,
+        `${this.URL}/oauth2/token`,
         {
           grant_type: 'client_credentials',
           appkey: this.configService.get('LS_APP_KEY'),
@@ -82,7 +82,7 @@ export class LsTokenScheduleService implements OnModuleInit {
     if (oauth) {
       await firstValueFrom(
         this.httpService.post(
-          `${this.lsURL}/oauth2/revoke`,
+          `${this.URL}/oauth2/revoke`,
           {
             appkey: this.configService.get('LS_APP_KEY'),
             appsecretkey: this.configService.get('LS_APP_SECRET'),

@@ -15,7 +15,7 @@ import { TokenRepository } from '@database/repositories/token';
 
 @Injectable()
 export class KiwoomTokenScheduleService implements OnModuleInit {
-  private KiwoomURL = '	https://api.kiwoom.com';
+  private readonly URL = '	https://api.kiwoom.com';
   private readonly logger = new Logger(KiwoomTokenScheduleService.name);
 
   constructor(
@@ -43,7 +43,7 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
   private async _getKiwoomTokenSchedule() {
     const ret_oauth = await firstValueFrom<AxiosResponse<{ token: string; expires_dt: string }>>(
       this.httpService.post(
-        `${this.KiwoomURL}/oauth2/token`,
+        `${this.URL}/oauth2/token`,
         {
           grant_type: 'client_credentials',
           appkey: this.configService.get('KIWOOM_APP_KEY'),
@@ -80,7 +80,7 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
 
     if (oauth) {
       await firstValueFrom(
-        this.httpService.post(`${this.KiwoomURL}/oauth2/revoke`, {
+        this.httpService.post(`${this.URL}/oauth2/revoke`, {
           appkey: this.configService.get('KIWOOM_APP_KEY'),
           secretkey: this.configService.get('KIWOOM_APP_SECRET'),
           token: oauth.token,
