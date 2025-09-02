@@ -89,8 +89,6 @@ export class LsDomesticIndexGateway implements OnModuleInit, OnGatewayConnection
       try {
         const ret = event.data.toString();
 
-        console.log('Ls Index Data:', ret);
-
         // const data = ret.split('|')[3]?.split('^');
 
         // if (data) {
@@ -114,7 +112,6 @@ export class LsDomesticIndexGateway implements OnModuleInit, OnGatewayConnection
     };
 
     this.lsWebSocket.onclose = (event) => {
-      // console.log('event', event);
       this.logger.log(`LS WebSocket 연결 종료: ${event.code} - ${event.reason}`);
 
       if (this.reconnectAttempts < this.MAX_RECONNECT_ATTEMPTS) {

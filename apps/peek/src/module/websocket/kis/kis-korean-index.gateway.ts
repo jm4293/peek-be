@@ -2,6 +2,7 @@ import { Server, Socket } from 'socket.io';
 import { WebSocket } from 'ws';
 
 import { Logger, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 
 import { TokenProviderEnum } from '@constant/enum/token';
@@ -156,13 +157,19 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
   private reconnectAttempts = 0;
   private readonly MAX_RECONNECT_ATTEMPTS = 5;
 
-  constructor(private readonly tokenRepository: TokenRepository) {}
+  constructor(
+    private readonly configService: ConfigService,
+
+    private readonly tokenRepository: TokenRepository,
+  ) {}
 
   async onModuleInit() {
-    await this._setKisToken();
-    await this._connectToKis();
+    if (this.configService.get('NODE_ENV') === 'production') {
+      await this._setKisToken();
+      await this._connectToKis();
 
-    this.logger.log(`KIS WebSocket token initialized: ${this.kisWebSocketToken}`);
+      this.logger.log(`KIS WebSocket token initialized: ${this.kisWebSocketToken}`);
+    }
   }
 
   async handleConnection(client: Socket) {

@@ -34,7 +34,6 @@ export class LsTokenScheduleService implements OnModuleInit {
         await this._getLsTokenSchedule();
       }
     } catch (error) {
-      console.log('error', error);
       this.logger.error('LS TokenScheduleService onModuleInit 에러:');
     }
   }

@@ -34,7 +34,6 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
         await this._getKiwoomTokenSchedule();
       }
     } catch (error) {
-      console.log('error', error);
       this.logger.error('Kiwoom TokenScheduleService onModuleInit 에러:');
     }
   }
