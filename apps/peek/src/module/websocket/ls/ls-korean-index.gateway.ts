@@ -67,12 +67,13 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
   ) {}
 
   async onModuleInit() {
-    // if (this.configService.get('NODE_ENV') === 'production') {
-    await this._setLsToken();
-    await this._connectToLs();
+    if (this.configService.get('NODE_ENV') === 'production') {
+      await this._initKoreanIndex();
+      await this._setLsToken();
+      await this._connectToLs();
 
-    this.logger.log(`LS WebSocket token initialized: ${this.lsWebSocketToken}`);
-    // }
+      this.logger.log(`LS WebSocket token initialized: ${this.lsWebSocketToken}`);
+    }
   }
 
   async handleConnection(client: Socket) {
@@ -211,5 +212,19 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
 
       throw error;
     }
+  }
+
+  private async _initKoreanIndex() {
+    const kospiIndex = await this.stockKoreanIndexRepository.findOne({
+      where: { type: StockKoreanIndexTypeEnum.KOSPI },
+      order: { createdAt: 'DESC' },
+    });
+    const kosdaqIndex = await this.stockKoreanIndexRepository.findOne({
+      where: { type: StockKoreanIndexTypeEnum.KOSDAQ },
+      order: { createdAt: 'DESC' },
+    });
+
+    this.kospiIndex = kospiIndex;
+    this.kosdaqIndex = kosdaqIndex;
   }
 }
