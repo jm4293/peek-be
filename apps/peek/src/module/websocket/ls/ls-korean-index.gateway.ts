@@ -67,8 +67,9 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
   ) {}
 
   async onModuleInit() {
+    await this._initKoreanIndex();
+
     if (this.configService.get('NODE_ENV') === 'production') {
-      await this._initKoreanIndex();
       await this._setLsToken();
       await this._connectToLs();
 
