@@ -60,32 +60,55 @@ jobs:
             cd /home/${{ secrets.EC2_USERNAME }}/deployments
 
             # S3에서 최신 배포 파일 다운로드
-            aws s3 cp s3://${{ secrets.S3_BUCKET_NAME }}/deployments/deployment.tar.gz .
+            echo "Downloading from S3..."
+            aws s3 cp s3://${{ secrets.S3_BUCKET_NAME }}/deployments/deployment.tar.gz . || (echo "S3 download failed" && exit 1)
 
             # 기존 애플리케이션 중지
-            pm2 stop peek-be || true
-            pm2 stop peek-admin || true
+            echo "Stopping existing applications..."
+            # pm2 stop peek-be || echo "peek-be not running"
+            # pm2 stop peek-admin || echo "peek-admin not running"
+            pm2 stop peek || echo "peek not running"
 
             # 기존 배포 파일 백업
+            echo "Backing up existing app..."
             if [ -d "/home/${{ secrets.EC2_USERNAME }}/app" ]; then
               mv /home/${{ secrets.EC2_USERNAME }}/app /home/${{ secrets.EC2_USERNAME }}/app_backup_$(date +%Y%m%d_%H%M%S)
             fi
 
             # 새 배포 파일 압축 해제
+            echo "Extracting new deployment..."
             mkdir -p /home/${{ secrets.EC2_USERNAME }}/app
-            tar -xzf deployment.tar.gz -C /home/${{ secrets.EC2_USERNAME }}/app
+            tar -xzf deployment.tar.gz -C /home/${{ secrets.EC2_USERNAME }}/app || (echo "Extraction failed" && exit 1)
+
+            echo "Files extracted:"
+            ls -la /home/${{ secrets.EC2_USERNAME }}/app/
 
             # .env 파일 복사
+            echo "Copying .env file..."
             if [ -f "/home/${{ secrets.EC2_USERNAME }}/.env" ]; then
               cp /home/${{ secrets.EC2_USERNAME }}/.env /home/${{ secrets.EC2_USERNAME }}/app/
             fi
 
             # 의존성 설치
+            echo "Installing dependencies..."
             cd /home/${{ secrets.EC2_USERNAME }}/app
-            npm ci --only=production
+            if [ -f "pnpm-lock.yaml" ]; then
+              pnpm install --prod
+            elif [ -f "package-lock.json" ]; then
+              npm ci --omit=dev
+            else
+              npm install --omit=dev
+            fi
 
             # PM2로 애플리케이션 시작
-            pm2 start /home/${{ secrets.EC2_USERNAME }}/app/apps/peek/main.js --name "peek-be"
+            echo "Starting application..."
+            if [ -f "apps/peek/main.js" ]; then
+              pm2 start apps/peek/main.js --name "peek-be"
+            else
+              echo "main.js not found in apps/peek/"
+              echo "Available files:"
+              ls -la apps/
+            fi
             # pm2 start /home/${{ secrets.EC2_USERNAME }}/app/apps/peek-admin/main.js --name "peek-admin"
 
             # PM2 설정 저장
@@ -96,3 +119,4 @@ jobs:
             rm -f deployment.tar.gz
 
             echo "Deployment completed successfully!"
+            pm2 status
