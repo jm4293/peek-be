@@ -20,8 +20,8 @@ export class StockService implements OnModuleInit {
   private readonly KiwoomURL = 'https://api.kiwoom.com';
   private KiwoomToken: string | null = null;
 
-  private readonly LSURL = 'https://openapi.ls-sec.co.kr:8080';
-  private LSWebSocketToken: string | null = null;
+  private readonly LsURL = 'https://openapi.ls-sec.co.kr:8080';
+  private LsWebSocketToken: string | null = null;
 
   constructor(
     private readonly configService: ConfigService,
@@ -102,7 +102,7 @@ export class StockService implements OnModuleInit {
     //   },
     // );
 
-    if (!this.LSWebSocketToken) {
+    if (!this.LsWebSocketToken) {
       await this._getLSToken();
     }
 
@@ -117,12 +117,12 @@ export class StockService implements OnModuleInit {
     }
 
     const ret = await this.httpService.axiosRef.post<{ t1444OutBlock1: [] }>(
-      `${this.LSURL}/stock/high-item`,
+      `${this.LsURL}/stock/high-item`,
       { t1444InBlock: { upcode: '001', idx: (page - 1) * 20 } },
       {
         headers: {
           'content-type': 'application/json; charset=utf-8',
-          authorization: `Bearer ${this.LSWebSocketToken}`,
+          authorization: `Bearer ${this.LsWebSocketToken}`,
           tr_cd: type,
           tr_cont: 'Y',
         },
@@ -151,6 +151,6 @@ export class StockService implements OnModuleInit {
       throw new Error('Ls token이 존재하지 않습니다.');
     }
 
-    this.LSWebSocketToken = ret.token;
+    this.LsWebSocketToken = ret.token;
   }
 }
