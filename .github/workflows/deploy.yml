@@ -47,6 +47,16 @@ jobs:
         run: |
           aws s3 cp deployment.tar.gz s3://${{ secrets.S3_BUCKET_NAME }}/deployments/
 
+      - name: EC2로 직접 파일 전송
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT }}
+          source: 'deployment.tar.gz'
+          target: '/home/${{ secrets.EC2_USERNAME }}/deployments/'
+
       - name: EC2에 배포
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -59,9 +69,9 @@ jobs:
             mkdir -p /home/${{ secrets.EC2_USERNAME }}/deployments
             cd /home/${{ secrets.EC2_USERNAME }}/deployments
 
-            # S3에서 최신 배포 파일 다운로드
-            echo "Downloading from S3..."
-            aws s3 cp s3://${{ secrets.S3_BUCKET_NAME }}/deployments/deployment.tar.gz . || (echo "S3 download failed" && exit 1)
+            # 배포 파일 확인 (SCP로 이미 전송됨)
+            echo "Checking deployment file..."
+            ls -la deployment.tar.gz || (echo "Deployment file not found" && exit 1)
 
             # 기존 애플리케이션 중지
             echo "Stopping existing applications..."
