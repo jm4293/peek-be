@@ -22,7 +22,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
 
-      - run: sudo npm install -g pnpm
+      - name: pnpm 설치
+        run: npm install -g pnpm
 
       - name: 의존성 설치
         run: pnpm ci
