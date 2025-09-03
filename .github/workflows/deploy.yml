@@ -67,13 +67,14 @@ jobs:
             echo "Stopping existing applications..."
             # pm2 stop peek-be || echo "peek-be not running"
             # pm2 stop peek-admin || echo "peek-admin not running"
-            pm2 stop peek || echo "peek not running"
+            # pm2 stop peek || echo "peek not running"
+            pm2 kill
 
             # 기존 배포 파일 백업
-            echo "Backing up existing app..."
-            if [ -d "/home/${{ secrets.EC2_USERNAME }}/app" ]; then
-              mv /home/${{ secrets.EC2_USERNAME }}/app /home/${{ secrets.EC2_USERNAME }}/app_backup_$(date +%Y%m%d_%H%M%S)
-            fi
+            # echo "Backing up existing app..."
+            #  if [ -d "/home/${{ secrets.EC2_USERNAME }}/app" ]; then
+            #    mv /home/${{ secrets.EC2_USERNAME }}/app /home/${{ secrets.EC2_USERNAME }}/app_backup_$(date +%Y%m%d_%H%M%S)
+            #  fi
 
             # 새 배포 파일 압축 해제
             echo "Extracting new deployment..."
@@ -90,24 +91,24 @@ jobs:
             fi
 
             # 의존성 설치
-            echo "Installing dependencies..."
-            cd /home/${{ secrets.EC2_USERNAME }}/app
-            if [ -f "pnpm-lock.yaml" ]; then
-              pnpm install --prod
-            elif [ -f "package-lock.json" ]; then
-              npm ci --omit=dev
-            else
-              npm install --omit=dev
-            fi
+            # echo "Installing dependencies..."
+            # cd /home/${{ secrets.EC2_USERNAME }}/app
+            # if [ -f "pnpm-lock.yaml" ]; then
+            #   pnpm install --prod
+            # elif [ -f "package-lock.json" ]; then
+            #   npm ci --omit=dev
+            # else
+            #   npm install --omit=dev
+            # fi
 
             # PM2로 애플리케이션 시작
             echo "Starting application..."
-            if [ -f "apps/peek/main.js" ]; then
-              pm2 start apps/peek/main.js --name "peek-be"
+            if [ -f "apps/peek/src/main.js" ]; then
+              pm2 start apps/peek/src/main.js --name "peek-be"
             else
-              echo "main.js not found in apps/peek/"
+              echo "main.js not found in apps/peek/src/"
               echo "Available files:"
-              ls -la apps/
+              ls -la apps/peek/src/
             fi
             # pm2 start /home/${{ secrets.EC2_USERNAME }}/app/apps/peek-admin/main.js --name "peek-admin"
 
