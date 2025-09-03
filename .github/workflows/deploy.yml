@@ -25,7 +25,7 @@ jobs:
         run: npm install -g pnpm
 
       - name: 의존성 설치
-        run: pnpm ci
+        run: pnpm install
 
       - name: 애플리케이션 빌드
         run: pnpm run build
