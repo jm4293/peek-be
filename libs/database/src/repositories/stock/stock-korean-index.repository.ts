@@ -26,7 +26,6 @@ export class StockKoreanIndexRepository extends Repository<StockKoreanIndex> {
 
     const data = await query.getMany();
 
-    // 1분 단위로 그룹화하여 캔들 데이터 생성
     return this.groupByMinute(data);
   }
 
@@ -48,15 +47,12 @@ export class StockKoreanIndexRepository extends Repository<StockKoreanIndex> {
     >();
 
     data.forEach((item) => {
-      // 1분 단위로 그룹화 (초 단위를 0으로 설정)
       const minuteTimestamp = new Date(item.createdAt);
       minuteTimestamp.setSeconds(0, 0);
       const minuteKey = minuteTimestamp.toISOString();
-
-      // jisu 필드를 숫자로 변환 (현재가)
-      const currentPrice = parseFloat(item.jisu) || 0;
-      // Unix timestamp로 변환
       const unixTime = Math.floor(minuteTimestamp.getTime() / 1000);
+
+      const currentPrice = +item.jisu || 0;
 
       if (!candleMap.has(minuteKey)) {
         candleMap.set(minuteKey, {
@@ -70,7 +66,7 @@ export class StockKoreanIndexRepository extends Repository<StockKoreanIndex> {
         const candle = candleMap.get(minuteKey)!;
         candle.high = Math.max(candle.high, currentPrice);
         candle.low = Math.min(candle.low, currentPrice);
-        candle.close = currentPrice; // 마지막 가격이 종가
+        candle.close = currentPrice;
       }
     });
 

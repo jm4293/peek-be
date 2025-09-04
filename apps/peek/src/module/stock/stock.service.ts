@@ -160,10 +160,10 @@ export class StockService implements OnModuleInit {
   }
 
   async getStockCandle(code: string, dto: GetStockCandleDto) {
-    const { startDate, endDate, limit = 200 } = dto;
+    const { startDate, endDate, limit = 2000 } = dto;
 
     const defaultStartDate = new Date();
-    defaultStartDate.setDate(defaultStartDate.getDate() - 1);
+    defaultStartDate.setDate(defaultStartDate.getDate() - 5);
 
     const start = startDate ? new Date(startDate) : defaultStartDate;
     const end = endDate ? new Date(endDate) : new Date();
