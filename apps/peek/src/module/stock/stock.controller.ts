@@ -4,7 +4,7 @@ import { Public } from '@peek/decorator/public';
 
 import { StockCategory } from '@database/entities/stock';
 
-import { GetStockKoreanDto, GetStockKoreanListDto, GetStockKoreanRankDto } from './dto';
+import { GetStockCandleDto, GetStockKoreanDto, GetStockKoreanListDto, GetStockKoreanRankDto } from './dto';
 import { StockService } from './stock.service';
 
 @Controller('stock')
@@ -56,6 +56,18 @@ export class StockController {
       stockKoreanRankList: data,
       total,
       nextPage,
+    };
+  }
+
+  @Public()
+  @Get('korean/index/candle/:code')
+  async getStockCandle(@Param('code') code: string, @Query() query: GetStockCandleDto) {
+    const candleData = await this.stockService.getStockCandle(code, query);
+
+    return {
+      code,
+      candleList: candleData,
+      count: candleData.length,
     };
   }
 }

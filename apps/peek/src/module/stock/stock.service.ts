@@ -9,11 +9,15 @@ import { LIST_LIMIT } from '@peek/constant/list';
 import { TokenProviderEnum } from '@constant/enum/token';
 
 import { StockCompany } from '@database/entities/stock';
-import { StockCategoryRepository, StockCompanyRepository } from '@database/repositories/stock';
+import {
+  StockCategoryRepository,
+  StockCompanyRepository,
+  StockKoreanIndexRepository,
+} from '@database/repositories/stock';
 import { TokenRepository } from '@database/repositories/token';
 import { UserAccountRepository, UserRepository } from '@database/repositories/user';
 
-import { GetStockKoreanListDto, GetStockKoreanRankDto } from './dto';
+import { GetStockCandleDto, GetStockKoreanListDto, GetStockKoreanRankDto } from './dto';
 
 @Injectable()
 export class StockService implements OnModuleInit {
@@ -29,6 +33,7 @@ export class StockService implements OnModuleInit {
 
     private readonly stockCategoryRepository: StockCategoryRepository,
     private readonly stockRepository: StockCompanyRepository,
+    private readonly stockKoreanIndexRepository: StockKoreanIndexRepository,
 
     private readonly tokenRepository: TokenRepository,
     private readonly userRepository: UserRepository,
@@ -152,5 +157,19 @@ export class StockService implements OnModuleInit {
     }
 
     this.LsWebSocketToken = ret.token;
+  }
+
+  async getStockCandle(code: string, dto: GetStockCandleDto) {
+    const { startDate, endDate, limit = 200 } = dto;
+
+    const defaultStartDate = new Date();
+    defaultStartDate.setDate(defaultStartDate.getDate() - 1);
+
+    const start = startDate ? new Date(startDate) : defaultStartDate;
+    const end = endDate ? new Date(endDate) : new Date();
+
+    const candleData = await this.stockKoreanIndexRepository.getCandleData(code, start, end);
+
+    return candleData.slice(-limit);
   }
 }
