@@ -1,14 +1,16 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 
+import { StockKoreanIndexRepository } from '@database/repositories/stock';
 import { TokenRepository } from '@database/repositories/token';
 
+import { LsKoreanIndexGateway } from '../../websocket/ls/ls-korean-index.gateway';
 import { LsTokenScheduleService } from './ls-token-schedule.service';
 
 @Module({
   imports: [HttpModule],
   controllers: [],
-  providers: [LsTokenScheduleService, TokenRepository],
+  providers: [LsTokenScheduleService, TokenRepository, StockKoreanIndexRepository, LsKoreanIndexGateway],
   exports: [],
 })
 export class LsScheduleModule {}

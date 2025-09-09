@@ -13,6 +13,8 @@ import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 import { Token } from '@database/entities/token';
 import { TokenRepository } from '@database/repositories/token';
 
+import { LsKoreanIndexGateway } from '../../websocket/ls/ls-korean-index.gateway';
+
 @Injectable()
 export class LsTokenScheduleService implements OnModuleInit {
   private readonly URL = 'https://openapi.ls-sec.co.kr:8080';
@@ -23,6 +25,7 @@ export class LsTokenScheduleService implements OnModuleInit {
     private readonly httpService: HttpService,
 
     private readonly tokenRepository: TokenRepository,
+    private readonly lsKoreanIndexGateway: LsKoreanIndexGateway,
 
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
@@ -98,5 +101,19 @@ export class LsTokenScheduleService implements OnModuleInit {
     }
 
     this.logger.log(`LS Token 삭제 완료`);
+  }
+
+  @Cron('0 0 9 * * *', { name: 'LS WebSocket Connection', timeZone: 'Asia/Seoul' })
+  private async _connectToLsSchedule() {
+    try {
+      this.logger.log('매일 아침 9시 LS WebSocket 연결 스케줄러 실행');
+
+      if (this.configService.get('NODE_ENV') === 'production') {
+        await this.lsKoreanIndexGateway.connectToLs();
+        this.logger.log('LS WebSocket 연결 스케줄러 완료');
+      }
+    } catch (error) {
+      this.logger.error('LS WebSocket 연결 스케줄러 에러:', error);
+    }
   }
 }
