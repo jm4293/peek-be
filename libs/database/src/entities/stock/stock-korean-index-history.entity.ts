@@ -5,7 +5,7 @@ import { StockKoreanIndexTypeEnum } from '@constant/enum/stock';
 import { KoreanTime } from '@database/decorators';
 
 @Entity()
-export class StockKoreanIndex {
+export class StockKoreanIndexHistory {
   @PrimaryGeneratedColumn()
   id: number;
 

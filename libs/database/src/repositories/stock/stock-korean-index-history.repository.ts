@@ -2,12 +2,12 @@ import { EntityManager, Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 
-import { StockKoreanIndex } from '@database/entities/stock';
+import { StockKoreanIndexHistory } from '@database/entities/stock';
 
 @Injectable()
-export class StockKoreanIndexRepository extends Repository<StockKoreanIndex> {
+export class StockKoreanIndexHistoryRepository extends Repository<StockKoreanIndexHistory> {
   constructor(manager: EntityManager) {
-    super(StockKoreanIndex, manager);
+    super(StockKoreanIndexHistory, manager);
   }
 
   /**
@@ -34,7 +34,7 @@ export class StockKoreanIndexRepository extends Repository<StockKoreanIndex> {
    * @param data 실시간 데이터 배열
    * @returns 1분 캔들 데이터 배열
    */
-  private groupByMinute(data: StockKoreanIndex[]) {
+  private groupByMinute(data: StockKoreanIndexHistory[]) {
     const candleMap = new Map<
       string,
       {

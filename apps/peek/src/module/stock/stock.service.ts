@@ -12,7 +12,7 @@ import { StockCompany } from '@database/entities/stock';
 import {
   StockCategoryRepository,
   StockCompanyRepository,
-  StockKoreanIndexRepository,
+  StockKoreanIndexHistoryRepository,
 } from '@database/repositories/stock';
 import { TokenRepository } from '@database/repositories/token';
 import { UserAccountRepository, UserRepository } from '@database/repositories/user';
@@ -33,7 +33,7 @@ export class StockService implements OnModuleInit {
 
     private readonly stockCategoryRepository: StockCategoryRepository,
     private readonly stockRepository: StockCompanyRepository,
-    private readonly stockKoreanIndexRepository: StockKoreanIndexRepository,
+    private readonly stockKoreanIndexHistoryRepository: StockKoreanIndexHistoryRepository,
 
     private readonly tokenRepository: TokenRepository,
     private readonly userRepository: UserRepository,
@@ -168,7 +168,7 @@ export class StockService implements OnModuleInit {
     const start = startDate ? new Date(startDate) : defaultStartDate;
     const end = endDate ? new Date(endDate) : new Date();
 
-    const candleData = await this.stockKoreanIndexRepository.getCandleData(code, start, end);
+    const candleData = await this.stockKoreanIndexHistoryRepository.getCandleData(code, start, end);
 
     return candleData.slice(-limit);
   }

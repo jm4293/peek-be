@@ -4,7 +4,7 @@ import { Module } from '@nestjs/common';
 import {
   StockCategoryRepository,
   StockCompanyRepository,
-  StockKoreanIndexRepository,
+  StockKoreanIndexHistoryRepository,
 } from '@database/repositories/stock';
 import { TokenRepository } from '@database/repositories/token';
 import { UserAccountRepository, UserRepository } from '@database/repositories/user';
@@ -20,7 +20,7 @@ import { StockService } from './stock.service';
 
     StockCategoryRepository,
     StockCompanyRepository,
-    StockKoreanIndexRepository,
+    StockKoreanIndexHistoryRepository,
 
     TokenRepository,
 

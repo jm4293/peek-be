@@ -8,7 +8,7 @@ import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketSe
 import { StockKoreanIndexTypeEnum } from '@constant/enum/stock';
 import { TokenProviderEnum } from '@constant/enum/token';
 
-import { StockKoreanIndexRepository } from '@database/repositories/stock';
+import { StockKoreanIndexHistoryRepository } from '@database/repositories/stock';
 import { TokenRepository } from '@database/repositories/token';
 
 interface IIndex {
@@ -63,7 +63,7 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
     private readonly configService: ConfigService,
 
     private readonly tokenRepository: TokenRepository,
-    private readonly stockKoreanIndexRepository: StockKoreanIndexRepository,
+    private readonly stockKoreanIndexHistoryRepository: StockKoreanIndexHistoryRepository,
   ) {}
 
   async onModuleInit() {
@@ -160,7 +160,7 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
 
             this.server.emit(KOSPI_TR_KEY, this.kospiIndex);
 
-            this.stockKoreanIndexRepository.save({
+            this.stockKoreanIndexHistoryRepository.save({
               type: StockKoreanIndexTypeEnum.KOSPI,
               ...body,
             });
@@ -171,7 +171,7 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
 
             this.server.emit(KOSDAQ_TR_KEY, this.kosdaqIndex);
 
-            this.stockKoreanIndexRepository.save({
+            this.stockKoreanIndexHistoryRepository.save({
               type: StockKoreanIndexTypeEnum.KOSDAQ,
               ...body,
             });
@@ -216,11 +216,11 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
   }
 
   private async _initKoreanIndex() {
-    const kospiIndex = await this.stockKoreanIndexRepository.findOne({
+    const kospiIndex = await this.stockKoreanIndexHistoryRepository.findOne({
       where: { type: StockKoreanIndexTypeEnum.KOSPI },
       order: { createdAt: 'DESC' },
     });
-    const kosdaqIndex = await this.stockKoreanIndexRepository.findOne({
+    const kosdaqIndex = await this.stockKoreanIndexHistoryRepository.findOne({
       where: { type: StockKoreanIndexTypeEnum.KOSDAQ },
       order: { createdAt: 'DESC' },
     });
