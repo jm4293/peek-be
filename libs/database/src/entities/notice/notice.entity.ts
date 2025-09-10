@@ -1,0 +1,63 @@
+import { Exclude } from 'class-transformer';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+
+import { NoticeTypeEnum } from '@constant/enum/notice';
+
+import { KoreanTime } from '@database/decorators';
+
+import { UserAccount } from '../user';
+
+@Entity()
+export class Notice {
+  constructor(partial?: Partial<Notice>) {
+    if (partial) {
+      Object.assign(this, partial);
+    }
+  }
+
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'enum', enum: NoticeTypeEnum })
+  type: NoticeTypeEnum;
+
+  @Column({ type: 'varchar', length: 255 })
+  title: string;
+
+  @Column({ type: 'text' })
+  content: string;
+
+  @Column({ type: 'int', default: 0 })
+  viewCount: number;
+
+  @KoreanTime()
+  @CreateDateColumn({ type: 'timestamp' })
+  createdAt: Date;
+
+  @Exclude()
+  @KoreanTime()
+  @UpdateDateColumn({ type: 'timestamp' })
+  updatedAt: Date;
+
+  @Exclude()
+  @KoreanTime()
+  @DeleteDateColumn({ type: 'timestamp', default: null })
+  deletedAt: Date | null;
+
+  @Exclude()
+  @Column()
+  userAccountId: number;
+
+  @ManyToOne(() => UserAccount, (userAccount) => userAccount.notices)
+  @JoinColumn({ name: 'userAccountId' })
+  userAccount: UserAccount;
+}
