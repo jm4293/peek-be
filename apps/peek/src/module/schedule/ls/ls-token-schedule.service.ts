@@ -13,8 +13,6 @@ import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 import { Token } from '@database/entities/token';
 import { TokenRepository } from '@database/repositories/token';
 
-import { LsKoreanIndexGateway } from '../../websocket/ls/ls-korean-index.gateway';
-
 @Injectable()
 export class LsTokenScheduleService implements OnModuleInit {
   private readonly URL = 'https://openapi.ls-sec.co.kr:8080';

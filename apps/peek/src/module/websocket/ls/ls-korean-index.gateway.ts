@@ -71,7 +71,7 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
 
     if (this.configService.get('NODE_ENV') === 'production') {
       await this._setLsToken();
-      await this.connectToLs();
+      // await this.connectToLs();
 
       this.logger.log(`LS WebSocket token initialized: ${this.lsWebSocketToken}`);
     }
@@ -189,15 +189,15 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
     this.lsWebSocket.onclose = (event) => {
       this.logger.log(`LS WebSocket 연결 종료: ${event.code} - ${event.reason}`);
 
-      if (this.reconnectAttempts < this.MAX_RECONNECT_ATTEMPTS) {
-        this.reconnectAttempts++;
-
-        setTimeout(() => {
-          this.connectToLs();
-        }, 3000);
-      } else {
-        this.logger.error('LS WebSocket 최대 재연결 시도 횟수 초과');
-      }
+      // if (this.reconnectAttempts < this.MAX_RECONNECT_ATTEMPTS) {
+      //   this.reconnectAttempts++;
+      //
+      // setTimeout(() => {
+      //   this.connectToLs();
+      // }, 3000);
+      // } else {
+      //   this.logger.error('LS WebSocket 최대 재연결 시도 횟수 초과');
+      // }
     };
   }
 
