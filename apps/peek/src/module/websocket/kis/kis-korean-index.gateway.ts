@@ -150,9 +150,6 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
 
     client.emit(KOSPI_TR_KEY, this.kospiIndex);
     client.emit(KOSDAQ_TR_KEY, this.kosdaqIndex);
-
-    console.log('this.kospiIndex', this.kospiIndex);
-    console.log('this.kosdaqIndex', this.kosdaqIndex);
   }
 
   async handleDisconnect(client: Socket) {
@@ -343,9 +340,6 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
       where: { type: StockKoreanIndexTypeEnum.KOSDAQ },
       order: { createdAt: 'DESC' },
     });
-
-    console.log('kospiIndex', kospiIndex);
-    console.log('kosdaqIndex', kosdaqIndex);
 
     this.kospiIndex = kospiIndex;
     this.kosdaqIndex = kosdaqIndex;
