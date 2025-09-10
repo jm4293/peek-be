@@ -54,8 +54,8 @@ import { KisWebSocketModule, LsWebSocketModule } from './module/websocket';
     KiwoomScheduleModule,
     LsScheduleModule,
 
-    // KisWebSocketModule,
-    LsWebSocketModule,
+    KisWebSocketModule,
+    // LsWebSocketModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuardConfig }, AppService],

@@ -126,16 +126,16 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
           },
         };
 
-        const messageNWS = {
-          header: {
-            token: `${this.lsWebSocketToken}`,
-            tr_type: '3',
-          },
-          body: {
-            tr_cd: 'NWS',
-            tr_key: 'NWS001',
-          },
-        };
+        // const messageNWS = {
+        //   header: {
+        //     token: `${this.lsWebSocketToken}`,
+        //     tr_type: '3',
+        //   },
+        //   body: {
+        //     tr_cd: 'NWS',
+        //     tr_key: 'NWS001',
+        //   },
+        // };
 
         this.lsWebSocket.send(JSON.stringify(messageKOSPI));
         this.lsWebSocket.send(JSON.stringify(messageKOSDAQ));

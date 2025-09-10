@@ -5,11 +5,41 @@ import { Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 
+import { StockKoreanIndexTypeEnum } from '@constant/enum/stock';
 import { TokenProviderEnum } from '@constant/enum/token';
 
+import { StockKoreanIndexHistoryRepository } from '@database/repositories/stock';
 import { TokenRepository } from '@database/repositories/token';
 
-interface IIndex {
+interface ILsIndex {
+  time: string; // 시간
+  jisu: string; // 지수
+  sign: string; // 전일대비구분
+  change: string; // 전일비
+  drate: string; // 등락율
+  cvolume: string; // 체결량
+  volume: string; // 거래량
+  value: string; // 거래대금
+  upjo: string; // 상한종목수
+  highjo: string; // 상승종목수
+  unchgjo: string; // 보합종목수
+  lowjo: string; // 하락종목수
+  downjo: string; // 하한종목수
+  upjrate: string; // 상승종목비율
+  openjisu: string; // 시가지수
+  opentime: string; // 시가시간
+  highjisu: string; // 고가지수
+  hightime: string; // 고가시간
+  lowjisu: string; // 저가지수
+  lowtime: string; // 저가시간
+  frgsvolume: string; // 외인순매수수량
+  orgsvolume: string; // 기관순매수수량
+  frgsvalue: string; // 외인순매수금액
+  orgsvalue: string; // 기관순매수금액
+  upcode: string; // 업종코드
+}
+
+interface IKisIndex {
   bstp_cls_code: string; // ResponseBodybstp_cls_code    #업종 구분 코드
   bsop_hour: string; // 영업 시간
   prpr_nmix: string; // 현재가 지수
@@ -75,6 +105,9 @@ const indexKeys = [
   'tick_vrss',
 ];
 
+const KOSPI_TR_KEY = '0001';
+const KOSDAQ_TR_KEY = '1001';
+
 @WebSocketGateway({
   cors: {
     origin: ['http://localhost:3000', 'https://stock.peek.run'],
@@ -88,71 +121,8 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
   private readonly logger = new Logger(KisKoreanIndexGateway.name);
   private kisWebSocket: WebSocket | null = null;
   private kisWebSocketToken: string | null = null;
-  private kospiIndex: IIndex = {
-    bstp_cls_code: '0001',
-    bsop_hour: '153230',
-    prpr_nmix: '3186.01',
-    prdy_vrss_sign: '5',
-    bstp_nmix_prdy_vrss: '-10.31',
-    acml_vol: '242210',
-    acml_tr_pbmn: '8831078',
-    pcas_vol: '0',
-    pcas_tr_pbmn: '0',
-    prdy_ctrt: '-0.32',
-    oprc_nmix: '3208.80',
-    nmix_hgpr: '3212.69',
-    nmix_lwpr: '3184.48',
-    oprc_vrss_nmix_prpr: '12.48',
-    oprc_vrss_nmix_sign: '2',
-    hgpr_vrss_nmix_prpr: '16.37',
-    hgpr_vrss_nmix_sign: '2',
-    lwpr_vrss_nmix_prpr: '-11.84',
-    lwpr_vrss_nmix_sign: '5',
-    prdy_clpr_vrss_oprc_rate: '0.39',
-    prdy_clpr_vrss_hgpr_rate: '0.51',
-    prdy_clpr_vrss_lwpr_rate: '-0.37',
-    uplm_issu_cnt: '0',
-    ascn_issu_cnt: '301',
-    stnr_issu_cnt: '51',
-    down_issu_cnt: '581',
-    lslm_issu_cnt: '0',
-    qtqt_ascn_issu_cnt: '0',
-    qtqt_down_issu_cnt: '0',
-    tick_vrss: '16',
-  };
-
-  private kosdaqIndex: IIndex = {
-    bstp_cls_code: '1001',
-    bsop_hour: '153230',
-    prpr_nmix: '796.91',
-    prdy_vrss_sign: '5',
-    bstp_nmix_prdy_vrss: '-1.52',
-    acml_vol: '844281',
-    acml_tr_pbmn: '5006644',
-    pcas_vol: '85',
-    pcas_tr_pbmn: '149',
-    prdy_ctrt: '-0.19',
-    oprc_nmix: '801.96',
-    nmix_hgpr: '805.94',
-    nmix_lwpr: '795.56',
-    oprc_vrss_nmix_prpr: '3.53',
-    oprc_vrss_nmix_sign: '2',
-    hgpr_vrss_nmix_prpr: '7.51',
-    hgpr_vrss_nmix_sign: '2',
-    lwpr_vrss_nmix_prpr: '-2.87',
-    lwpr_vrss_nmix_sign: '5',
-    prdy_clpr_vrss_oprc_rate: '0.44',
-    prdy_clpr_vrss_hgpr_rate: '0.94',
-    prdy_clpr_vrss_lwpr_rate: '-0.36',
-    uplm_issu_cnt: '3',
-    ascn_issu_cnt: '584',
-    stnr_issu_cnt: '107',
-    down_issu_cnt: '1041',
-    lslm_issu_cnt: '1',
-    qtqt_ascn_issu_cnt: '0',
-    qtqt_down_issu_cnt: '0',
-    tick_vrss: '6',
-  };
+  private kospiIndex = null;
+  private kosdaqIndex = null;
 
   private reconnectAttempts = 0;
   private readonly MAX_RECONNECT_ATTEMPTS = 5;
@@ -161,9 +131,12 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
     private readonly configService: ConfigService,
 
     private readonly tokenRepository: TokenRepository,
+    private readonly stockKoreanIndexHistoryRepository: StockKoreanIndexHistoryRepository,
   ) {}
 
   async onModuleInit() {
+    await this._initKoreanIndex();
+
     if (this.configService.get('NODE_ENV') === 'production') {
       await this._setKisToken();
       await this._connectToKis();
@@ -175,8 +148,8 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
   async handleConnection(client: Socket) {
     this.logger.log(`KIS 클라이언트 연결: ${client.id}`);
 
-    client.emit(`${this.kospiIndex.bstp_cls_code}`, this.kospiIndex);
-    client.emit(`${this.kosdaqIndex.bstp_cls_code}`, this.kosdaqIndex);
+    client.emit(KOSPI_TR_KEY, this.kospiIndex);
+    client.emit(KOSDAQ_TR_KEY, this.kosdaqIndex);
   }
 
   async handleDisconnect(client: Socket) {
@@ -246,12 +219,80 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
         if (data) {
           const indexObj = Object.fromEntries(indexKeys.map((key, i) => [key, data[i]]));
 
-          this.server.emit(`${indexObj.bstp_cls_code}`, indexObj);
+          // this.server.emit(`${indexObj.bstp_cls_code}`, indexObj);
 
-          if (indexObj.bstp_cls_code === '0001') {
-            this.kospiIndex = indexObj as unknown as IIndex;
-          } else if (indexObj.bstp_cls_code === '1001') {
-            this.kosdaqIndex = indexObj as unknown as IIndex;
+          if (indexObj.bstp_cls_code === KOSPI_TR_KEY) {
+            this.kospiIndex = indexObj as unknown as ILsIndex;
+
+            const convertedIndexObj = {
+              type: StockKoreanIndexTypeEnum.KOSPI,
+              time: indexObj.bsop_hour,
+              jisu: indexObj.prpr_nmix,
+              sign: indexObj.prdy_vrss_sign,
+              change: indexObj.bstp_nmix_prdy_vrss,
+              drate: indexObj.prdy_ctrt,
+              cvolume: indexObj.pcas_vol,
+              volume: indexObj.acml_vol,
+              value: indexObj.acml_tr_pbmn,
+              upjo: indexObj.uplm_issu_cnt,
+              highjo: indexObj.ascn_issu_cnt,
+              unchgjo: indexObj.stnr_issu_cnt,
+              lowjo: indexObj.down_issu_cnt,
+              downjo: indexObj.lslm_issu_cnt,
+              upjrate: indexObj.qtqt_ascn_issu_cnt,
+              openjisu: indexObj.oprc_nmix,
+              opentime: null,
+              highjisu: indexObj.nmix_hgpr,
+              hightime: null,
+              lowjisu: indexObj.nmix_lwpr,
+              lowtime: null,
+              frgsvolume: null,
+              orgsvolume: null,
+              frgsvalue: null,
+              orgsvalue: null,
+              upcode: indexObj.bstp_cls_code,
+            };
+
+            this.server.emit(KOSPI_TR_KEY, convertedIndexObj);
+
+            this.stockKoreanIndexHistoryRepository.save(convertedIndexObj);
+          }
+
+          if (indexObj.bstp_cls_code === KOSDAQ_TR_KEY) {
+            this.kosdaqIndex = indexObj as unknown as ILsIndex;
+
+            const convertedIndexObj = {
+              type: StockKoreanIndexTypeEnum.KOSDAQ,
+              time: indexObj.bsop_hour,
+              jisu: indexObj.prpr_nmix,
+              sign: indexObj.prdy_vrss_sign,
+              change: indexObj.bstp_nmix_prdy_vrss,
+              drate: indexObj.prdy_ctrt,
+              cvolume: indexObj.pcas_vol,
+              volume: indexObj.acml_vol,
+              value: indexObj.acml_tr_pbmn,
+              upjo: indexObj.uplm_issu_cnt,
+              highjo: indexObj.ascn_issu_cnt,
+              unchgjo: indexObj.stnr_issu_cnt,
+              lowjo: indexObj.down_issu_cnt,
+              downjo: indexObj.lslm_issu_cnt,
+              upjrate: indexObj.qtqt_ascn_issu_cnt,
+              openjisu: indexObj.oprc_nmix,
+              opentime: null,
+              highjisu: indexObj.nmix_hgpr,
+              hightime: null,
+              lowjisu: indexObj.nmix_lwpr,
+              lowtime: null,
+              frgsvolume: null,
+              orgsvolume: null,
+              frgsvalue: null,
+              orgsvalue: null,
+              upcode: indexObj.bstp_cls_code,
+            };
+
+            this.server.emit(KOSDAQ_TR_KEY, convertedIndexObj);
+
+            this.stockKoreanIndexHistoryRepository.save(convertedIndexObj);
           }
         }
       } catch (error) {
@@ -290,5 +331,19 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
 
       throw error;
     }
+  }
+
+  private async _initKoreanIndex() {
+    const kospiIndex = await this.stockKoreanIndexHistoryRepository.findOne({
+      where: { type: StockKoreanIndexTypeEnum.KOSPI },
+      order: { createdAt: 'DESC' },
+    });
+    const kosdaqIndex = await this.stockKoreanIndexHistoryRepository.findOne({
+      where: { type: StockKoreanIndexTypeEnum.KOSDAQ },
+      order: { createdAt: 'DESC' },
+    });
+
+    this.kospiIndex = kospiIndex;
+    this.kosdaqIndex = kosdaqIndex;
   }
 }
