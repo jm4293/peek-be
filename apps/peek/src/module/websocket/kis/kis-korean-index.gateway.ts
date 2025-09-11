@@ -119,8 +119,8 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
   private readonly logger = new Logger(KisKoreanIndexGateway.name);
   private kisWebSocket: WebSocket | null = null;
   private kisWebSocketToken: string | null = null;
-  private kospiIndex = null;
-  private kosdaqIndex = null;
+  private kospiIndex: ILsIndex | null = null;
+  private kosdaqIndex: ILsIndex | null = null;
 
   constructor(
     private readonly configService: ConfigService,
@@ -141,8 +141,11 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
   async handleConnection(client: Socket) {
     this.logger.log(`KIS 클라이언트 연결: ${client.id}`);
 
-    client.emit(KOSPI_TR_KEY, this.kospiIndex);
-    client.emit(KOSDAQ_TR_KEY, this.kosdaqIndex);
+    console.log('111-kospi', this.kospiIndex);
+    console.log('111-kosdaq', this.kosdaqIndex);
+
+    // client.emit(KOSPI_TR_KEY, this.kospiIndex);
+    // client.emit(KOSDAQ_TR_KEY, this.kosdaqIndex);
   }
 
   async handleDisconnect(client: Socket) {
@@ -244,6 +247,8 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
               upcode: indexObj.bstp_cls_code,
             };
 
+            console.log('222-kospi', convertedIndexObj);
+
             this.server.emit(KOSPI_TR_KEY, convertedIndexObj);
 
             this.stockKoreanIndexHistoryRepository.save(convertedIndexObj);
@@ -280,6 +285,8 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
               orgsvalue: null,
               upcode: indexObj.bstp_cls_code,
             };
+
+            console.log('222-kosdaq', convertedIndexObj);
 
             this.server.emit(KOSDAQ_TR_KEY, convertedIndexObj);
 
