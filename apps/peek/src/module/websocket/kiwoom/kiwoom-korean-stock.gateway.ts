@@ -175,9 +175,7 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
       try {
         const ret = JSON.parse(event.data.toString());
 
-        // console.log('11111', ret);
-
-        const { trnm, return_code, return_msg } = ret;
+        const { trnm, return_code } = ret;
 
         if (trnm === 'LOGIN') {
           if (return_code !== 0) {
@@ -185,26 +183,30 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
           } else {
             this.logger.log('웹소켓 kiwoom 한국 주식 로그인 성공');
           }
+
+          return;
         }
 
         // kiwoom 웹소켓 연결 유지를 위해 PING 메시지 송신
         if (trnm === 'PING') {
           this.kiwoomWebSocket.send(JSON.stringify(ret));
+          return;
+        }
+
+        if (trnm === 'REG') {
+          this.logger.log('웹소켓 KIWOOM 한국 주식 구독 요청 수신');
+          return;
         }
 
         if (trnm !== 'PING') {
           const arr = ret.data;
 
           arr.forEach((el) => {
-            console.log('22222', el);
-
             const { values, item } = el;
 
             // item 종목명을 구독하고있는 클라이언트한데 value를 전달하는 방법
             this.server.to(`stock_${item}`).emit(`stock_${item}`, values);
           });
-
-          console.log('실시간 시세 서버 응답 수신');
         }
       } catch (error) {
         this.logger.error('웹소켓 KIWOOM 한국 주식 메시지 파싱 오류');

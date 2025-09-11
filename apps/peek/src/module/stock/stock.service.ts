@@ -79,9 +79,7 @@ export class StockService implements OnModuleInit {
   async getStockKorean(code: string) {
     const ret = await this.httpService.axiosRef.post(
       `${this.KiwoomURL}/api/dostk/stkinfo`,
-      {
-        stk_cd: code,
-      },
+      { stk_cd: code },
       {
         headers: {
           'content-type': 'application/json; charset=utf-8',
