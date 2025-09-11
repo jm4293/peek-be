@@ -153,7 +153,7 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
     try {
       this.kisWebSocket = new WebSocket('ws://ops.koreainvestment.com:21000');
     } catch (error) {
-      this.logger.error('KIS WebSocket 연결 실패:', error);
+      this.logger.error('웹소켓 KIS 한국 지수 연결 실패:', error);
       return;
     }
 
@@ -194,7 +194,7 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
 
         this.logger.log('웹소켓 KIS 한국 지수 연결 성공');
       } catch (error) {
-        this.logger.error('웹소켓 KIS 한국 지수 연결 실패');
+        this.logger.error('웹소켓 KIS 한국 지수 onopen 핸들러에서 오류 발생');
         this.kisWebSocket.close();
       }
     };
@@ -285,16 +285,16 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
           }
         }
       } catch (error) {
-        this.logger.error('KIS onmessage 핸들러에서 오류 발생');
+        this.logger.error('웹소켓 KIS 한국 지수 onmessage 핸들러에서 오류 발생');
       }
     };
 
     this.kisWebSocket.onerror = (error) => {
-      this.logger.error('KIS WebSocket 오류');
+      this.logger.error('웹소켓 KIS 한국 지수 WebSocket 오류');
     };
 
     this.kisWebSocket.onclose = (event) => {
-      this.logger.log(`KIS WebSocket 연결 종료`);
+      this.logger.log(`웹소켓 KIS 한국 지수 WebSocket 연결 종료`);
     };
   }
 
@@ -304,9 +304,9 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
 
       this.kisWebSocketToken = ret.token;
 
-      this.logger.log('웹소켓 KIS 한국 지수 토큰값 불러오기 성공');
+      this.logger.log('웹소켓 KIS 한국 지수 토큰 불러오기 성공');
     } catch (error) {
-      this.logger.error('웹소켓 KIS 한국 지수 토큰값 불러오기 실패');
+      this.logger.error('웹소켓 KIS 한국 지수 토큰 불러오기 실패');
 
       throw error;
     }
