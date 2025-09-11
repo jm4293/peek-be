@@ -8,7 +8,7 @@ import { LsTokenScheduleService } from './ls-token-schedule.service';
 @Module({
   imports: [HttpModule],
   controllers: [],
-  providers: [LsTokenScheduleService, TokenRepository, StockKoreanIndexHistoryRepository, LsKoreanIndexGateway],
+  providers: [LsTokenScheduleService, TokenRepository],
   exports: [],
 })
 export class LsScheduleModule {}

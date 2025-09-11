@@ -1,5 +1,3 @@
-import { AxiosResponse } from 'axios';
-import { firstValueFrom } from 'rxjs';
 import { DataSource } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
@@ -10,7 +8,6 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
-import { Token } from '@database/entities/token';
 import { TokenRepository } from '@database/repositories/token';
 
 @Injectable()
@@ -23,7 +20,6 @@ export class LsTokenScheduleService implements OnModuleInit {
     private readonly httpService: HttpService,
 
     private readonly tokenRepository: TokenRepository,
-    private readonly lsKoreanIndexGateway: LsKoreanIndexGateway,
 
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
@@ -35,14 +31,14 @@ export class LsTokenScheduleService implements OnModuleInit {
         await this._getLsTokenSchedule();
       }
     } catch (error) {
-      this.logger.error('LS TokenScheduleService onModuleInit 에러:');
+      this.logger.error('스케줄러 LS 토큰값 불러오기 실패');
     }
   }
 
   @Cron(CronExpression.EVERY_12_HOURS, { name: 'stock Token', timeZone: 'Asia/Seoul' })
   private async _getLsTokenSchedule() {
-    const ret_oauth = await firstValueFrom<AxiosResponse<{ access_token: string; expires_in: string }>>(
-      this.httpService.post(
+    try {
+      const ret_oauth = await this.httpService.axiosRef.post<{ access_token: string; expires_in: string }>(
         `${this.URL}/oauth2/token`,
         {
           grant_type: 'client_credentials',
@@ -55,63 +51,41 @@ export class LsTokenScheduleService implements OnModuleInit {
             'content-type': 'application/x-www-form-urlencoded',
           },
         },
-      ),
-    );
+      );
 
-    await this.dataSource.transaction(async (manager) => {
-      await manager.getRepository(Token).delete({ provider: TokenProviderEnum.LS, type: TokenTypeEnum.OAUTH });
+      await this.tokenRepository.update(
+        { provider: TokenProviderEnum.LS, type: TokenTypeEnum.OAUTH },
+        { token: ret_oauth.data.access_token, expire: ret_oauth.data.expires_in },
+      );
 
-      const oauth = manager.getRepository(Token).create({
-        provider: TokenProviderEnum.LS,
-        token: ret_oauth.data.access_token,
-        expire: ret_oauth.data.expires_in,
-        type: TokenTypeEnum.OAUTH,
-      });
-
-      await manager.getRepository(Token).save(oauth);
-    });
-
-    this.logger.log(`LS Token 갱신 완료`);
+      this.logger.log(`스케줄러 LS Token 갱신 완료`);
+    } catch (error) {
+      this.logger.error('스케줄러 LS Token 갱신 실패');
+    }
   }
 
   private async _deleteLsToken() {
-    const oauth = await this.tokenRepository.findOne({
+    const ret = await this.tokenRepository.findOne({
       where: { provider: TokenProviderEnum.LS, type: TokenTypeEnum.OAUTH },
     });
 
-    if (oauth) {
-      await firstValueFrom(
-        this.httpService.post(
-          `${this.URL}/oauth2/revoke`,
-          {
-            appkey: this.configService.get('LS_APP_KEY'),
-            appsecretkey: this.configService.get('LS_APP_SECRET'),
-            token_type_hint: 'access_token',
-            token: oauth.token,
+    if (ret) {
+      await this.httpService.axiosRef.post(
+        `${this.URL}/oauth2/revoke`,
+        {
+          appkey: this.configService.get('LS_APP_KEY'),
+          appsecretkey: this.configService.get('LS_APP_SECRET'),
+          token_type_hint: 'access_token',
+          token: ret.token,
+        },
+        {
+          headers: {
+            'content-type': 'application/x-www-form-urlencoded',
           },
-          {
-            headers: {
-              'content-type': 'application/x-www-form-urlencoded',
-            },
-          },
-        ),
+        },
       );
     }
 
-    this.logger.log(`LS Token 삭제 완료`);
-  }
-
-  @Cron('0 0 9 * * *', { name: 'LS WebSocket Connection', timeZone: 'Asia/Seoul' })
-  private async _connectToLsSchedule() {
-    try {
-      this.logger.log('매일 아침 9시 LS WebSocket 연결 스케줄러 실행');
-
-      if (this.configService.get('NODE_ENV') === 'production') {
-        await this.lsKoreanIndexGateway.connectToLs();
-        this.logger.log('LS WebSocket 연결 스케줄러 완료');
-      }
-    } catch (error) {
-      this.logger.error('LS WebSocket 연결 스케줄러 에러:', error);
-    }
+    this.logger.log(`스케줄러 LS Token 폐기 완료`);
   }
 }

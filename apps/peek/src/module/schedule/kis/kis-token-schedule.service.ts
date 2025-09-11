@@ -1,5 +1,3 @@
-import { AxiosResponse } from 'axios';
-import { firstValueFrom } from 'rxjs';
 import { DataSource } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
@@ -10,7 +8,6 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
-import { Token } from '@database/entities/token';
 import { TokenRepository } from '@database/repositories/token';
 
 @Injectable()
@@ -30,72 +27,63 @@ export class KisTokenScheduleService implements OnModuleInit {
   async onModuleInit() {
     try {
       if (this.configService.get('NODE_ENV') === 'production') {
-        await this._deleteKisToken();
+        // await this._deleteKisToken();
         await this._getKisTokenSchedule();
       }
     } catch (error) {
-      this.logger.error('KisTokenScheduleService onModuleInit 에러:');
+      this.logger.error('스케줄러 KIS 토큰값 불러오기 실패');
     }
   }
 
   @Cron(CronExpression.EVERY_12_HOURS, { name: 'stock Token', timeZone: 'Asia/Seoul' })
   private async _getKisTokenSchedule() {
-    const ret_socket = await firstValueFrom<AxiosResponse<{ approval_key: string }>>(
-      this.httpService.post(`${this.URL}/oauth2/Approval`, {
+    // const ret_socket = await firstValueFrom<AxiosResponse<{ approval_key: string }>>(
+    //   this.httpService.post(`${this.URL}/oauth2/Approval`, {
+    //     grant_type: 'client_credentials',
+    //     appkey: this.configService.get('KIS_APP_KEY'),
+    //     secretkey: this.configService.get('KIS_APP_SECRET'),
+    //   }),
+    // );
+
+    // const ret_oauth = await firstValueFrom<AxiosResponse<{ access_token: string; access_token_token_expired: string }>>(
+    //   this.httpService.post(`${this.URL}/oauth2/tokenP`, {
+    //     grant_type: 'client_credentials',
+    //     appkey: this.configService.get('KIS_APP_KEY'),
+    //     appsecret: this.configService.get('KIS_APP_SECRET'),
+    //   }),
+    // );
+
+    try {
+      const ret_socket = await this.httpService.axiosRef.post<{ approval_key: string }>(`${this.URL}/oauth2/Approval`, {
         grant_type: 'client_credentials',
         appkey: this.configService.get('KIS_APP_KEY'),
         secretkey: this.configService.get('KIS_APP_SECRET'),
-      }),
-    );
-
-    const ret_oauth = await firstValueFrom<AxiosResponse<{ access_token: string; access_token_token_expired: string }>>(
-      this.httpService.post(`${this.URL}/oauth2/tokenP`, {
-        grant_type: 'client_credentials',
-        appkey: this.configService.get('KIS_APP_KEY'),
-        appsecret: this.configService.get('KIS_APP_SECRET'),
-      }),
-    );
-
-    await this.dataSource.transaction(async (manager) => {
-      await manager.getRepository(Token).delete({ provider: TokenProviderEnum.KIS, type: TokenTypeEnum.SOCKET });
-      await manager.getRepository(Token).delete({ provider: TokenProviderEnum.KIS, type: TokenTypeEnum.OAUTH });
-
-      const socket = manager.getRepository(Token).create({
-        provider: TokenProviderEnum.KIS,
-        token: ret_socket.data.approval_key,
-        expire: null,
-        type: TokenTypeEnum.SOCKET,
       });
 
-      const oauth = manager.getRepository(Token).create({
-        provider: TokenProviderEnum.KIS,
-        token: ret_oauth.data.access_token,
-        expire: ret_oauth.data.access_token_token_expired,
-        type: TokenTypeEnum.OAUTH,
-      });
+      await this.tokenRepository.update(
+        { provider: TokenProviderEnum.KIS, type: TokenTypeEnum.SOCKET },
+        { token: ret_socket.data.approval_key },
+      );
 
-      await manager.getRepository(Token).save(socket);
-      await manager.getRepository(Token).save(oauth);
-    });
-
-    this.logger.log(`KIS Token 갱신 완료`);
+      this.logger.log(`스케줄러 KIS Token 갱신 완료`);
+    } catch (error) {
+      this.logger.error('스케줄러 KIS Token 갱신 실패');
+    }
   }
 
   private async _deleteKisToken() {
-    const oauth = await this.tokenRepository.findOne({
+    const ret = await this.tokenRepository.findOne({
       where: { provider: TokenProviderEnum.KIS, type: TokenTypeEnum.OAUTH },
     });
 
-    if (oauth) {
-      await firstValueFrom(
-        this.httpService.post(`${this.URL}/oauth2/revokeP`, {
-          token: `Bearer ${oauth.token}`,
-          appkey: this.configService.get('KIS_APP_KEY'),
-          appsecret: this.configService.get('KIS_APP_SECRET'),
-        }),
-      );
+    if (ret) {
+      await this.httpService.axiosRef.post(`${this.URL}/oauth2/revokeP`, {
+        token: `Bearer ${ret.token}`,
+        appkey: this.configService.get('KIS_APP_KEY'),
+        appsecret: this.configService.get('KIS_APP_SECRET'),
+      });
     }
 
-    this.logger.log(`KIS Token 삭제 완료`);
+    this.logger.log(`스케줄러 KIS Token 폐기 완료`);
   }
 }
