@@ -1,7 +1,7 @@
 import { FindOptionsOrder, Like } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { LIST_LIMIT } from '@peek/constant/list';
@@ -20,7 +20,7 @@ import { UserAccountRepository, UserRepository } from '@database/repositories/us
 import { GetStockCandleDto, GetStockKoreanListDto, GetStockKoreanRankDto } from './dto';
 
 @Injectable()
-export class StockService {
+export class StockService implements OnModuleInit {
   private readonly KiwoomURL = 'https://api.kiwoom.com';
   private KiwoomToken: string | null = null;
 
@@ -40,26 +40,13 @@ export class StockService {
     private readonly userAccountRepository: UserAccountRepository,
   ) {}
 
-  async getStockCategoryList() {
-    return await this.stockCategoryRepository.find();
+  async onModuleInit() {
+    await this._getKiwoomToken();
+    await this._getLSToken();
   }
 
-  async getStockKorean(code: string) {
-    if (!this.KiwoomToken) {
-      await this._getKiwoomToken();
-    }
-
-    const ret = await this.httpService.axiosRef.get(`${this.KiwoomURL}/api/dostk/stkinfo`, {
-      headers: {
-        'content-type': 'application/json; charset=utf-8',
-        authorization: `Bearer ${this.KiwoomToken}`,
-        'api-id': 'ka00198',
-      },
-    });
-
-    const { output } = ret.data;
-
-    return output;
+  async getStockCategoryList() {
+    return await this.stockCategoryRepository.find();
   }
 
   async getStockKoreanList(dto: GetStockKoreanListDto) {
@@ -87,6 +74,24 @@ export class StockService {
     const nextPage = hasNextPage ? Number(page) + 1 : null;
 
     return { data, total, nextPage };
+  }
+
+  async getStockKorean(code: string) {
+    const ret = await this.httpService.axiosRef.post(
+      `${this.KiwoomURL}/api/dostk/stkinfo`,
+      {
+        stk_cd: code,
+      },
+      {
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+          authorization: `Bearer ${this.KiwoomToken}`,
+          'api-id': 'ka10001',
+        },
+      },
+    );
+
+    return ret.data;
   }
 
   async getStockKoreanRank(dto: GetStockKoreanRankDto) {

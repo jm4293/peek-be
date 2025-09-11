@@ -21,19 +21,6 @@ export class StockController {
     };
   }
 
-  // 종목 상세 조회
-  @Public()
-  @Get('korean/detail/:code')
-  async getStockKorean(@Param() param: GetStockKoreanDto) {
-    const { code } = param;
-
-    const ret = await this.stockService.getStockKorean(code);
-
-    return {
-      stockKorean: ret,
-    };
-  }
-
   // 종목 코드 조회
   @Public()
   @Get('korean')
@@ -44,6 +31,19 @@ export class StockController {
       stockKoreanList: data,
       total,
       nextPage,
+    };
+  }
+
+  // 종목 상세 조회
+  @Public()
+  @Get('korean/detail/:code')
+  async getStockKorean(@Param() param: GetStockKoreanDto) {
+    const { code } = param;
+
+    const ret = await this.stockService.getStockKorean(code);
+
+    return {
+      stockKorean: ret,
     };
   }
 
