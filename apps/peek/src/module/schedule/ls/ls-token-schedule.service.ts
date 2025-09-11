@@ -27,7 +27,7 @@ export class LsTokenScheduleService implements OnModuleInit {
   async onModuleInit() {
     try {
       if (this.configService.get('NODE_ENV') === 'production') {
-        await this._deleteLsToken();
+        // await this._deleteLsToken();
         await this._getLsTokenSchedule();
       }
     } catch (error) {

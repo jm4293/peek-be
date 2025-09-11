@@ -27,7 +27,7 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
   async onModuleInit() {
     try {
       if (this.configService.get('NODE_ENV') === 'production') {
-        await this._deleteKiwoomToken();
+        // await this._deleteKiwoomToken();
         await this._getKiwoomTokenSchedule();
       }
     } catch (error) {
