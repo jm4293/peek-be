@@ -109,9 +109,7 @@ const KOSPI_TR_KEY = '0001';
 const KOSDAQ_TR_KEY = '1001';
 
 @WebSocketGateway({
-  cors: {
-    origin: ['http://localhost:3000', 'https://stock.peek.run'],
-  },
+  cors: { origin: ['http://localhost:3000', 'https://stock.peek.run'] },
   namespace: '/kis/korean/index',
 })
 export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -123,9 +121,6 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
   private kisWebSocketToken: string | null = null;
   private kospiIndex = null;
   private kosdaqIndex = null;
-
-  private reconnectAttempts = 0;
-  private readonly MAX_RECONNECT_ATTEMPTS = 5;
 
   constructor(
     private readonly configService: ConfigService,
@@ -140,8 +135,6 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
     if (this.configService.get('NODE_ENV') === 'production') {
       await this._setKisToken();
       await this._connectToKis();
-
-      this.logger.log(`KIS WebSocket token initialized: ${this.kisWebSocketToken}`);
     }
   }
 
@@ -165,12 +158,6 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
     }
 
     this.kisWebSocket.onopen = async () => {
-      if (!this.kisWebSocketToken) {
-        await this._setKisToken();
-      }
-
-      this.reconnectAttempts = 0;
-
       try {
         const messageKOSPI = {
           header: {
@@ -204,8 +191,10 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
 
         this.kisWebSocket.send(JSON.stringify(messageKOSPI));
         this.kisWebSocket.send(JSON.stringify(messageKOSDAQ));
+
+        this.logger.log('웹소켓 KIS 한국 지수 연결 성공');
       } catch (error) {
-        this.logger.error('KIS onopen 핸들러에서 오류 발생:', error);
+        this.logger.error('웹소켓 KIS 한국 지수 연결 실패');
         this.kisWebSocket.close();
       }
     };
@@ -218,6 +207,10 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
 
         if (data) {
           const indexObj = Object.fromEntries(indexKeys.map((key, i) => [key, data[i]]));
+
+          if (+indexObj.bsop_hour > 222222) {
+            return;
+          }
 
           if (indexObj.bstp_cls_code === KOSPI_TR_KEY) {
             this.kospiIndex = indexObj as unknown as ILsIndex;
@@ -237,7 +230,7 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
               unchgjo: indexObj.stnr_issu_cnt,
               lowjo: indexObj.down_issu_cnt,
               downjo: indexObj.lslm_issu_cnt,
-              upjrate: indexObj.qtqt_ascn_issu_cnt,
+              upjrate: null,
               openjisu: indexObj.oprc_nmix,
               opentime: null,
               highjisu: indexObj.nmix_hgpr,
@@ -294,26 +287,16 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
           }
         }
       } catch (error) {
-        this.logger.error('KIS onmessage 핸들러에서 오류 발생:', error);
+        this.logger.error('KIS onmessage 핸들러에서 오류 발생');
       }
     };
 
     this.kisWebSocket.onerror = (error) => {
-      this.logger.error('KIS WebSocket 오류:', error);
+      this.logger.error('KIS WebSocket 오류');
     };
 
     this.kisWebSocket.onclose = (event) => {
-      this.logger.log(`KIS WebSocket 연결 종료: ${event.code} - ${event.reason}`);
-
-      if (this.reconnectAttempts < this.MAX_RECONNECT_ATTEMPTS) {
-        this.reconnectAttempts++;
-
-        setTimeout(() => {
-          this._connectToKis();
-        }, 3000);
-      } else {
-        this.logger.error('KIS WebSocket 최대 재연결 시도 횟수 초과');
-      }
+      this.logger.log(`KIS WebSocket 연결 종료`);
     };
   }
 
@@ -323,9 +306,9 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
 
       this.kisWebSocketToken = ret.token;
 
-      this.logger.log('KIS 토큰 갱신 완료');
+      this.logger.log('웹소켓 KIS 한국 지수 토큰값 불러오기 성공');
     } catch (error) {
-      this.logger.error('KIS 토큰 갱신 실패:', error);
+      this.logger.error('웹소켓 KIS 한국 지수 토큰값 불러오기 실패');
 
       throw error;
     }
@@ -334,11 +317,11 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
   private async _initKoreanIndex() {
     const kospiIndex = await this.stockKoreanIndexHistoryRepository.findOne({
       where: { type: StockKoreanIndexTypeEnum.KOSPI },
-      order: { createdAt: 'DESC' },
+      order: { id: 'DESC' },
     });
     const kosdaqIndex = await this.stockKoreanIndexHistoryRepository.findOne({
       where: { type: StockKoreanIndexTypeEnum.KOSDAQ },
-      order: { createdAt: 'DESC' },
+      order: { id: 'DESC' },
     });
 
     this.kospiIndex = kospiIndex;

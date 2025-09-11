@@ -1,7 +1,7 @@
 import { FindOptionsOrder, Like } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { LIST_LIMIT } from '@peek/constant/list';
@@ -20,7 +20,7 @@ import { UserAccountRepository, UserRepository } from '@database/repositories/us
 import { GetStockCandleDto, GetStockKoreanListDto, GetStockKoreanRankDto } from './dto';
 
 @Injectable()
-export class StockService implements OnModuleInit {
+export class StockService {
   private readonly KiwoomURL = 'https://api.kiwoom.com';
   private KiwoomToken: string | null = null;
 
@@ -39,11 +39,6 @@ export class StockService implements OnModuleInit {
     private readonly userRepository: UserRepository,
     private readonly userAccountRepository: UserAccountRepository,
   ) {}
-
-  async onModuleInit() {
-    // await this._getKiwoomToken();
-    // await this._getLSToken();
-  }
 
   async getStockCategoryList() {
     return await this.stockCategoryRepository.find();
@@ -139,6 +134,20 @@ export class StockService implements OnModuleInit {
     return { data: t1444OutBlock1, total: 100, nextPage: Number(page) + 1 };
   }
 
+  async getStockCandle(code: string, dto: GetStockCandleDto) {
+    const { startDate, endDate, limit = 2000 } = dto;
+
+    const defaultStartDate = new Date();
+    defaultStartDate.setDate(defaultStartDate.getDate() - 5);
+
+    const start = startDate ? new Date(startDate) : defaultStartDate;
+    const end = endDate ? new Date(endDate) : new Date();
+
+    const candleData = await this.stockKoreanIndexHistoryRepository.getCandleData(code, start, end);
+
+    return candleData.slice(-limit);
+  }
+
   private async _getKiwoomToken() {
     const ret = await this.tokenRepository.getOAuthToken(TokenProviderEnum.KIWOOM);
 
@@ -157,19 +166,5 @@ export class StockService implements OnModuleInit {
     }
 
     this.LsWebSocketToken = ret.token;
-  }
-
-  async getStockCandle(code: string, dto: GetStockCandleDto) {
-    const { startDate, endDate, limit = 2000 } = dto;
-
-    const defaultStartDate = new Date();
-    defaultStartDate.setDate(defaultStartDate.getDate() - 5);
-
-    const start = startDate ? new Date(startDate) : defaultStartDate;
-    const end = endDate ? new Date(endDate) : new Date();
-
-    const candleData = await this.stockKoreanIndexHistoryRepository.getCandleData(code, start, end);
-
-    return candleData.slice(-limit);
   }
 }

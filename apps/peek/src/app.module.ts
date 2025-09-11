@@ -55,7 +55,6 @@ import { KisWebSocketModule } from './module/websocket';
     LsScheduleModule,
 
     KisWebSocketModule,
-    // LsWebSocketModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuardConfig }, AppService],
