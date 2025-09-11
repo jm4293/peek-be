@@ -141,11 +141,8 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
   async handleConnection(client: Socket) {
     this.logger.log(`KIS 클라이언트 연결: ${client.id}`);
 
-    console.log('111-kospi', this.kospiIndex);
-    console.log('111-kosdaq', this.kosdaqIndex);
-
-    // client.emit(KOSPI_TR_KEY, this.kospiIndex);
-    // client.emit(KOSDAQ_TR_KEY, this.kosdaqIndex);
+    client.emit(KOSPI_TR_KEY, this.kospiIndex);
+    client.emit(KOSDAQ_TR_KEY, this.kosdaqIndex);
   }
 
   async handleDisconnect(client: Socket) {
@@ -216,8 +213,6 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
           }
 
           if (indexObj.bstp_cls_code === KOSPI_TR_KEY) {
-            this.kospiIndex = indexObj as unknown as ILsIndex;
-
             const convertedIndexObj = {
               type: StockKoreanIndexTypeEnum.KOSPI,
               time: indexObj.bsop_hour,
@@ -247,16 +242,13 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
               upcode: indexObj.bstp_cls_code,
             };
 
-            console.log('222-kospi', convertedIndexObj);
-
+            this.kospiIndex = convertedIndexObj;
             this.server.emit(KOSPI_TR_KEY, convertedIndexObj);
 
             this.stockKoreanIndexHistoryRepository.save(convertedIndexObj);
           }
 
           if (indexObj.bstp_cls_code === KOSDAQ_TR_KEY) {
-            this.kosdaqIndex = indexObj as unknown as ILsIndex;
-
             const convertedIndexObj = {
               type: StockKoreanIndexTypeEnum.KOSDAQ,
               time: indexObj.bsop_hour,
@@ -286,8 +278,7 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
               upcode: indexObj.bstp_cls_code,
             };
 
-            console.log('222-kosdaq', convertedIndexObj);
-
+            this.kosdaqIndex = convertedIndexObj;
             this.server.emit(KOSDAQ_TR_KEY, convertedIndexObj);
 
             this.stockKoreanIndexHistoryRepository.save(convertedIndexObj);
