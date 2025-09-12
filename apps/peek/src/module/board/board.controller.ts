@@ -52,7 +52,7 @@ export class BoardController {
   @Public()
   @Get()
   async getBoardList(@Query() query: GetBoardListDto) {
-    const { boards, total, nextPage } = await this.boardService.getBoardList({ query });
+    const { boards, total, nextPage } = await this.boardService.getBoardList(query);
 
     return {
       boards: boards.map((item) => new Board(item)),

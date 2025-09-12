@@ -55,8 +55,6 @@ export class ImageController {
     @Query('q') quality?: string,
     @Res() res?: Response,
   ) {
-    // http://localhost:42930/image/1755495501074-KR.png?type=THUMBNAIL
-
     if (!type) {
       throw new BadRequestException('이미지 타입이 필요합니다.');
     }

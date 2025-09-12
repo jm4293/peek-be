@@ -66,10 +66,10 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
   ) {}
 
   async onModuleInit() {
-    // if (this.configService.get('NODE_ENV') === 'production') {
-    await this._setKiwoomToken();
-    await this._connectToKiwoom();
-    // }
+    if (this.configService.get('NODE_ENV') === 'production') {
+      await this._setKiwoomToken();
+      await this._connectToKiwoom();
+    }
   }
 
   async handleConnection(client: Socket) {

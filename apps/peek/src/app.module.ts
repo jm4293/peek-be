@@ -18,6 +18,7 @@ import { CurrencyModule } from './module/currency';
 import { EmailVerificationModule } from './module/email-verification';
 import { HomeModule } from './module/home';
 import { ImageModule } from './module/image';
+import { InquiryModule } from './module/inquiry';
 import { NoticeModule } from './module/notice';
 import { CurrencyScheduleModule, KisScheduleModule, KiwoomScheduleModule, LsScheduleModule } from './module/schedule';
 import { StockModule } from './module/stock';
@@ -45,6 +46,7 @@ import { KisWebSocketModule, KiwoomWebSocketModule } from './module/websocket';
     EmailVerificationModule,
     HomeModule,
     ImageModule,
+    InquiryModule,
     NoticeModule,
     StockModule,
     UserModule,
@@ -55,7 +57,7 @@ import { KisWebSocketModule, KiwoomWebSocketModule } from './module/websocket';
     LsScheduleModule,
 
     KisWebSocketModule,
-    // KiwoomWebSocketModule,
+    KiwoomWebSocketModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuardConfig }, AppService],

@@ -91,8 +91,7 @@ export class BoardService {
     return board;
   }
 
-  async getBoardList(params: { query: GetBoardListDto }) {
-    const { query } = params;
+  async getBoardList(query: GetBoardListDto) {
     const { page, category } = query;
 
     const queryBuilder = this.boardRepository
