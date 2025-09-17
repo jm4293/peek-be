@@ -73,7 +73,7 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
   }
 
   async handleConnection(client: Socket) {
-    client.emit('connect', true);
+    client.emit('connected', true);
     this.logger.log(`웹소켓 KIWOOM 한국 주식 클라이언트 연결: ${client.id}`);
   }
 
