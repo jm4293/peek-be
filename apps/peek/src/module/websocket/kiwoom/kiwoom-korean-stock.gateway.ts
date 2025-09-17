@@ -73,12 +73,12 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
   }
 
   async handleConnection(client: Socket) {
+    client.emit('connect', true);
     this.logger.log(`웹소켓 KIWOOM 한국 주식 클라이언트 연결: ${client.id}`);
   }
 
   async handleDisconnect(client: Socket) {
     this.logger.log(`웹소켓 KIWOOM 한국 주식 클라이언트 연결 해제: ${client.id}`);
-    // Socket.IO room 기능을 사용하면 자동으로 room에서 제거됨
   }
 
   @SubscribeMessage('subscribe_stock')
@@ -290,8 +290,6 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
     }
 
     try {
-      // 키움 웹소켓에 종목 구독 해제 요청 (실제 키움 API에 맞게 수정 필요)
-
       const unsubscribeMessage = {
         trnm: 'REMOVE',
         grp_no: '1',
