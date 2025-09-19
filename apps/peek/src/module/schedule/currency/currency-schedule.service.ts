@@ -40,21 +40,24 @@ export class CurrencyScheduleService implements OnModuleInit {
     }
 
     try {
-      const ret = await this.httpService.axiosRef.get<{ cur_unit: string; deal_bas_r: string; cur_nm: string }[]>(
-        `${this.URL}`,
-        {
-          params: {
-            authkey: this.appKey,
-            data: 'AP01',
-          },
+      const ret = await this.httpService.axiosRef.get<
+        { cur_unit: string; deal_bas_r: string; cur_nm: string; result: number }[]
+      >(`${this.URL}`, {
+        params: {
+          authkey: this.appKey,
+          data: 'AP01',
         },
-      );
+      });
 
       const { data } = ret;
 
       const currencyUnits = Object.values(CurrencyUnitEnum).filter((currency) => typeof currency === 'string');
 
       const filtered = data.reduce((acc, cur) => {
+        if (cur.result !== 1) {
+          return acc;
+        }
+
         const currency = currencyUnits.find((currency) => cur.cur_unit.startsWith(currency));
 
         if (currency) {
