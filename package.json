@@ -9,11 +9,11 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
-    "start": "concurrently --names \"PEEK,ADMIN\" -c \"blue,green\" \"nest start peek\" \"nest start peek-admin\"",
-    "start:dev": "concurrently --names \"PEEK,ADMIN\" -c \"blue,green\" \"nest start --watch peek\" \"nest start --watch peek-admin\"",
-    "start:debug": "concurrently --names \"PEEK,ADMIN\" -c \"blue,green\" \"nest start --debug --watch peek\" \"nest start --debug --watch peek-admin\"",
+    "start": "concurrently --names \"PEEK\" -c \"blue\" \"nest start peek\"",
+    "start:dev": "concurrently --names \"PEEK\" -c \"blue\" \"nest start --watch peek\"",
+    "start:debug": "concurrently --names \"PEEK\" -c \"blue\" \"nest start --debug --watch peek\"",
     "start-dev:debug": "concurrently --names \"ADMIN\" -c \"green\" \"nest start --debug --watch peek-admin\"",
-    "start:prod": "concurrently --names \"PEEK,ADMIN\" -c \"blue,green\" \"node dist/apps/peek/main\" \"node dist/apps/peek-admin/main\"",
+    "start:prod": "concurrently --names \"PEEK\" -c \"blue\" \"node dist/apps/peek/main\"",
     "start:peek:dev": "nest start --watch peek",
     "build-rm": "rm -rf dist",
     "node_modules-rm": "rm -rf ./node_modules"
