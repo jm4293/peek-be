@@ -37,6 +37,10 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_12_HOURS, { name: 'stock Token', timeZone: 'Asia/Seoul' })
   private async _getKiwoomTokenSchedule() {
+    if (this.configService.get('NODE_ENV') !== 'production') {
+      return;
+    }
+
     try {
       const ret_oauth = await this.httpService.axiosRef.post<{ token: string; expires_dt: string }>(
         `${this.URL}/oauth2/token`,

@@ -37,6 +37,10 @@ export class LsTokenScheduleService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_12_HOURS, { name: 'stock Token', timeZone: 'Asia/Seoul' })
   private async _getLsTokenSchedule() {
+    if (this.configService.get('NODE_ENV') !== 'production') {
+      return;
+    }
+
     try {
       const ret_oauth = await this.httpService.axiosRef.post<{ access_token: string; expires_in: string }>(
         `${this.URL}/oauth2/token`,

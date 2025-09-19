@@ -28,8 +28,17 @@ export class CurrencyScheduleService implements OnModuleInit {
     }
   }
 
-  @Cron(CronExpression.EVERY_MINUTE, { name: 'currency', timeZone: 'Asia/Seoul' })
+  @Cron(CronExpression.EVERY_5_MINUTES, { name: 'currency', timeZone: 'Asia/Seoul' })
   private async _getCurrencySchedule() {
+    if (!this.appKey) {
+      this.logger.error('CurrencyService _getCurrencySchedule: appKey is null');
+      return;
+    }
+
+    if (this.configService.get('NODE_ENV') !== 'production') {
+      return;
+    }
+
     try {
       const ret = await this.httpService.axiosRef.get<{ cur_unit: string; deal_bas_r: string; cur_nm: string }[]>(
         `${this.URL}`,

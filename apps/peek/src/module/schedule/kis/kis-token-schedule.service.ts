@@ -37,21 +37,9 @@ export class KisTokenScheduleService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_12_HOURS, { name: 'stock Token', timeZone: 'Asia/Seoul' })
   private async _getKisTokenSchedule() {
-    // const ret_socket = await firstValueFrom<AxiosResponse<{ approval_key: string }>>(
-    //   this.httpService.post(`${this.URL}/oauth2/Approval`, {
-    //     grant_type: 'client_credentials',
-    //     appkey: this.configService.get('KIS_APP_KEY'),
-    //     secretkey: this.configService.get('KIS_APP_SECRET'),
-    //   }),
-    // );
-
-    // const ret_oauth = await firstValueFrom<AxiosResponse<{ access_token: string; access_token_token_expired: string }>>(
-    //   this.httpService.post(`${this.URL}/oauth2/tokenP`, {
-    //     grant_type: 'client_credentials',
-    //     appkey: this.configService.get('KIS_APP_KEY'),
-    //     appsecret: this.configService.get('KIS_APP_SECRET'),
-    //   }),
-    // );
+    if (this.configService.get('NODE_ENV') !== 'production') {
+      return;
+    }
 
     try {
       const ret_socket = await this.httpService.axiosRef.post<{ approval_key: string }>(`${this.URL}/oauth2/Approval`, {
