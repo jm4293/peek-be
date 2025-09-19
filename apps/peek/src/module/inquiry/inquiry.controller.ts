@@ -17,9 +17,9 @@ export class InquiryController {
   async getInquiry(@Param() param: GetInquiryDto, @Req() req: Request) {
     const { accountId } = ParseReqHandler.parseReq(req);
 
-    const { id } = param;
+    const { inquiryId } = param;
 
-    const ret = await this.inquiryService.getInquiry(id, accountId);
+    const ret = await this.inquiryService.getInquiry(inquiryId, accountId);
 
     return {
       inquiry: new Inquiry(ret),
@@ -48,17 +48,17 @@ export class InquiryController {
 
   @Put(':inquiryId')
   async updateInquiry(@Param() param: GetInquiryDto, @Body() dto: UpdateInquiryDto, @Req() req: Request) {
-    const { id } = param;
+    const { inquiryId } = param;
     const { accountId } = ParseReqHandler.parseReq(req);
 
-    await this.inquiryService.updateInquiry(dto, id, accountId);
+    await this.inquiryService.updateInquiry(dto, inquiryId, accountId);
   }
 
   @Delete(':inquiryId')
   async deleteInquiry(@Param() param: GetInquiryDto, @Req() req: Request) {
-    const { id } = param;
+    const { inquiryId } = param;
     const { accountId } = ParseReqHandler.parseReq(req);
 
-    await this.inquiryService.deleteInquiry(id, accountId);
+    await this.inquiryService.deleteInquiry(inquiryId, accountId);
   }
 }

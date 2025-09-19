@@ -20,9 +20,9 @@ export class InquiryService {
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
-  async getInquiry(id: number, accountId: number) {
+  async getInquiry(inquiryId: number, accountId: number) {
     const inquiry = await this.inquiryRepository.findOne({
-      where: { id, userAccountId: accountId },
+      where: { id: inquiryId, userAccountId: accountId },
       relations: ['images', 'reply'],
     });
 
@@ -69,19 +69,19 @@ export class InquiryService {
     });
   }
 
-  async updateInquiry(dto: UpdateInquiryDto, id: number, accountId: number) {
+  async updateInquiry(dto: UpdateInquiryDto, inquiryId: number, accountId: number) {
     const { images, ...rest } = dto;
 
-    await this.inquiryRepository.findById(id);
+    await this.inquiryRepository.findById(inquiryId);
 
     await this.dataSource.transaction(async (manager) => {
-      await manager.getRepository(Inquiry).update({ id }, { ...rest });
+      await manager.getRepository(Inquiry).update({ id: inquiryId }, { ...rest });
 
       if (images && images.length > 0) {
-        await manager.getRepository(InquiryImage).delete({ id });
+        await manager.getRepository(InquiryImage).delete({ id: inquiryId });
 
         const inquiryImagesData = images.map((image) => ({
-          id,
+          id: inquiryId,
           image,
         }));
 
@@ -90,11 +90,11 @@ export class InquiryService {
     });
   }
 
-  async deleteInquiry(id: number, accountId: number) {
-    await this.inquiryRepository.findById(id);
+  async deleteInquiry(inquiryId: number, accountId: number) {
+    await this.inquiryRepository.findById(inquiryId);
 
     await this.dataSource.transaction(async (manager) => {
-      await manager.getRepository(Inquiry).update({ id }, { deletedAt: new Date() });
+      await manager.getRepository(Inquiry).update({ id: inquiryId }, { deletedAt: new Date() });
     });
   }
 }

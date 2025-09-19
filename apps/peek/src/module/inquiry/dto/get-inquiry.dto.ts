@@ -5,5 +5,5 @@ export class GetInquiryDto {
   @IsInt()
   @Type(() => Number)
   @IsNotEmpty()
-  id: number;
+  inquiryId: number;
 }
