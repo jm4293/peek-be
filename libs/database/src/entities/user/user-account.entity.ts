@@ -66,11 +66,6 @@ export class UserAccount {
   updatedAt: Date;
 
   @Exclude()
-  @KoreanTime()
-  @DeleteDateColumn({ type: 'timestamp', default: null })
-  deletedAt: Date | null;
-
-  @Exclude()
   @Column()
   userId: number;
 

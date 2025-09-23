@@ -52,11 +52,6 @@ export class User {
   @UpdateDateColumn({ type: 'timestamp', default: null })
   updatedAt: Date;
 
-  @Exclude()
-  @KoreanTime()
-  @DeleteDateColumn({ type: 'timestamp', default: null })
-  deletedAt: Date | null;
-
   @OneToMany(() => UserAccount, (userAccount) => userAccount.user)
   userAccounts: UserAccount[];
 }
