@@ -166,7 +166,7 @@ export class BoardService {
 
     await this.dataSource.transaction(async (manager) => {
       await manager.getRepository(Board).update({ id: boardId }, { deletedAt: new Date() });
-      await manager.getRepository(BoardArticle).update({ boardId }, { deletedAt: new Date() });
+      // await manager.getRepository(BoardArticle).update({ boardId }, { deletedAt: new Date() });
     });
   }
 
@@ -241,12 +241,14 @@ export class BoardService {
     await this.boardCommentRepository.save(comment);
 
     if (!commentId) {
-      await this.notificationHandler.sendPushNotification({
-        pushToken: userPushToken.pushToken,
-        message: content,
-        userNotificationType: UserNotificationTypeEnum.BOARD_COMMENT,
-        accountId: board.userAccountId,
-      });
+      if (userPushToken) {
+        await this.notificationHandler.sendPushNotification({
+          pushToken: userPushToken.pushToken,
+          message: content,
+          userNotificationType: UserNotificationTypeEnum.BOARD_COMMENT,
+          accountId: board.userAccountId,
+        });
+      }
     }
   }
 

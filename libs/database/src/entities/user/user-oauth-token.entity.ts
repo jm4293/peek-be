@@ -1,6 +1,8 @@
-import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
 
 import { UserAccountTypeEnum } from '@constant/enum/user';
+
+import { KoreanTime } from '@database/decorators';
 
 import { UserAccount } from './user-account.entity';
 
@@ -30,4 +32,8 @@ export class UserOauthToken {
   @OneToOne(() => UserAccount, (userAccount) => userAccount.userOauthToken)
   @JoinColumn({ name: 'userAccountId', referencedColumnName: 'id' })
   userAccount: UserAccount;
+
+  @KoreanTime()
+  @CreateDateColumn({ type: 'timestamp' })
+  createdAt: Date;
 }

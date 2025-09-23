@@ -38,11 +38,6 @@ export class UserVisit {
   createdAt: Date;
 
   @Exclude()
-  @KoreanTime()
-  @UpdateDateColumn({ type: 'timestamp' })
-  updatedAt: Date;
-
-  @Exclude()
   @Column()
   userAccountId: number;
 

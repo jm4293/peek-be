@@ -22,6 +22,7 @@ import { Notice } from '../notice';
 import { UserNotification } from './user-notification.entity';
 import { UserOauthToken } from './user-oauth-token.entity';
 import { UserPushToken } from './user-push-token.entity';
+import { UserStockFavorite } from './user-stock-favorite.entity';
 import { UserVisit } from './user-visit.entity';
 import { User } from './user.entity';
 
@@ -61,7 +62,7 @@ export class UserAccount {
 
   @Exclude()
   @KoreanTime()
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ type: 'timestamp', default: null })
   updatedAt: Date;
 
   @Exclude()
@@ -103,4 +104,7 @@ export class UserAccount {
 
   @OneToMany(() => Inquiry, (inquiry) => inquiry.userAccount)
   inquiries: Inquiry[];
+
+  @OneToMany(() => UserStockFavorite, (userStockFavorite) => userStockFavorite.userAccount)
+  userStockFavorites: UserStockFavorite[];
 }

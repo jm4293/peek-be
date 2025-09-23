@@ -36,7 +36,7 @@ export class BoardComment {
 
   @Exclude()
   @KoreanTime()
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ type: 'timestamp', default: null })
   updatedAt: Date;
 
   @KoreanTime()

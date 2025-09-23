@@ -26,6 +26,6 @@ export class Token {
   createdAt: Date;
 
   @KoreanTime()
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ type: 'timestamp', default: null })
   updatedAt: Date;
 }

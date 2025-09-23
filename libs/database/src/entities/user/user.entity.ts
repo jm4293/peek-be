@@ -49,7 +49,7 @@ export class User {
 
   @Exclude()
   @KoreanTime()
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ type: 'timestamp', default: null })
   updatedAt: Date;
 
   @Exclude()

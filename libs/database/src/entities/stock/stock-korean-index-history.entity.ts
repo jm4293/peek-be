@@ -90,8 +90,4 @@ export class StockKoreanIndexHistory {
   @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
-
-  @KoreanTime()
-  @UpdateDateColumn({ type: 'timestamp' })
-  updatedAt: Date;
 }

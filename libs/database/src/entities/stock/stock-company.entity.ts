@@ -5,12 +5,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 import { KoreanTime } from '@database/decorators';
 
+import { UserStockFavorite } from '../user';
 import { StockCategory } from './stock-category.entity';
 
 @Entity()
@@ -44,7 +46,7 @@ export class StockCompany {
   createdAt: Date;
 
   @KoreanTime()
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ type: 'timestamp', default: null })
   updatedAt: Date;
 
   @Exclude()
@@ -54,4 +56,7 @@ export class StockCompany {
   @ManyToOne(() => StockCategory, (stockCategory) => stockCategory.stockCompanies)
   @JoinColumn({ name: 'stockCategoryId' })
   category: StockCategory;
+
+  @OneToMany(() => UserStockFavorite, (userStockFavorite) => userStockFavorite.stockCompany)
+  userStockFavorites: UserStockFavorite[];
 }

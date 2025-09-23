@@ -38,11 +38,6 @@ export class UserNotification {
 
   @Exclude()
   @KoreanTime()
-  @UpdateDateColumn({ type: 'timestamp' })
-  updatedAt: Date;
-
-  @Exclude()
-  @KoreanTime()
   @DeleteDateColumn({ type: 'timestamp', default: null })
   deletedAt: Date | null;
 

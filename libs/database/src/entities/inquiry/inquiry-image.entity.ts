@@ -27,11 +27,6 @@ export class InquiryImage {
   createdAt: Date;
 
   @Exclude()
-  @KoreanTime()
-  @UpdateDateColumn({ type: 'timestamp' })
-  updatedAt: Date;
-
-  @Exclude()
   @Column()
   inquiryId: number;
 
