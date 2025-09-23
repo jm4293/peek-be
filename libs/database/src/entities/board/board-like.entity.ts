@@ -1,5 +1,7 @@
 import { Exclude } from 'class-transformer';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+
+import { KoreanTime } from '@database/decorators';
 
 import { UserAccount } from '../user';
 import { Board } from './board.entity';
@@ -28,4 +30,8 @@ export class BoardLike {
   @ManyToOne(() => UserAccount, (userAccount) => userAccount.boardLikes, { nullable: true })
   @JoinColumn({ name: 'userAccountId' })
   userAccount: UserAccount | null;
+
+  @KoreanTime()
+  @CreateDateColumn({ type: 'timestamp' })
+  createdAt: Date;
 }
