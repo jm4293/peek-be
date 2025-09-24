@@ -92,9 +92,6 @@ export class InquiryService {
 
   async deleteInquiry(inquiryId: number, accountId: number) {
     await this.inquiryRepository.findById(inquiryId);
-
-    await this.dataSource.transaction(async (manager) => {
-      await manager.getRepository(Inquiry).update({ id: inquiryId }, { deletedAt: new Date() });
-    });
+    await this.inquiryRepository.delete({ id: inquiryId });
   }
 }

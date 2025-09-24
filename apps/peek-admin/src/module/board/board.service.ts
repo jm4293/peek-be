@@ -43,9 +43,9 @@ export class BoardService {
     await this.boardRepository.findById(boardId);
 
     await this.dataSource.transaction(async (manager) => {
-      await manager.getRepository(Board).update({ id: boardId }, { deletedAt: new Date() });
+      // await manager.getRepository(Board).update({ id: boardId }, { deletedAt: new Date() });
       // await manager.getRepository(BoardArticle).update({ boardId }, { deletedAt: new Date() });
-      await manager.getRepository(BoardComment).update({ boardId }, { deletedAt: new Date() });
+      // await manager.getRepository(BoardComment).update({ boardId }, { deletedAt: new Date() });
     });
   }
 }

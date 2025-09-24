@@ -14,7 +14,7 @@ import { BcryptHandler } from '@peek/handler/bcrypt';
 import { UserAccountStatusEnum, UserAccountTypeEnum } from '@constant/enum/user';
 
 import { Board, BoardComment } from '@database/entities/board';
-import { User, UserAccount, UserNotification, UserPushToken } from '@database/entities/user';
+import { User, UserAccount, UserNotification, UserOauthToken, UserPushToken, UserVisit } from '@database/entities/user';
 import {
   UserAccountRepository,
   UserNotificationRepository,
@@ -166,76 +166,70 @@ export class UserService {
     const oauthToken = await this.userOauthTokenRepository.findOne({ where: { userAccountId: accountId } });
 
     try {
+      await this.dataSource.transaction(async (manager) => {
+        await manager.query(
+          'DELETE FROM board_comment WHERE boardId IN (SELECT id FROM board WHERE userAccountId = ?)',
+          [accountId],
+        );
+        await manager.query(
+          'DELETE FROM board_article WHERE boardId IN (SELECT id FROM board WHERE userAccountId = ?)',
+          [accountId],
+        );
+        await manager.delete(Board, { userAccountId: accountId });
+        await manager.delete(UserVisit, { userAccountId: accountId });
+        await manager.delete(UserOauthToken, { userAccountId: accountId });
+        await manager.delete(UserPushToken, { userAccountId: accountId });
+        await manager.delete(UserNotification, { userAccountId: accountId });
+
+        await manager.delete(UserAccount, { id: accountId });
+
+        if (accountList.length === 1) {
+          const account = accountList[0];
+
+          await manager.delete(User, { id: account.userId });
+        }
+      });
+
       if (oauthToken) {
         const { tokenType, accessToken } = oauthToken;
 
         switch (userAccountType) {
           case UserAccountTypeEnum.GOOGLE: {
-            const ret = await firstValueFrom(
-              this.httpService.post(`https://oauth2.googleapis.com/revoke?token=${accessToken}`).pipe(
-                catchError((error) => {
-                  throw new BadRequestException(`구글 회원 탈퇴에 실패했습니다: ${error.message}`);
-                }),
-              ),
-            );
+            const URL = 'https://oauth2.googleapis.com/revoke';
+
+            await this.httpService.axiosRef.post(`${URL}?token=${accessToken}`);
 
             break;
           }
           case UserAccountTypeEnum.KAKAO: {
-            const user = await firstValueFrom(
-              this.httpService
-                .get<{
-                  id: string;
-                }>(
-                  `https://kapi.kakao.com/v2/user/me?secure_resource=${this.configService.get('NODE_ENV') === 'production' ? 'true' : 'false'}`,
-                  {
-                    headers: {
-                      Authorization: `${tokenType} ${accessToken}`,
-                      'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
-                    },
-                  },
-                )
-                .pipe(
-                  catchError((error) => {
-                    throw new BadRequestException(`카카오 회원 탈퇴에 실패했습니다: ${error.message}`);
-                  }),
-                ),
+            const URL_ME = 'https://kapi.kakao.com/v2/user/me';
+            const URL = 'https://kapi.kakao.com/v1/user/unlink';
+
+            const user = await this.httpService.axiosRef.get<{ id: string }>(
+              `${URL_ME}?secure_resource=${this.configService.get('NODE_ENV') === 'production' ? 'true' : 'false'}`,
+              {
+                headers: {
+                  Authorization: `${tokenType} ${accessToken}`,
+                  'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+                },
+              },
             );
 
-            await firstValueFrom(
-              this.httpService
-                .post(
-                  'https://kapi.kakao.com/v1/user/unlink',
-                  {
-                    target_id_type: 'user_id',
-                    target_id: user.data.id,
-                  },
-                  {
-                    headers: {
-                      Authorization: `${tokenType} ${accessToken}`,
-                    },
-                  },
-                )
-                .pipe(
-                  catchError((error) => {
-                    throw new BadRequestException(`카카오 회원 탈퇴에 실패했습니다: ${error.message}`);
-                  }),
-                ),
+            await this.httpService.axiosRef.post(
+              URL,
+              { target_id_type: 'user_id', target_id: user.data.id },
+              { headers: { Authorization: `${tokenType} ${accessToken}` } },
             );
 
             break;
           }
           case UserAccountTypeEnum.NAVER: {
-            const ret = await firstValueFrom(
-              this.httpService
-                .post(
-                  `https://nid.naver.com/oauth2.0/token?grant_type=delete&client_id=${this.configService.get('NAVER_CLIENT_ID')}&client_secret=${this.configService.get('NAVER_CLIENT_SECRET')}&access_token=${encodeURIComponent(accessToken)}&service_provider=NAVER`,
-                )
-                .pipe(
-                  catchError((error) => {
-                    throw new BadRequestException(`네이버 회원 탈퇴에 실패했습니다: ${error.message}`);
-                  }),
-                ),
+            const URL = 'https://nid.naver.com/oauth2.0/token';
+
+            await this.httpService.axiosRef.post(
+              `${URL}?grant_type=delete&client_id=${this.configService.get('NAVER_CLIENT_ID')}&client_secret=${this.configService.get(
+                'NAVER_CLIENT_SECRET',
+              )}&access_token=${encodeURIComponent(accessToken)}&service_provider=NAVER`,
             );
 
             break;
@@ -244,45 +238,9 @@ export class UserService {
             break;
           }
         }
-
-        await this.userOauthTokenRepository.delete({ userAccountId: accountId });
       }
-
-      await this.dataSource.transaction(async (manager) => {
-        await manager.update(Board, { userAccountId: accountId }, { deletedAt: new Date() });
-        await manager.update(BoardComment, { userAccountId: accountId }, { deletedAt: new Date() });
-        await manager.update(
-          UserAccount,
-          { id: accountId },
-          {
-            password: null,
-            refreshToken: null,
-            status: UserAccountStatusEnum.DELETE,
-            deletedAt: new Date(),
-          },
-        );
-
-        if (accountList.length === 1) {
-          const account = accountList[0];
-
-          await manager.delete(UserNotification, { userId: account.userId });
-          await manager.delete(UserPushToken, { userId: account.userId });
-          await manager.update(
-            User,
-            { id: account.userId },
-            {
-              nickname: null,
-              name: null,
-              birthday: null,
-              thumbnail: null,
-              deletedAt: new Date(),
-            },
-          );
-        }
-      });
-
-      console.info('회원 탈퇴이 완료되었습니다:', accountId);
     } catch (error) {
+      console.error('UserService deleteUser error:', error);
       throw new BadRequestException('회원 탈퇴에 실패했습니다. 다시 시도해주세요.');
     }
   }
@@ -290,18 +248,14 @@ export class UserService {
   async registerPushToken(params: { dto: RegisterUserPushTokenDto; accountId: number; platform: string }) {
     const { dto, accountId, platform } = params;
     const { pushToken } = dto;
-    // const { userSeq } = req.user;
-    // const { 'sec-ch-ua-platform': platform } = req.headers;
-
-    // const user = await this.userRepository.findByUserSeq(userSeq);
 
     const userPushToken = await this.userPushTokenRepository.findOne({ where: { userAccountId: accountId } });
 
     if (userPushToken) {
-      userPushToken.pushToken = pushToken;
-      userPushToken.deviceNo = String(platform);
-
-      await this.userPushTokenRepository.save(userPushToken);
+      await this.userPushTokenRepository.update(userPushToken.id, {
+        pushToken: pushToken,
+        deviceNo: String(platform),
+      });
     } else {
       await this.userPushTokenRepository.save({ pushToken, deviceNo: String(platform), userAccountId: accountId });
     }

@@ -10,7 +10,7 @@ import { NotificationHandler } from '@peek/handler/notification';
 import { BoardTypeEnum } from '@constant/enum/board';
 import { UserNotificationTypeEnum } from '@constant/enum/user';
 
-import { Board, BoardArticle, BoardComment } from '@database/entities/board';
+import { Board, BoardArticle, BoardComment, BoardLike } from '@database/entities/board';
 import {
   BoardArticleRepository,
   BoardCommentRepository,
@@ -62,7 +62,7 @@ export class BoardService {
         qb.andWhere('comments.parentCommentId IS NULL'),
       )
       .loadRelationCountAndMap('board.likeCount', 'board.likes')
-      .where('board.deletedAt IS NULL')
+      // .where('board.deletedAt IS NULL')
       .andWhere('board.userAccountId = :accountId', { accountId })
       .orderBy('board.createdAt', 'DESC')
       .skip((page - 1) * LIST_LIMIT)
@@ -78,7 +78,7 @@ export class BoardService {
 
   async getBoardDetail(boardId: number) {
     const board = await this.boardRepository.findOne({
-      where: { id: boardId, deletedAt: null },
+      where: { id: boardId },
       relations: ['category', 'userAccount', 'userAccount.user', 'article'],
     });
 
@@ -103,7 +103,7 @@ export class BoardService {
         qb.andWhere('comments.parentCommentId IS NULL'),
       )
       .loadRelationCountAndMap('board.likeCount', 'board.likes')
-      .where('board.deletedAt IS NULL')
+      // .where('board.deletedAt IS NULL')
       .orderBy('board.createdAt', 'DESC')
       .skip((page - 1) * LIST_LIMIT)
       .take(LIST_LIMIT);
@@ -123,9 +123,6 @@ export class BoardService {
   async createBoard(params: { dto: CreateBoardDto; accountId: number }) {
     const { dto, accountId } = params;
     const { categoryId, title, content } = dto;
-
-    // await this.userAccountRepository.findById(accountId);
-    // await this.stockCategoryRepository.findById(categoryId);
 
     await this.dataSource.transaction(async (manager) => {
       const board = manager.getRepository(Board).create({
@@ -165,8 +162,10 @@ export class BoardService {
     await this._checkBoard({ accountId, boardId });
 
     await this.dataSource.transaction(async (manager) => {
-      await manager.getRepository(Board).update({ id: boardId }, { deletedAt: new Date() });
-      // await manager.getRepository(BoardArticle).update({ boardId }, { deletedAt: new Date() });
+      await manager.getRepository(BoardLike).delete({ boardId });
+      await manager.getRepository(BoardComment).delete({ boardId });
+      await manager.getRepository(BoardArticle).delete({ boardId });
+      await manager.getRepository(Board).delete({ id: boardId });
     });
   }
 
@@ -182,14 +181,12 @@ export class BoardService {
       // .leftJoinAndSelect('boardComment.userAccount', 'userAccount')
       // .leftJoinAndSelect('userAccount.user', 'user')
       .where('boardComment.userAccountId = :accountId', { accountId })
-      .andWhere('boardComment.deletedAt IS NULL')
+      // .andWhere('boardComment.deletedAt IS NULL')
       .orderBy('boardComment.createdAt', 'DESC')
       .skip((page - 1) * LIST_LIMIT)
       .take(LIST_LIMIT);
 
     const [boardComments, total] = await queryBuilder.getManyAndCount();
-
-    // const nestedComments = this._nestComments(boardComments);
 
     const hasNextPage = page * LIST_LIMIT < total;
     const nextPage = hasNextPage ? Number(page) + 1 : null;
@@ -200,8 +197,6 @@ export class BoardService {
   async getBoardCommentList(params: { boardId: number; query: GetBoardCommentListDto }) {
     const { boardId, query } = params;
     const { page } = query;
-
-    // await this.boardRepository.findById(boardId);
 
     const queryBuilder = this.boardCommentRepository
       .createQueryBuilder('boardComment')
@@ -261,8 +256,6 @@ export class BoardService {
     const { boardId, boardCommentId, accountId, dto } = params;
     const { content } = dto;
 
-    // await this.userAccountRepository.findById(accountId);
-    // await this.boardRepository.findById(boardId);
     const comment = await this.boardCommentRepository.findById(boardCommentId);
 
     if (comment.userAccount.id !== accountId) {
@@ -274,9 +267,6 @@ export class BoardService {
 
   async deleteBoardComment(params: { boardId: number; boardCommentId: number; accountId: number }) {
     const { boardId, boardCommentId, accountId } = params;
-
-    // await this.userAccountRepository.findById(accountId);
-    // await this.boardRepository.findById(boardId);
 
     const comment = await this.boardCommentRepository.findById(boardCommentId);
 
@@ -292,7 +282,7 @@ export class BoardService {
       throw new BadRequestException('하위 댓글이 있는 댓글은 삭제할 수 없습니다.');
     }
 
-    await this.boardCommentRepository.update({ id: boardCommentId }, { deletedAt: new Date() });
+    await this.boardCommentRepository.delete({ id: boardCommentId });
   }
 
   // 게시판 좋아요(찜)
@@ -322,7 +312,7 @@ export class BoardService {
     await this.userAccountRepository.findById(accountId);
 
     const board = await this.boardRepository.findOne({
-      where: { id: boardId, deletedAt: null },
+      where: { id: boardId },
       relations: ['userAccount'],
     });
 

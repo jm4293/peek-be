@@ -148,16 +148,7 @@ export class AuthService {
     const { req, accountId } = params;
 
     await this.userAccountRepository.update({ id: accountId }, { refreshToken: null });
-    await this.userOauthTokenRepository.update(
-      { userAccountId: accountId },
-      {
-        tokenType: null,
-        accessToken: null,
-        accessTokenExpire: null,
-        refreshToken: null,
-        refreshTokenExpire: null,
-      },
-    );
+    await this.userOauthTokenRepository.delete({ userAccountId: accountId });
 
     await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_OUT, userAccountId: accountId });
   }
@@ -421,8 +412,6 @@ export class AuthService {
 
     // 계정이 있는 경우 로그인으로 진행
     if (oauthAccount) {
-      // await this.userRepository.update({ id: oauthAccount.user.id }, { nickname, name });
-
       await this._oauthTokenSave({
         accountId: oauthAccount.id,
         accountType: type,
