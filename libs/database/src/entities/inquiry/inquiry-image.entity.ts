@@ -15,7 +15,6 @@ import { Inquiry } from './inquiry.entity';
 
 @Entity()
 export class InquiryImage {
-  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 

@@ -2,7 +2,6 @@ import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -34,7 +33,6 @@ export class UserAccount {
     }
   }
 
-  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 

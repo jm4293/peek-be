@@ -17,7 +17,6 @@ import { UserAccount } from './user-account.entity';
 
 @Entity()
 export class UserVisit {
-  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 

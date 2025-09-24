@@ -2,7 +2,6 @@ import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -48,8 +47,8 @@ export class Board {
 
   @Exclude()
   @KoreanTime()
-  @DeleteDateColumn({ type: 'timestamp', default: null })
-  deletedAt: Date | null;
+  @UpdateDateColumn({ type: 'timestamp', default: null })
+  updatedAt: Date;
 
   @Exclude()
   @Column()

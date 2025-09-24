@@ -1,13 +1,5 @@
 import { Exclude } from 'class-transformer';
-import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { UserTypeEnum } from '@constant/enum/user';
 
@@ -19,7 +11,6 @@ import { UserPushToken } from './user-push-token.entity';
 
 @Entity()
 export class User {
-  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 

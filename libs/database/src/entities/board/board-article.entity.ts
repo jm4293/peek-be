@@ -2,7 +2,6 @@ import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   JoinColumn,
   OneToOne,
@@ -16,7 +15,6 @@ import { Board } from './board.entity';
 
 @Entity()
 export class BoardArticle {
-  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 

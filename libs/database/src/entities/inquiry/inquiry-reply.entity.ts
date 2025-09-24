@@ -15,7 +15,6 @@ import { Inquiry } from './inquiry.entity';
 
 @Entity()
 export class InquiryReply {
-  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 

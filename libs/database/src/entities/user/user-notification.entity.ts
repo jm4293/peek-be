@@ -1,14 +1,5 @@
 import { Exclude } from 'class-transformer';
-import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { UserNotificationTypeEnum } from '@constant/enum/user';
 
@@ -18,11 +9,9 @@ import { UserAccount } from './user-account.entity';
 
 @Entity()
 export class UserNotification {
-  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Exclude()
   @Column({ type: 'enum', enum: UserNotificationTypeEnum })
   userNotificationType: UserNotificationTypeEnum;
 
@@ -35,11 +24,6 @@ export class UserNotification {
   @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
-
-  @Exclude()
-  @KoreanTime()
-  @DeleteDateColumn({ type: 'timestamp', default: null })
-  deletedAt: Date | null;
 
   @Exclude()
   @Column()

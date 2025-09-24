@@ -17,7 +17,6 @@ import { User } from './user.entity';
 
 @Entity()
 export class UserPushToken {
-  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 
