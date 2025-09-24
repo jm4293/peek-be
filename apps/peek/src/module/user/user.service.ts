@@ -1,6 +1,5 @@
 import { Cache } from 'cache-manager';
 import { Request } from 'express';
-import { catchError, firstValueFrom } from 'rxjs';
 import { DataSource } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
@@ -11,9 +10,11 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { BcryptHandler } from '@peek/handler/bcrypt';
 
-import { UserAccountStatusEnum, UserAccountTypeEnum } from '@constant/enum/user';
+import { UserAccountTypeEnum } from '@constant/enum/user';
 
-import { Board, BoardComment } from '@database/entities/board';
+import { Board } from '@database/entities/board';
+import { Inquiry } from '@database/entities/inquiry';
+import { Notice } from '@database/entities/notice';
 import { User, UserAccount, UserNotification, UserOauthToken, UserPushToken, UserVisit } from '@database/entities/user';
 import {
   UserAccountRepository,
@@ -176,11 +177,23 @@ export class UserService {
           [accountId],
         );
         await manager.delete(Board, { userAccountId: accountId });
+
+        await manager.query(
+          'DELETE FROM inquiry_reply WHERE inquiryId IN (SELECT id FROM inquiry WHERE userAccountId = ?)',
+          [accountId],
+        );
+        await manager.query(
+          'DELETE FROM inquiry_image WHERE inquiryId IN (SELECT id FROM inquiry WHERE userAccountId = ?)',
+          [accountId],
+        );
+        await manager.delete(Inquiry, { userAccountId: accountId });
+
+        await manager.delete(Notice, { userAccountId: accountId });
+
         await manager.delete(UserVisit, { userAccountId: accountId });
         await manager.delete(UserOauthToken, { userAccountId: accountId });
         await manager.delete(UserPushToken, { userAccountId: accountId });
         await manager.delete(UserNotification, { userAccountId: accountId });
-
         await manager.delete(UserAccount, { id: accountId });
 
         if (accountList.length === 1) {
