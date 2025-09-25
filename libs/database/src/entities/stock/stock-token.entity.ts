@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
@@ -25,6 +26,7 @@ export class StockToken {
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
+  @Exclude()
   @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp', default: null })
   updatedAt: Date;

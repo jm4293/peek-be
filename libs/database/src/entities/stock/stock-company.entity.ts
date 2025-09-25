@@ -41,10 +41,12 @@ export class StockCompany {
   @Column({ type: 'varchar', nullable: true })
   listingAt: string;
 
+  @Exclude()
   @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
+  @Exclude()
   @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp', default: null })
   updatedAt: Date;

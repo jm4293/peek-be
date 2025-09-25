@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 import { KoreanTime } from '@database/decorators';
@@ -13,9 +14,11 @@ export class UserStockFavorite {
     }
   }
 
+  @Exclude()
   @PrimaryColumn()
   userAccountId: number;
 
+  @Exclude()
   @PrimaryColumn()
   stockCompanyId: number;
 
