@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 
-import { TokenRepository } from '@database/repositories/token';
+import { StockTokenRepository } from '@database/repositories/stock';
 
 import { KiwoomKoreanStockGateway } from './kiwoom-korean-stock.gateway';
 
 @Module({
   imports: [],
   controllers: [],
-  providers: [KiwoomKoreanStockGateway, TokenRepository],
+  providers: [KiwoomKoreanStockGateway, StockTokenRepository],
   exports: [],
 })
 export class KiwoomWebSocketModule {}

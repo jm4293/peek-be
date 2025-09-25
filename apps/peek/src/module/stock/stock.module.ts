@@ -5,15 +5,16 @@ import {
   StockCategoryRepository,
   StockCompanyRepository,
   StockKoreanIndexHistoryRepository,
+  StockTokenRepository,
 } from '@database/repositories/stock';
-import { TokenRepository } from '@database/repositories/token';
 import { UserAccountRepository, UserRepository } from '@database/repositories/user';
 
+import { UserModule } from '../user';
 import { StockController } from './stock.controller';
 import { StockService } from './stock.service';
 
 @Module({
-  imports: [HttpModule],
+  imports: [HttpModule, UserModule],
   controllers: [StockController],
   providers: [
     StockService,
@@ -21,8 +22,7 @@ import { StockService } from './stock.service';
     StockCategoryRepository,
     StockCompanyRepository,
     StockKoreanIndexHistoryRepository,
-
-    TokenRepository,
+    StockTokenRepository,
 
     UserRepository,
     UserAccountRepository,

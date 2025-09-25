@@ -8,8 +8,7 @@ import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketSe
 import { StockKoreanIndexTypeEnum } from '@constant/enum/stock';
 import { TokenProviderEnum } from '@constant/enum/token';
 
-import { StockKoreanIndexHistoryRepository } from '@database/repositories/stock';
-import { TokenRepository } from '@database/repositories/token';
+import { StockKoreanIndexHistoryRepository, StockTokenRepository } from '@database/repositories/stock';
 
 interface ILsIndex {
   time: string; // 시간
@@ -125,7 +124,7 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
   constructor(
     private readonly configService: ConfigService,
 
-    private readonly tokenRepository: TokenRepository,
+    private readonly stockTokenRepository: StockTokenRepository,
     private readonly stockKoreanIndexHistoryRepository: StockKoreanIndexHistoryRepository,
   ) {}
 
@@ -301,7 +300,7 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
 
   private async _setKisToken() {
     try {
-      const ret = await this.tokenRepository.getSocketToken(TokenProviderEnum.KIS);
+      const ret = await this.stockTokenRepository.getSocketToken(TokenProviderEnum.KIS);
 
       this.kisWebSocketToken = ret.token;
 

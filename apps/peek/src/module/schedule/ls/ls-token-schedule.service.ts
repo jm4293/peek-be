@@ -8,7 +8,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
-import { TokenRepository } from '@database/repositories/token';
+import { StockTokenRepository } from '@database/repositories/stock';
 
 @Injectable()
 export class LsTokenScheduleService implements OnModuleInit {
@@ -19,7 +19,7 @@ export class LsTokenScheduleService implements OnModuleInit {
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
 
-    private readonly tokenRepository: TokenRepository,
+    private readonly stockTokenRepository: StockTokenRepository,
 
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
@@ -57,7 +57,7 @@ export class LsTokenScheduleService implements OnModuleInit {
         },
       );
 
-      await this.tokenRepository.update(
+      await this.stockTokenRepository.update(
         { provider: TokenProviderEnum.LS, type: TokenTypeEnum.OAUTH },
         { token: ret_oauth.data.access_token, expire: ret_oauth.data.expires_in },
       );
@@ -69,7 +69,7 @@ export class LsTokenScheduleService implements OnModuleInit {
   }
 
   private async _deleteLsToken() {
-    const ret = await this.tokenRepository.findOne({
+    const ret = await this.stockTokenRepository.findOne({
       where: { provider: TokenProviderEnum.LS, type: TokenTypeEnum.OAUTH },
     });
 

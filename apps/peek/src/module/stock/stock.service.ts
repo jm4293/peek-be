@@ -13,8 +13,8 @@ import {
   StockCategoryRepository,
   StockCompanyRepository,
   StockKoreanIndexHistoryRepository,
+  StockTokenRepository,
 } from '@database/repositories/stock';
-import { TokenRepository } from '@database/repositories/token';
 import { UserAccountRepository, UserRepository } from '@database/repositories/user';
 
 import { GetStockCandleDto, GetStockKoreanListDto, GetStockKoreanRankDto } from './dto';
@@ -35,7 +35,7 @@ export class StockService implements OnModuleInit {
     private readonly stockRepository: StockCompanyRepository,
     private readonly stockKoreanIndexHistoryRepository: StockKoreanIndexHistoryRepository,
 
-    private readonly tokenRepository: TokenRepository,
+    private readonly stockTokenRepository: StockTokenRepository,
     private readonly userRepository: UserRepository,
     private readonly userAccountRepository: UserAccountRepository,
   ) {}
@@ -152,7 +152,7 @@ export class StockService implements OnModuleInit {
   }
 
   private async _getKiwoomToken() {
-    const ret = await this.tokenRepository.getOAuthToken(TokenProviderEnum.KIWOOM);
+    const ret = await this.stockTokenRepository.getOAuthToken(TokenProviderEnum.KIWOOM);
 
     if (!ret) {
       throw new Error('Kiwoom token이 존재하지 않습니다.');
@@ -162,7 +162,7 @@ export class StockService implements OnModuleInit {
   }
 
   private async _getLSToken() {
-    const ret = await this.tokenRepository.getOAuthToken(TokenProviderEnum.LS);
+    const ret = await this.stockTokenRepository.getOAuthToken(TokenProviderEnum.LS);
 
     if (!ret) {
       throw new Error('Ls token이 존재하지 않습니다.');

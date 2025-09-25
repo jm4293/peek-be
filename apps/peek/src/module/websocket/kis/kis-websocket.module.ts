@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
 
-import { StockKoreanIndexHistoryRepository } from '@database/repositories/stock';
-import { TokenRepository } from '@database/repositories/token';
+import { StockKoreanIndexHistoryRepository, StockTokenRepository } from '@database/repositories/stock';
 
 import { KisKoreanIndexGateway } from './kis-korean-index.gateway';
 
 @Module({
   imports: [],
   controllers: [],
-  providers: [KisKoreanIndexGateway, TokenRepository, StockKoreanIndexHistoryRepository],
+  providers: [KisKoreanIndexGateway, StockTokenRepository, StockKoreanIndexHistoryRepository],
   exports: [],
 })
 export class KisWebSocketModule {}

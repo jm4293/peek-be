@@ -8,7 +8,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
-import { TokenRepository } from '@database/repositories/token';
+import { StockTokenRepository } from '@database/repositories/stock';
 
 @Injectable()
 export class KiwoomTokenScheduleService implements OnModuleInit {
@@ -19,7 +19,7 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
 
-    private readonly tokenRepository: TokenRepository,
+    private readonly stockTokenRepository: StockTokenRepository,
 
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
@@ -51,7 +51,7 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
         },
       );
 
-      await this.tokenRepository.update(
+      await this.stockTokenRepository.update(
         { provider: TokenProviderEnum.KIWOOM, type: TokenTypeEnum.OAUTH },
         { token: ret_oauth.data.token, expire: ret_oauth.data.expires_dt },
       );
@@ -63,7 +63,7 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
   }
 
   private async _deleteKiwoomToken() {
-    const ret = await this.tokenRepository.findOne({
+    const ret = await this.stockTokenRepository.findOne({
       where: { provider: TokenProviderEnum.KIWOOM, type: TokenTypeEnum.OAUTH },
     });
 

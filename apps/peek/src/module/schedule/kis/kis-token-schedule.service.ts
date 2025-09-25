@@ -8,7 +8,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
-import { TokenRepository } from '@database/repositories/token';
+import { StockTokenRepository } from '@database/repositories/stock';
 
 @Injectable()
 export class KisTokenScheduleService implements OnModuleInit {
@@ -19,7 +19,7 @@ export class KisTokenScheduleService implements OnModuleInit {
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
 
-    private readonly tokenRepository: TokenRepository,
+    private readonly stockTokenRepository: StockTokenRepository,
 
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
@@ -48,7 +48,7 @@ export class KisTokenScheduleService implements OnModuleInit {
         secretkey: this.configService.get('KIS_APP_SECRET'),
       });
 
-      await this.tokenRepository.update(
+      await this.stockTokenRepository.update(
         { provider: TokenProviderEnum.KIS, type: TokenTypeEnum.SOCKET },
         { token: ret_socket.data.approval_key },
       );
@@ -60,7 +60,7 @@ export class KisTokenScheduleService implements OnModuleInit {
   }
 
   private async _deleteKisToken() {
-    const ret = await this.tokenRepository.findOne({
+    const ret = await this.stockTokenRepository.findOne({
       where: { provider: TokenProviderEnum.KIS, type: TokenTypeEnum.OAUTH },
     });
 

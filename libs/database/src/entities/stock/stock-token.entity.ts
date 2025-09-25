@@ -5,7 +5,7 @@ import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 import { KoreanTime } from '@database/decorators';
 
 @Entity()
-export class Token {
+export class StockToken {
   @PrimaryGeneratedColumn()
   id: number;
 

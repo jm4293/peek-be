@@ -15,7 +15,7 @@ import {
 
 import { TokenProviderEnum } from '@constant/enum/token';
 
-import { TokenRepository } from '@database/repositories/token';
+import { StockTokenRepository } from '@database/repositories/stock';
 
 interface IStockPrice {
   symbol: string; // 종목 코드 (예: 005930)
@@ -62,7 +62,7 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly tokenRepository: TokenRepository,
+    private readonly stockTokenRepository: StockTokenRepository,
   ) {}
 
   async onModuleInit() {
@@ -313,7 +313,7 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
 
   private async _setKiwoomToken() {
     try {
-      const ret = await this.tokenRepository.getOAuthToken(TokenProviderEnum.KIWOOM);
+      const ret = await this.stockTokenRepository.getOAuthToken(TokenProviderEnum.KIWOOM);
 
       this.kiwoomWebSocketToken = ret.token;
 

@@ -1,15 +1,19 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
 
 import { Public } from '@peek/decorator/public';
 
 import { StockCategory } from '@database/entities/stock';
 
+import { UserService } from '../user';
 import { GetStockCandleDto, GetStockKoreanDto, GetStockKoreanListDto, GetStockKoreanRankDto } from './dto';
 import { StockService } from './stock.service';
 
 @Controller('stock')
 export class StockController {
-  constructor(private readonly stockService: StockService) {}
+  constructor(
+    private readonly stockService: StockService,
+    private readonly userService: UserService,
+  ) {}
 
   @Public()
   @Get('category')
@@ -70,4 +74,34 @@ export class StockController {
       count: candleData.length,
     };
   }
+
+  // @Post('korean/favorite/:code')
+  // async addFavoriteStock(
+  //   @Param('code') code: string,
+  //   @Query('order') order: number,
+  //   @Query('topFixed') topFixed: boolean,
+  //   @Req() req: Request,
+  // ) {
+  //   const { accountId } = ParseReqHandler.parseReq(req);
+
+  //   await this.userService.addFavoriteStock({ accountId, code, order, topFixed });
+  // }
+
+  // @Get('korean/favorite')
+  // async getFavoriteStockList(@Req() req: Request) {
+  //   const { accountId } = ParseReqHandler.parseReq(req);
+
+  //   const ret = await this.userService.getFavoriteStockList(accountId);
+
+  //   return {
+  //     favoriteStockList: ret,
+  //   };
+  // }
+
+  // @Delete('korean/favorite/:code')
+  // async deleteFavoriteStock(@Param('code') code: string, @Req() req: Request) {
+  //   const { accountId } = ParseReqHandler.parseReq(req);
+
+  //   await this.userService.deleteFavoriteStock({ accountId, code });
+  // }
 }
