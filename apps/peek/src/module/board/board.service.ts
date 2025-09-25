@@ -64,7 +64,7 @@ export class BoardService {
       .loadRelationCountAndMap('board.likeCount', 'board.likes')
       // .where('board.deletedAt IS NULL')
       .andWhere('board.userAccountId = :accountId', { accountId })
-      .orderBy('board.createdAt', 'DESC')
+      .orderBy('board.id', 'DESC')
       .skip((page - 1) * LIST_LIMIT)
       .take(LIST_LIMIT);
 
@@ -104,7 +104,7 @@ export class BoardService {
       )
       .loadRelationCountAndMap('board.likeCount', 'board.likes')
       // .where('board.deletedAt IS NULL')
-      .orderBy('board.createdAt', 'DESC')
+      .orderBy('board.id', 'DESC')
       .skip((page - 1) * LIST_LIMIT)
       .take(LIST_LIMIT);
 

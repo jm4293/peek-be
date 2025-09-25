@@ -31,7 +31,7 @@ export class BoardController {
     const { boards, nextPage, total } = await this.boardService.getMyBoardList({ query, accountId });
 
     return {
-      boards: boards.map((item) => new Board(item)),
+      boardList: boards.map((item) => new Board(item)),
       total,
       nextPage,
     };
@@ -55,7 +55,7 @@ export class BoardController {
     const { boards, total, nextPage } = await this.boardService.getBoardList(query);
 
     return {
-      boards: boards.map((item) => new Board(item)),
+      boardList: boards.map((item) => new Board(item)),
       total,
       nextPage,
     };
@@ -92,7 +92,7 @@ export class BoardController {
     const { boardComments, nextPage, total } = await this.boardService.getMyBoardCommentList({ query, accountId });
 
     return {
-      boardComments: boardComments.map((item) => new BoardComment(item)),
+      boardCommentList: boardComments.map((item) => new BoardComment(item)),
       total,
       nextPage,
     };
@@ -106,7 +106,7 @@ export class BoardController {
     const { boardComments, nextPage, total } = await this.boardService.getBoardCommentList({ boardId, query });
 
     return {
-      boardComments: boardComments.map((item) => new BoardComment(item)),
+      boardCommentList: boardComments.map((item) => new BoardComment(item)),
       total,
       nextPage,
     };
