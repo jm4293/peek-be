@@ -15,9 +15,15 @@ import {
   StockKoreanIndexHistoryRepository,
   StockTokenRepository,
 } from '@database/repositories/stock';
-import { UserAccountRepository, UserRepository } from '@database/repositories/user';
+import { UserStockFavoriteRepository } from '@database/repositories/user';
 
-import { GetStockCandleDto, GetStockKoreanListDto, GetStockKoreanRankDto } from './dto';
+import {
+  GetStockCandleDto,
+  GetStockFavoriteListDto,
+  GetStockKoreanListDto,
+  GetStockKoreanRankDto,
+  UpdateStockFavoriteDto,
+} from './dto';
 
 @Injectable()
 export class StockService implements OnModuleInit {
@@ -32,12 +38,11 @@ export class StockService implements OnModuleInit {
     private readonly httpService: HttpService,
 
     private readonly stockCategoryRepository: StockCategoryRepository,
-    private readonly stockRepository: StockCompanyRepository,
+    private readonly stockCompanyRepository: StockCompanyRepository,
     private readonly stockKoreanIndexHistoryRepository: StockKoreanIndexHistoryRepository,
-
     private readonly stockTokenRepository: StockTokenRepository,
-    private readonly userRepository: UserRepository,
-    private readonly userAccountRepository: UserAccountRepository,
+
+    private readonly userStockFavoriteRepository: UserStockFavoriteRepository,
   ) {}
 
   async onModuleInit() {
@@ -63,7 +68,7 @@ export class StockService implements OnModuleInit {
       whereCondition = { ...whereCondition, companyName: Like(`%${text}%`) };
     }
 
-    const [data, total] = await this.stockRepository.findAndCount({
+    const [data, total] = await this.stockCompanyRepository.findAndCount({
       skip: (page - 1) * LIST_LIMIT,
       take: LIST_LIMIT,
       where: whereCondition,
@@ -93,18 +98,6 @@ export class StockService implements OnModuleInit {
   }
 
   async getStockKoreanRank(dto: GetStockKoreanRankDto) {
-    // const ret = await this.httpService.axiosRef.post(
-    //   `${this.KiwoomURL}/api/dostk/stkinfo`,
-    //   { qry_tp: '4' },
-    //   {
-    //     headers: {
-    //       'content-type': 'application/json; charset=utf-8',
-    //       authorization: `Bearer ${this.KiwoomToken}`,
-    //       'api-id': 'ka00198',
-    //     },
-    //   },
-    // );
-
     if (!this.LsWebSocketToken) {
       await this._getLSToken();
     }
@@ -149,6 +142,44 @@ export class StockService implements OnModuleInit {
     const candleData = await this.stockKoreanIndexHistoryRepository.getCandleData(code, start, end);
 
     return candleData.slice(-limit);
+  }
+
+  async toggleFavoriteStock(params: { body: UpdateStockFavoriteDto; accountId: number }) {
+    const { body, accountId } = params;
+    const { stockCompanyId } = body;
+
+    await this.stockCompanyRepository.findById(stockCompanyId);
+
+    const ret = await this.userStockFavoriteRepository.findByUserAccountIdAndStockCompanyId(accountId, stockCompanyId);
+
+    if (!ret) {
+      await this.userStockFavoriteRepository.save({
+        userAccountId: accountId,
+        stockCompanyId,
+      });
+    } else {
+      await this.userStockFavoriteRepository.delete({
+        userAccountId: accountId,
+        stockCompanyId,
+      });
+    }
+  }
+
+  async getFavoriteStockList(query: GetStockFavoriteListDto, accountId: number) {
+    const { page } = query;
+
+    const [data, total] = await this.userStockFavoriteRepository.findAndCount({
+      where: { userAccountId: accountId },
+      skip: (page - 1) * LIST_LIMIT,
+      take: LIST_LIMIT,
+      relations: ['stockCompany'],
+      order: { createdAt: 'DESC' },
+    });
+
+    const hasNextPage = page * LIST_LIMIT < total;
+    const nextPage = hasNextPage ? Number(page) + 1 : null;
+
+    return { data, total, nextPage };
   }
 
   private async _getKiwoomToken() {

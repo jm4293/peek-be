@@ -1,11 +1,21 @@
-import { Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
+import { Request } from 'express';
+
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Query, Req } from '@nestjs/common';
 
 import { Public } from '@peek/decorator/public';
+import { ParseReqHandler } from '@peek/handler/parseReq';
 
 import { StockCategory } from '@database/entities/stock';
 
 import { UserService } from '../user';
-import { GetStockCandleDto, GetStockKoreanDto, GetStockKoreanListDto, GetStockKoreanRankDto } from './dto';
+import {
+  GetStockCandleDto,
+  GetStockFavoriteListDto,
+  GetStockKoreanDto,
+  GetStockKoreanListDto,
+  GetStockKoreanRankDto,
+  UpdateStockFavoriteDto,
+} from './dto';
 import { StockService } from './stock.service';
 
 @Controller('stock')
@@ -75,33 +85,24 @@ export class StockController {
     };
   }
 
-  // @Post('korean/favorite/:code')
-  // async addFavoriteStock(
-  //   @Param('code') code: string,
-  //   @Query('order') order: number,
-  //   @Query('topFixed') topFixed: boolean,
-  //   @Req() req: Request,
-  // ) {
-  //   const { accountId } = ParseReqHandler.parseReq(req);
+  @HttpCode(200)
+  @Post('korean/favorite')
+  async toggleFavoriteStock(@Body() body: UpdateStockFavoriteDto, @Req() req: Request) {
+    const { accountId } = ParseReqHandler.parseReq(req);
 
-  //   await this.userService.addFavoriteStock({ accountId, code, order, topFixed });
-  // }
+    await this.stockService.toggleFavoriteStock({ body, accountId });
+  }
 
-  // @Get('korean/favorite')
-  // async getFavoriteStockList(@Req() req: Request) {
-  //   const { accountId } = ParseReqHandler.parseReq(req);
+  @Get('korean/favorite')
+  async getFavoriteStockList(@Query() query: GetStockFavoriteListDto, @Req() req: Request) {
+    const { accountId } = ParseReqHandler.parseReq(req);
 
-  //   const ret = await this.userService.getFavoriteStockList(accountId);
+    const { data, nextPage, total } = await this.stockService.getFavoriteStockList(query, accountId);
 
-  //   return {
-  //     favoriteStockList: ret,
-  //   };
-  // }
-
-  // @Delete('korean/favorite/:code')
-  // async deleteFavoriteStock(@Param('code') code: string, @Req() req: Request) {
-  //   const { accountId } = ParseReqHandler.parseReq(req);
-
-  //   await this.userService.deleteFavoriteStock({ accountId, code });
-  // }
+    return {
+      favoriteStockList: data,
+      total,
+      nextPage,
+    };
+  }
 }

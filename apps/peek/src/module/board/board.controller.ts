@@ -28,12 +28,12 @@ export class BoardController {
   async getMyBoardList(@Query() query: GetBoardListDto, @Req() req: Request) {
     const { accountId } = ParseReqHandler.parseReq(req);
 
-    const ret = await this.boardService.getMyBoardList({ query, accountId });
+    const { boards, nextPage, total } = await this.boardService.getMyBoardList({ query, accountId });
 
     return {
-      boards: ret.boards.map((item) => new Board(item)),
-      total: ret.total,
-      nextPage: ret.nextPage,
+      boards: boards.map((item) => new Board(item)),
+      total,
+      nextPage,
     };
   }
 
@@ -89,12 +89,12 @@ export class BoardController {
   async getMyBoardCommentList(@Query() query: GetBoardCommentListDto, @Req() req: Request) {
     const { accountId } = ParseReqHandler.parseReq(req);
 
-    const ret = await this.boardService.getMyBoardCommentList({ query, accountId });
+    const { boardComments, nextPage, total } = await this.boardService.getMyBoardCommentList({ query, accountId });
 
     return {
-      boardComments: ret.boardComments.map((item) => new BoardComment(item)),
-      total: ret.total,
-      nextPage: ret.nextPage,
+      boardComments: boardComments.map((item) => new BoardComment(item)),
+      total,
+      nextPage,
     };
   }
 
@@ -103,12 +103,12 @@ export class BoardController {
   async getBoardCommentList(@Param() param: GetBoardDto, @Query() query: GetBoardCommentListDto, @Req() req: Request) {
     const { boardId } = param;
 
-    const ret = await this.boardService.getBoardCommentList({ boardId, query });
+    const { boardComments, nextPage, total } = await this.boardService.getBoardCommentList({ boardId, query });
 
     return {
-      boardComments: ret.boardComments.map((item) => new BoardComment(item)),
-      total: ret.total,
-      nextPage: ret.nextPage,
+      boardComments: boardComments.map((item) => new BoardComment(item)),
+      total,
+      nextPage,
     };
   }
 

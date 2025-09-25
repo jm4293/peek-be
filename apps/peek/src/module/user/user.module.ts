@@ -30,6 +30,6 @@ import { UserService } from './user.service';
     UserVisitRepository,
     UserOauthTokenRepository,
   ],
-  exports: [],
+  exports: [UserService],
 })
 export class UserModule {}

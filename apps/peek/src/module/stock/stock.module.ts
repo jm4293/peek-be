@@ -7,7 +7,7 @@ import {
   StockKoreanIndexHistoryRepository,
   StockTokenRepository,
 } from '@database/repositories/stock';
-import { UserAccountRepository, UserRepository } from '@database/repositories/user';
+import { UserAccountRepository, UserRepository, UserStockFavoriteRepository } from '@database/repositories/user';
 
 import { UserModule } from '../user';
 import { StockController } from './stock.controller';
@@ -24,8 +24,7 @@ import { StockService } from './stock.service';
     StockKoreanIndexHistoryRepository,
     StockTokenRepository,
 
-    UserRepository,
-    UserAccountRepository,
+    UserStockFavoriteRepository,
   ],
   exports: [],
 })
