@@ -43,7 +43,7 @@ export class UserController {
     const ret = await this.userService.getMyInfo(accountId);
 
     return {
-      my: new UserAccount(ret),
+      myInfo: new UserAccount(ret),
     };
   }
 
