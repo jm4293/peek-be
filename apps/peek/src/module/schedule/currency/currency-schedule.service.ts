@@ -55,14 +55,14 @@ export class CurrencyScheduleService {
     }
 
     try {
-      const ret = await this.httpService.axiosRef.get<Omit<IResponse, 'cur_unit_desc'>[]>(`${this.URL}`, {
+      const response = await this.httpService.axiosRef.get<Omit<IResponse, 'cur_unit_desc'>[]>(`${this.URL}`, {
         params: {
           authkey: this.appKey,
           data: 'AP01',
         },
       });
 
-      const { data } = ret;
+      const { data } = response;
 
       if (!Array.isArray(data)) {
         this.logger.warn('Invalid response format: data is not an array');

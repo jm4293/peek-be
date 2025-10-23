@@ -85,14 +85,6 @@ export class StockController {
     };
   }
 
-  @HttpCode(200)
-  @Post('korean/favorite')
-  async toggleFavoriteStock(@Body() body: UpdateStockFavoriteDto, @Req() req: Request) {
-    const { accountId } = ParseReqHandler.parseReq(req);
-
-    await this.stockService.toggleFavoriteStock({ body, accountId });
-  }
-
   @Get('korean/favorite')
   async getFavoriteStockList(@Query() query: GetStockFavoriteListDto, @Req() req: Request) {
     const { accountId } = ParseReqHandler.parseReq(req);
@@ -104,5 +96,13 @@ export class StockController {
       total,
       nextPage,
     };
+  }
+
+  @HttpCode(200)
+  @Post('korean/favorite')
+  async toggleFavoriteStock(@Body() body: UpdateStockFavoriteDto, @Req() req: Request) {
+    const { accountId } = ParseReqHandler.parseReq(req);
+
+    await this.stockService.toggleFavoriteStock({ body, accountId });
   }
 }

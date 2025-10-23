@@ -192,9 +192,21 @@ export class AuthService {
   private async _generateJwtToken(params: IJwtToken, expiresIn: number) {
     const { accountId } = params;
 
+    const generateUniqueId = () => {
+      return Math.random().toString(36).substring(2) + Date.now().toString(36);
+    };
+
     return await this.jwtService.signAsync(
       { accountId },
-      { expiresIn, secret: this.configService.get('JWT_SECRET_KEY') },
+      {
+        expiresIn,
+        secret: this.configService.get('JWT_SECRET_KEY'),
+        algorithm: 'HS256',
+        issuer: 'peek.run',
+        audience: 'peek.run',
+        subject: accountId.toString(),
+        jwtid: generateUniqueId(),
+      },
     );
   }
 
@@ -204,32 +216,30 @@ export class AuthService {
     const accessToken = await this._generateJwtToken({ accountId: userAccount.id }, ACCESS_TOKEN_TIME);
     const refreshToken = await this._generateJwtToken({ accountId: userAccount.id }, REFRESH_TOKEN_TIME);
 
-    await this.dataSource.transaction(async (manager) => {
-      await manager.update(UserAccount, { userId: user.id }, { refreshToken: null });
-      await manager.update(UserAccount, { id: userAccount.id }, { refreshToken });
-    });
+    // await this.dataSource.transaction(async (manager) => {
+    //   await manager.update(UserAccount, { userId: user.id }, { refreshToken: null });
+    //   await manager.update(UserAccount, { id: userAccount.id }, { refreshToken });
+    // });
+
+    await this.userAccountRepository.update({ id: userAccount.id }, { refreshToken });
 
     await this._registerUserVisit({ req, type, userAccountId: userAccount.id });
 
     return { accessToken, refreshToken };
   }
 
-  private async _googleOauthLogin(params: { req: Request; token: string; tokenType: string; expire: number }) {
+  private async _googleOauthLogin(params: { req: Request; token: string; tokenType: string; expire: string }) {
     const { req, token, tokenType, expire } = params;
 
-    const response = await firstValueFrom(
-      this.httpService
-        .get<{
-          email: string;
-          name: string;
-          picture: string;
-        }>(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`)
-        .pipe(
-          catchError((error) => {
-            throw new BadRequestException(`구글 OAuth 인증에 실패했습니다: ${error.message}`);
-          }),
-        ),
-    );
+    const response = await this.httpService.axiosRef.get<{
+      email: string;
+      name: string;
+      picture: string;
+    }>(`https://www.googleapis.com/oauth2/v3/userinfo`, {
+      params: {
+        access_token: token,
+      },
+    });
 
     const { email, name, picture } = response.data;
 
@@ -251,50 +261,37 @@ export class AuthService {
   private async _kakaoOauthLogin(params: { req: Request; token: string }) {
     const { req, token } = params;
 
-    const response = await firstValueFrom(
-      this.httpService
-        .get<{
-          token_type: string;
-          access_token: string;
-          expires_in: number;
-          refresh_token: string;
-          refresh_token_expires_in: number;
-        }>(
-          `https://kauth.kakao.com/oauth/token?grant_type=authorization_code&client_id=${this.configService.get('KAKAO_APP_KEY')}&redirect_uri=${this.configService.get('KAKAO_REDIRECT_URI')}&code=${token}&client_secret=${this.configService.get('KAKAO_CLIENT_SECRET')}`,
-        )
-        .pipe(
-          catchError((error) => {
-            throw new BadRequestException(`카카오 OAuth 인증에 실패했습니다: ${error.message}`);
-          }),
-        ),
-    );
+    const response = await this.httpService.axiosRef.get<{
+      token_type: string;
+      access_token: string;
+      expires_in: string;
+      refresh_token: string;
+      refresh_token_expires_in: string;
+    }>(`https://kauth.kakao.com/oauth/token`, {
+      params: {
+        grant_type: 'authorization_code',
+        client_id: this.configService.get('KAKAO_APP_KEY'),
+        redirect_uri: this.configService.get('KAKAO_REDIRECT_URI'),
+        code: token,
+        client_secret: this.configService.get('KAKAO_CLIENT_SECRET'),
+      },
+    });
 
     const { token_type, access_token, expires_in, refresh_token, refresh_token_expires_in } = response.data;
 
-    const userInfo = await firstValueFrom(
-      this.httpService
-        .get<{
-          kakao_account: {
-            email: string;
-            profile: {
-              nickname: string;
-            };
-          };
-        }>(
-          `https://kapi.kakao.com/v2/user/me?secure_resource=${this.configService.get('NODE_ENV') ? 'true' : 'false'}`,
-          {
-            headers: {
-              Authorization: `${token_type} ${access_token}`,
-              'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
-            },
-          },
-        )
-        .pipe(
-          catchError((error) => {
-            throw new BadRequestException(`카카오 유저 정보 조회에 실패했습니다: ${error.message}`);
-          }),
-        ),
-    );
+    const userInfo = await this.httpService.axiosRef.get<{
+      kakao_account: {
+        email: string;
+        profile: {
+          nickname: string;
+        };
+      };
+    }>('https://kapi.kakao.com/v2/user/me', {
+      headers: {
+        Authorization: `${token_type} ${access_token}`,
+        'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+      },
+    });
 
     const { kakao_account } = userInfo.data;
     const { email, profile } = kakao_account;
@@ -318,46 +315,36 @@ export class AuthService {
   private async _naverOauthLogin(params: { req: Request; token: string }) {
     const { req, token } = params;
 
-    const response = await firstValueFrom(
-      this.httpService
-        .get<{
-          token_type: string;
-          access_token: string;
-          expires_in: number;
-          refresh_token: string;
-        }>(
-          `https://nid.naver.com/oauth2.0/token?client_id=${this.configService.get('NAVER_CLIENT_ID')}&client_secret=${this.configService.get('NAVER_CLIENT_SECRET')}&grant_type=authorization_code&state=peek&code=${token}`,
-        )
-        .pipe(
-          catchError((error) => {
-            throw new BadRequestException(`네이버 OAuth 인증에 실패했습니다: ${error.message}`);
-          }),
-        ),
-    );
+    const response = await this.httpService.axiosRef.get<{
+      token_type: string;
+      access_token: string;
+      expires_in: string;
+      refresh_token: string;
+    }>(`https://nid.naver.com/oauth2.0/token`, {
+      params: {
+        client_id: this.configService.get('NAVER_CLIENT_ID'),
+        client_secret: this.configService.get('NAVER_CLIENT_SECRET'),
+        grant_type: 'authorization_code',
+        state: 'peek',
+        code: token,
+      },
+    });
 
     const { token_type, access_token, expires_in, refresh_token } = response.data;
 
-    const userInfo = await firstValueFrom(
-      this.httpService
-        .get<{
-          response: {
-            email: string;
-            name: string;
-            nickname: string;
-            profile_image: string;
-          };
-        }>('https://openapi.naver.com/v1/nid/me', {
-          headers: {
-            Authorization: `${token_type} ${access_token}`,
-            'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
-          },
-        })
-        .pipe(
-          catchError((error) => {
-            throw new BadRequestException(`카카오 유저 정보 조회에 실패했습니다: ${error.message}`);
-          }),
-        ),
-    );
+    const userInfo = await this.httpService.axiosRef.get<{
+      response: {
+        email: string;
+        name: string;
+        nickname: string;
+        profile_image: string;
+      };
+    }>('https://openapi.naver.com/v1/nid/me', {
+      headers: {
+        Authorization: `${token_type} ${access_token}`,
+        'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+      },
+    });
 
     const { email, name, nickname, profile_image } = userInfo.data.response;
 
@@ -384,9 +371,9 @@ export class AuthService {
     nickname: string;
     tokenType: string;
     accessToken: string;
-    accessTokenExpire: number;
+    accessTokenExpire: string;
     refreshToken: string | null;
-    refreshTokenExpire: number | null;
+    refreshTokenExpire: string | null;
     req: Request;
   }) {
     const {
@@ -459,7 +446,7 @@ export class AuthService {
       relations: ['user'],
     });
 
-    // 존재하는 계정이 이메일 타입 계정이면
+    // 계정이 이메일 타입으로 있는 경우, OAuth 계정 연동 후 로그인으로 진행
     if (emailAccount) {
       await this.userRepository.update({ id: emailAccount.user.id }, { nickname, name, thumbnail });
 
@@ -494,7 +481,7 @@ export class AuthService {
       nickname,
       name,
       policy: true,
-      birthday: undefined,
+      birthday: null,
       thumbnail,
     });
 
@@ -503,7 +490,7 @@ export class AuthService {
     const savedAccount = this.userAccountRepository.create({
       userAccountType: type,
       email,
-      user: newUser,
+      userId: newUser.id,
     });
 
     const newAccount = await this.userAccountRepository.save(savedAccount);
@@ -531,14 +518,14 @@ export class AuthService {
     accountType: UserAccountTypeEnum;
     tokenType: string;
     accessToken: string;
-    accessTokenExpire: number | null;
+    accessTokenExpire: string | null;
     refreshToken: string | null;
-    refreshTokenExpire: number | null;
+    refreshTokenExpire: string | null;
   }) {
     const { accountId, accountType, tokenType, accessToken, accessTokenExpire, refreshToken, refreshTokenExpire } =
       params;
 
-    const newOauthToken = await this.userOauthTokenRepository.create({
+    const newOauthToken = this.userOauthTokenRepository.create({
       userAccountId: accountId,
       userAccountType: accountType,
       tokenType,

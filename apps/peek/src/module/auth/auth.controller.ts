@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { CookieOptions, Request, Response } from 'express';
 
 import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
 
@@ -13,10 +13,10 @@ import { CheckEmailCodeDto, CheckEmailDto, LoginEmailDto, LoginOauthDto, SignupE
 
 @Controller('auth')
 export class AuthController {
-  cookieOptions = {
+  cookieOptions: CookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production' ? true : false,
-    sameSite: 'lax' as 'lax' | 'strict' | 'none',
+    sameSite: 'lax',
     domain: process.env.NODE_ENV === 'production' ? '.peek.run' : 'localhost',
   };
 
@@ -70,7 +70,7 @@ export class AuthController {
       maxAge: ACCESS_TOKEN_COOKIE_TIME,
     });
 
-    res.cookie('__rt', refreshToken, {
+    res.cookie(REFRESH_TOKEN_NAME, refreshToken, {
       ...this.cookieOptions,
       maxAge: REFRESH_TOKEN_COOKIE_TIME,
     });

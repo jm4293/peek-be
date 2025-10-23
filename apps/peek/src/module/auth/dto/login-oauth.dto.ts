@@ -19,5 +19,5 @@ export class LoginOauthDto {
 
   @IsNumber()
   @IsOptional()
-  expire: number | null;
+  expire: string | null;
 }

@@ -47,7 +47,6 @@ export class UserController {
     };
   }
 
-  // 유저 정보 수정
   @Put()
   @HttpCode(200)
   async updateUser(@Body() dto: UpdateUserDto, @Req() req: Request) {
@@ -87,7 +86,6 @@ export class UserController {
     await this.userService.resetPassword(dto);
   }
 
-  // 유저 비밀번호 수정
   @Patch('password')
   @HttpCode(200)
   async updatePassword(@Body() dto: UpdateUserPasswordDto, @Req() req: Request) {

@@ -163,95 +163,97 @@ export class UserService {
   async deleteUser(accountId: number) {
     const { userId, userAccountType } = await this.userAccountRepository.findById(accountId);
 
-    const accountList = await this.userAccountRepository.find({ where: { userId } });
+    // const accountList = await this.userAccountRepository.find({ where: { userId } });
     const oauthToken = await this.userOauthTokenRepository.findOne({ where: { userAccountId: accountId } });
 
     try {
-      await this.dataSource.transaction(async (manager) => {
-        await manager.query(
-          'DELETE FROM board_comment WHERE boardId IN (SELECT id FROM board WHERE userAccountId = ?)',
-          [accountId],
-        );
-        await manager.query(
-          'DELETE FROM board_article WHERE boardId IN (SELECT id FROM board WHERE userAccountId = ?)',
-          [accountId],
-        );
-        await manager.delete(Board, { userAccountId: accountId });
+      // await this.dataSource.transaction(async (manager) => {
+      //   await manager.query(
+      //     'DELETE FROM board_comment WHERE boardId IN (SELECT id FROM board WHERE userAccountId = ?)',
+      //     [accountId],
+      //   );
+      //   await manager.query(
+      //     'DELETE FROM board_article WHERE boardId IN (SELECT id FROM board WHERE userAccountId = ?)',
+      //     [accountId],
+      //   );
+      //   await manager.delete(Board, { userAccountId: accountId });
+      //
+      //   await manager.query(
+      //     'DELETE FROM inquiry_reply WHERE inquiryId IN (SELECT id FROM inquiry WHERE userAccountId = ?)',
+      //     [accountId],
+      //   );
+      //   await manager.query(
+      //     'DELETE FROM inquiry_image WHERE inquiryId IN (SELECT id FROM inquiry WHERE userAccountId = ?)',
+      //     [accountId],
+      //   );
+      //   await manager.delete(Inquiry, { userAccountId: accountId });
+      //
+      //   await manager.delete(Notice, { userAccountId: accountId });
+      //
+      //   await manager.delete(UserVisit, { userAccountId: accountId });
+      //   await manager.delete(UserOauthToken, { userAccountId: accountId });
+      //   await manager.delete(UserPushToken, { userAccountId: accountId });
+      //   await manager.delete(UserNotification, { userAccountId: accountId });
+      //   await manager.delete(UserAccount, { id: accountId });
+      //
+      //   if (accountList.length === 1) {
+      //     const account = accountList[0];
+      //
+      //     await manager.delete(User, { id: account.userId });
+      //   }
+      // });
 
-        await manager.query(
-          'DELETE FROM inquiry_reply WHERE inquiryId IN (SELECT id FROM inquiry WHERE userAccountId = ?)',
-          [accountId],
-        );
-        await manager.query(
-          'DELETE FROM inquiry_image WHERE inquiryId IN (SELECT id FROM inquiry WHERE userAccountId = ?)',
-          [accountId],
-        );
-        await manager.delete(Inquiry, { userAccountId: accountId });
+      // if (oauthToken) {
+      const { tokenType, accessToken } = oauthToken;
 
-        await manager.delete(Notice, { userAccountId: accountId });
+      switch (userAccountType) {
+        case UserAccountTypeEnum.GOOGLE: {
+          const URL = 'https://oauth2.googleapis.com/revoke';
 
-        await manager.delete(UserVisit, { userAccountId: accountId });
-        await manager.delete(UserOauthToken, { userAccountId: accountId });
-        await manager.delete(UserPushToken, { userAccountId: accountId });
-        await manager.delete(UserNotification, { userAccountId: accountId });
-        await manager.delete(UserAccount, { id: accountId });
+          await this.httpService.axiosRef.post(`${URL}?token=${accessToken}`);
 
-        if (accountList.length === 1) {
-          const account = accountList[0];
-
-          await manager.delete(User, { id: account.userId });
+          break;
         }
-      });
+        case UserAccountTypeEnum.KAKAO: {
+          const URL_ME = 'https://kapi.kakao.com/v2/user/me';
+          const URL = 'https://kapi.kakao.com/v1/user/unlink';
 
-      if (oauthToken) {
-        const { tokenType, accessToken } = oauthToken;
-
-        switch (userAccountType) {
-          case UserAccountTypeEnum.GOOGLE: {
-            const URL = 'https://oauth2.googleapis.com/revoke';
-
-            await this.httpService.axiosRef.post(`${URL}?token=${accessToken}`);
-
-            break;
-          }
-          case UserAccountTypeEnum.KAKAO: {
-            const URL_ME = 'https://kapi.kakao.com/v2/user/me';
-            const URL = 'https://kapi.kakao.com/v1/user/unlink';
-
-            const user = await this.httpService.axiosRef.get<{ id: string }>(
-              `${URL_ME}?secure_resource=${this.configService.get('NODE_ENV') === 'production' ? 'true' : 'false'}`,
-              {
-                headers: {
-                  Authorization: `${tokenType} ${accessToken}`,
-                  'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
-                },
+          const user = await this.httpService.axiosRef.get<{ id: string }>(
+            `${URL_ME}?secure_resource=${this.configService.get('NODE_ENV') === 'production' ? 'true' : 'false'}`,
+            {
+              headers: {
+                Authorization: `${tokenType} ${accessToken}`,
+                'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
               },
-            );
+            },
+          );
 
-            await this.httpService.axiosRef.post(
-              URL,
-              { target_id_type: 'user_id', target_id: user.data.id },
-              { headers: { Authorization: `${tokenType} ${accessToken}` } },
-            );
+          await this.httpService.axiosRef.post(
+            URL,
+            { target_id_type: 'user_id', target_id: user.data.id },
+            { headers: { Authorization: `${tokenType} ${accessToken}` } },
+          );
 
-            break;
-          }
-          case UserAccountTypeEnum.NAVER: {
-            const URL = 'https://nid.naver.com/oauth2.0/token';
+          break;
+        }
+        case UserAccountTypeEnum.NAVER: {
+          const URL = 'https://nid.naver.com/oauth2.0/token';
 
-            await this.httpService.axiosRef.post(
-              `${URL}?grant_type=delete&client_id=${this.configService.get('NAVER_CLIENT_ID')}&client_secret=${this.configService.get(
-                'NAVER_CLIENT_SECRET',
-              )}&access_token=${encodeURIComponent(accessToken)}&service_provider=NAVER`,
-            );
+          await this.httpService.axiosRef.post(
+            `${URL}?grant_type=delete&client_id=${this.configService.get('NAVER_CLIENT_ID')}&client_secret=${this.configService.get(
+              'NAVER_CLIENT_SECRET',
+            )}&access_token=${encodeURIComponent(accessToken)}&service_provider=NAVER`,
+          );
 
-            break;
-          }
-          default: {
-            break;
-          }
+          break;
+        }
+        default: {
+          break;
         }
       }
+      // }
+
+      await this.userRepository.delete({ id: userId });
     } catch (error) {
       console.error('UserService deleteUser error:', error);
       throw new BadRequestException('회원 탈퇴에 실패했습니다. 다시 시도해주세요.');

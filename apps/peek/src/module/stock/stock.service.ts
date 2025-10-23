@@ -8,7 +8,7 @@ import { LIST_LIMIT } from '@peek/constant/list';
 
 import { TokenProviderEnum } from '@constant/enum/token';
 
-import { StockCompany } from '@database/entities/stock';
+import { StockKoreanCompany } from '@database/entities/stock';
 import {
   StockCategoryRepository,
   StockCompanyRepository,
@@ -58,7 +58,7 @@ export class StockService implements OnModuleInit {
     const { page, kind, text } = dto;
 
     let whereCondition = {};
-    let orderCondition: FindOptionsOrder<StockCompany> = { companyName: 'ASC' };
+    let orderCondition: FindOptionsOrder<StockKoreanCompany> = { companyName: 'ASC' };
 
     if (kind) {
       whereCondition = { ...whereCondition, marketType: kind };
@@ -144,6 +144,23 @@ export class StockService implements OnModuleInit {
     return candleData.slice(-limit);
   }
 
+  async getFavoriteStockList(query: GetStockFavoriteListDto, accountId: number) {
+    const { page } = query;
+
+    const [data, total] = await this.userStockFavoriteRepository.findAndCount({
+      where: { userAccountId: accountId },
+      skip: (page - 1) * LIST_LIMIT,
+      take: LIST_LIMIT,
+      relations: ['stockCompany'],
+      order: { createdAt: 'DESC' },
+    });
+
+    const hasNextPage = page * LIST_LIMIT < total;
+    const nextPage = hasNextPage ? Number(page) + 1 : null;
+
+    return { data, total, nextPage };
+  }
+
   async toggleFavoriteStock(params: { body: UpdateStockFavoriteDto; accountId: number }) {
     const { body, accountId } = params;
     const { stockCompanyId } = body;
@@ -163,23 +180,6 @@ export class StockService implements OnModuleInit {
         stockCompanyId,
       });
     }
-  }
-
-  async getFavoriteStockList(query: GetStockFavoriteListDto, accountId: number) {
-    const { page } = query;
-
-    const [data, total] = await this.userStockFavoriteRepository.findAndCount({
-      where: { userAccountId: accountId },
-      skip: (page - 1) * LIST_LIMIT,
-      take: LIST_LIMIT,
-      relations: ['stockCompany'],
-      order: { createdAt: 'DESC' },
-    });
-
-    const hasNextPage = page * LIST_LIMIT < total;
-    const nextPage = hasNextPage ? Number(page) + 1 : null;
-
-    return { data, total, nextPage };
   }
 
   private async _getKiwoomToken() {
