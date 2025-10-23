@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Generated,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -26,7 +27,11 @@ export class Notice {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'enum', enum: NoticeTypeEnum })
+  @Column({ type: 'varchar', length: 36 })
+  @Generated('uuid')
+  uuid: string;
+
+  @Column({ type: 'tinyint', enum: NoticeTypeEnum })
   type: NoticeTypeEnum;
 
   @Column({ type: 'varchar', length: 255 })
@@ -38,20 +43,19 @@ export class Notice {
   @Column({ type: 'int', default: 0 })
   viewCount: number;
 
-  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @Exclude()
-  @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp', default: null })
-  updatedAt: Date;
+  updatedAt: Date | null;
 
   @Exclude()
   @Column()
   userAccountId: number;
 
-  @ManyToOne(() => UserAccount, (userAccount) => userAccount.notices)
+  @ManyToOne(() => UserAccount, (userAccount) => userAccount.notices, {
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'userAccountId' })
   userAccount: UserAccount;
 }

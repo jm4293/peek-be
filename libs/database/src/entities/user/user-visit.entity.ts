@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Generated,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -20,7 +21,11 @@ export class UserVisit {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'enum', enum: UserVisitTypeEnum })
+  @Column({ type: 'varchar', length: 36 })
+  @Generated('uuid')
+  uuid: string;
+
+  @Column({ type: 'tinyint', enum: UserVisitTypeEnum })
   type: UserVisitTypeEnum;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
@@ -32,7 +37,6 @@ export class UserVisit {
   @Column({ type: 'varchar', length: 255, nullable: true })
   referer: string | null;
 
-  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
@@ -40,7 +44,9 @@ export class UserVisit {
   @Column()
   userAccountId: number;
 
-  @ManyToOne(() => UserAccount, (userAccount) => userAccount.userVisits)
+  @ManyToOne(() => UserAccount, (userAccount) => userAccount.userVisits, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'userAccountId' })
   userAccount: UserAccount;
 }

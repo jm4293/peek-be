@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Generated,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -32,7 +33,11 @@ export class Board {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'enum', enum: BoardTypeEnum })
+  @Column({ type: 'varchar', length: 36 })
+  @Generated('uuid')
+  uuid: string;
+
+  @Column({ type: 'tinyint', enum: BoardTypeEnum })
   type: BoardTypeEnum;
 
   @Column({ type: 'varchar', length: 255 })
@@ -41,20 +46,19 @@ export class Board {
   @Column({ type: 'int', default: 0 })
   viewCount: number;
 
-  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @Exclude()
-  @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp', default: null })
-  updatedAt: Date;
+  updatedAt: Date | null;
 
   @Exclude()
   @Column()
   stockCategoryId: number;
 
-  @ManyToOne(() => StockCategory, (stockCategory) => stockCategory.boards)
+  @ManyToOne(() => StockCategory, (stockCategory) => stockCategory.boards, {
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'stockCategoryId' })
   category: StockCategory;
 
@@ -62,16 +66,27 @@ export class Board {
   @Column()
   userAccountId: number;
 
-  @ManyToOne(() => UserAccount, (userAccount) => userAccount.boards)
+  @ManyToOne(() => UserAccount, (userAccount) => userAccount.boards, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'userAccountId' })
   userAccount: UserAccount;
 
-  @OneToOne(() => BoardArticle, (boardArticle) => boardArticle.board)
+  @OneToOne(() => BoardArticle, (boardArticle) => boardArticle.board, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   article: BoardArticle;
 
-  @OneToMany(() => BoardComment, (boardComment) => boardComment.board)
+  @OneToMany(() => BoardComment, (boardComment) => boardComment.board, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   comments: BoardComment[];
 
-  @OneToMany(() => BoardLike, (boardLike) => boardLike.board)
+  @OneToMany(() => BoardLike, (boardLike) => boardLike.board, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   likes: BoardLike[];
 }

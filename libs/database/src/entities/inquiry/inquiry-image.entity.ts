@@ -21,7 +21,6 @@ export class InquiryImage {
   @Column({ type: 'varchar', length: 255 })
   image: string;
 
-  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
@@ -29,7 +28,9 @@ export class InquiryImage {
   @Column()
   inquiryId: number;
 
-  @ManyToOne(() => Inquiry, (inquiry) => inquiry.images)
+  @ManyToOne(() => Inquiry, (inquiry) => inquiry.images, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'inquiryId' })
   inquiry: Inquiry;
 }

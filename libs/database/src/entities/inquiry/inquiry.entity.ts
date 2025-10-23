@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Generated,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -28,6 +29,10 @@ export class Inquiry {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'varchar', length: 36 })
+  @Generated('uuid')
+  uuid: string;
+
   @Column({ type: 'varchar', length: 255 })
   title: string;
 
@@ -37,26 +42,31 @@ export class Inquiry {
   @Column({ type: 'int', default: 0 })
   viewCount: number;
 
-  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @Exclude()
-  @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp', default: null })
-  updatedAt: Date;
+  updatedAt: Date | null;
 
   @Exclude()
   @Column()
   userAccountId: number;
 
-  @ManyToOne(() => UserAccount, (userAccount) => userAccount.inquiries)
+  @ManyToOne(() => UserAccount, (userAccount) => userAccount.inquiries, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'userAccountId' })
   userAccount: UserAccount;
 
-  @OneToOne(() => InquiryReply, (inquiryReply) => inquiryReply.inquiry)
+  @OneToOne(() => InquiryReply, (inquiryReply) => inquiryReply.inquiry, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   reply: InquiryReply;
 
-  @OneToMany(() => InquiryImage, (inquiryImage) => inquiryImage.inquiry)
+  @OneToMany(() => InquiryImage, (inquiryImage) => inquiryImage.inquiry, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   images: InquiryImage[];
 }

@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Generated, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
 
 import { UserAccountTypeEnum } from '@constant/enum/user';
 
@@ -11,29 +11,34 @@ export class UserOauthToken {
   @PrimaryColumn()
   userAccountId: number;
 
-  @PrimaryColumn({ type: 'enum', enum: UserAccountTypeEnum })
-  userAccountType: UserAccountTypeEnum;
-
-  @Column({ type: 'varchar', length: 500, nullable: true })
-  tokenType: string;
-
-  @Column({ type: 'varchar', length: 500, nullable: true })
-  accessToken: string;
-
-  @Column({ type: 'integer', nullable: true })
-  accessTokenExpire: number | null;
-
-  @Column({ type: 'varchar', length: 500, nullable: true })
-  refreshToken: string | null;
-
-  @Column({ type: 'integer', nullable: true })
-  refreshTokenExpire: number | null;
-
-  @OneToOne(() => UserAccount, (userAccount) => userAccount.userOauthToken)
+  @OneToOne(() => UserAccount, (userAccount) => userAccount.userOauthToken, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'userAccountId', referencedColumnName: 'id' })
   userAccount: UserAccount;
 
-  @KoreanTime()
+  @PrimaryColumn({ type: 'tinyint', enum: UserAccountTypeEnum })
+  userAccountType: UserAccountTypeEnum;
+
+  @Column({ type: 'varchar', length: 36 })
+  @Generated('uuid')
+  uuid: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  tokenType: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  accessToken: string | null;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  accessTokenExpire: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  refreshToken: string | null;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  refreshTokenExpire: string | null;
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 }

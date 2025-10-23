@@ -1,10 +1,18 @@
 import { Exclude } from 'class-transformer';
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Generated,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 import { KoreanTime } from '@database/decorators';
 
 import { Board } from '../board';
-import { StockCompany } from './stock-company.entity';
+import { StockKoreanCompany } from './stock-korean-company.entity';
 
 @Entity()
 export class StockCategory {
@@ -17,19 +25,29 @@ export class StockCategory {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'varchar', length: 36 })
+  @Generated('uuid')
+  uuid: string;
+
   @Column({ type: 'varchar', length: 255 })
   name: string;
 
   @Column({ type: 'varchar', length: 255 })
   enName: string;
 
-  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @OneToMany(() => Board, (board) => board.category)
+  @UpdateDateColumn({ type: 'timestamp', default: null })
+  updatedAt: Date | null;
+
+  @OneToMany(() => Board, (board) => board.category, {
+    onDelete: 'SET NULL',
+  })
   boards: Board[];
 
-  @OneToMany(() => StockCompany, (stockCompany) => stockCompany.category)
-  stockCompanies: StockCompany[];
+  @OneToMany(() => StockKoreanCompany, (stockKoreanCompany) => stockKoreanCompany.category, {
+    onDelete: 'SET NULL',
+  })
+  stockKoreanCompanies: StockKoreanCompany[];
 }

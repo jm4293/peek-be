@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 import { KoreanTime } from '@database/decorators';
 
@@ -11,6 +11,10 @@ export class BoardLike {
   @PrimaryColumn()
   id: number;
 
+  @Column({ type: 'varchar', length: 36 })
+  @Generated('uuid')
+  uuid: string;
+
   @Exclude()
   @Column({ type: 'varchar', length: 255, nullable: true })
   guestIp: string | null;
@@ -19,7 +23,12 @@ export class BoardLike {
   @Column()
   boardId: number;
 
-  @ManyToOne(() => Board, (board) => board.likes)
+  @CreateDateColumn({ type: 'timestamp' })
+  createdAt: Date;
+
+  @ManyToOne(() => Board, (board) => board.likes, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'boardId' })
   board: Board;
 
@@ -27,11 +36,9 @@ export class BoardLike {
   @Column()
   userAccountId: number;
 
-  @ManyToOne(() => UserAccount, (userAccount) => userAccount.boardLikes, { nullable: true })
+  @ManyToOne(() => UserAccount, (userAccount) => userAccount.boardLikes, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'userAccountId' })
   userAccount: UserAccount | null;
-
-  @KoreanTime()
-  @CreateDateColumn({ type: 'timestamp' })
-  createdAt: Date;
 }

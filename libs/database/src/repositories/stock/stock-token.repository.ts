@@ -4,12 +4,12 @@ import { Injectable } from '@nestjs/common';
 
 import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
-import { StockToken } from '@database/entities/stock';
+import { securitiesToken } from '@database/entities/stock';
 
 @Injectable()
-export class StockTokenRepository extends Repository<StockToken> {
+export class StockTokenRepository extends Repository<securitiesToken> {
   constructor(manager: EntityManager) {
-    super(StockToken, manager);
+    super(securitiesToken, manager);
   }
 
   async getSocketToken(provider: TokenProviderEnum) {

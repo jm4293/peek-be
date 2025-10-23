@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Generated,
   JoinColumn,
   ManyToOne,
   OneToOne,
@@ -20,28 +21,28 @@ export class UserPushToken {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Exclude()
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ type: 'varchar', length: 36 })
+  @Generated('uuid')
+  uuid: string;
+
+  @Column({ type: 'text', nullable: true })
   pushToken: string | null;
 
-  @Exclude()
   @Column({ type: 'varchar', length: 255 })
   deviceNo: string;
 
-  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @Exclude()
-  @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp', default: null })
-  updatedAt: Date;
+  updatedAt: Date | null;
 
-  @Exclude()
   @Column()
   userAccountId: number;
 
-  @OneToOne(() => UserAccount, (userAccount) => userAccount.userPushToken)
-  @JoinColumn({ name: 'userAccountId', referencedColumnName: 'id' })
+  @OneToOne(() => UserAccount, (userAccount) => userAccount.userPushToken, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'userAccountId' })
   userAccount: UserAccount;
 }

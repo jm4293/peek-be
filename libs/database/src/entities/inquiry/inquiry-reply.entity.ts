@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Generated,
   JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -18,23 +19,26 @@ export class InquiryReply {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'varchar', length: 36 })
+  @Generated('uuid')
+  uuid: string;
+
   @Column({ type: 'text' })
   content: string;
 
-  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @Exclude()
-  @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp', default: null })
-  updatedAt: Date;
+  updatedAt: Date | null;
 
   @Exclude()
   @Column()
   inquiryId: number;
 
-  @OneToOne(() => Inquiry, (inquiry) => inquiry.reply)
+  @OneToOne(() => Inquiry, (inquiry) => inquiry.reply, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'inquiryId' })
   inquiry: Inquiry;
 }

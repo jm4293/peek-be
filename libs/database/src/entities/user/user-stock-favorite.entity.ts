@@ -1,9 +1,9 @@
 import { Exclude } from 'class-transformer';
-import { CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 import { KoreanTime } from '@database/decorators';
 
-import { StockCompany } from '../stock/stock-company.entity';
+import { StockKoreanCompany } from '../stock/stock-korean-company.entity';
 import { UserAccount } from './user-account.entity';
 
 @Entity()
@@ -18,19 +18,26 @@ export class UserStockFavorite {
   @PrimaryColumn()
   userAccountId: number;
 
+  @ManyToOne(() => UserAccount, (userAccount) => userAccount.userStockFavorites, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'userAccountId' })
+  userAccount: UserAccount;
+
   @Exclude()
   @PrimaryColumn()
   stockCompanyId: number;
 
-  @KoreanTime()
+  @ManyToOne(() => StockKoreanCompany, (StockKoreanCompany) => StockKoreanCompany.userStockFavorites, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'stockCompanyId' })
+  stockKoreanCompany: StockKoreanCompany;
+
+  @Column({ type: 'varchar', length: 36 })
+  @Generated('uuid')
+  uuid: string;
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
-
-  @ManyToOne(() => UserAccount, (userAccount) => userAccount.userStockFavorites)
-  @JoinColumn({ name: 'userAccountId' })
-  userAccount: UserAccount;
-
-  @ManyToOne(() => StockCompany, (stockCompany) => stockCompany.userStockFavorites)
-  @JoinColumn({ name: 'stockCompanyId' })
-  stockCompany: StockCompany;
 }

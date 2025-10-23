@@ -9,7 +9,7 @@ export class StockKoreanIndexHistory {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'enum', enum: StockKoreanIndexTypeEnum })
+  @Column({ type: 'tinyint', enum: StockKoreanIndexTypeEnum })
   type: StockKoreanIndexTypeEnum;
 
   @Column({ type: 'varchar', length: 10 })
@@ -87,7 +87,6 @@ export class StockKoreanIndexHistory {
   @Column({ type: 'varchar', length: 10 })
   upcode: string;
 
-  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 }

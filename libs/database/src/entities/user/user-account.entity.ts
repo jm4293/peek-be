@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Generated,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -36,14 +37,18 @@ export class UserAccount {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 36 })
+  @Generated('uuid')
+  uuid: string;
+
+  @Column({ type: 'varchar', length: 320 })
   email: string;
 
   @Exclude()
-  @Column({ type: 'enum', enum: UserAccountStatusEnum, default: UserAccountStatusEnum.ACTIVE })
+  @Column({ type: 'tinyint', enum: UserAccountStatusEnum, default: UserAccountStatusEnum.ACTIVE })
   status: UserAccountStatusEnum;
 
-  @Column({ type: 'enum', enum: UserAccountTypeEnum })
+  @Column({ type: 'tinyint', enum: UserAccountTypeEnum })
   userAccountType: UserAccountTypeEnum;
 
   @Exclude()
@@ -54,50 +59,75 @@ export class UserAccount {
   @Column({ type: 'varchar', length: 255, nullable: true })
   refreshToken: string | null;
 
-  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @Exclude()
-  @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp', default: null })
-  updatedAt: Date;
+  updatedAt: Date | null;
 
   @Exclude()
   @Column()
   userId: number;
 
-  @ManyToOne(() => User, (user) => user.userAccounts)
+  @ManyToOne(() => User, (user) => user.userAccounts, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @OneToOne(() => UserOauthToken, (userOauthToken) => userOauthToken.userAccount)
-  userOauthToken: UserOauthToken;
-
-  @OneToOne(() => UserPushToken, (userPushToken) => userPushToken.userAccount)
-  userPushToken: UserPushToken;
-
-  @OneToMany(() => UserVisit, (userVisit) => userVisit.userAccount)
+  @OneToMany(() => UserVisit, (userVisit) => userVisit.userAccount, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   userVisits: UserVisit[];
 
-  @OneToMany(() => Board, (board) => board.userAccount)
-  boards: Board[];
-
-  @OneToMany(() => BoardComment, (boardComment) => boardComment.userAccount)
-  boardComments: BoardComment[];
-
-  @OneToMany(() => BoardLike, (boardLike) => boardLike.userAccount)
-  boardLikes: BoardLike[];
-
-  @OneToMany(() => UserNotification, (userNotification) => userNotification.userAccount)
+  @OneToMany(() => UserNotification, (userNotification) => userNotification.userAccount, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   userNotifications: UserNotification[];
 
-  @OneToMany(() => Notice, (notice) => notice.userAccount)
+  @OneToOne(() => UserOauthToken, (userOauthToken) => userOauthToken.userAccount, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  userOauthToken: UserOauthToken;
+
+  @OneToOne(() => UserPushToken, (userPushToken) => userPushToken.userAccount, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  userPushToken: UserPushToken;
+
+  @OneToMany(() => UserStockFavorite, (userStockFavorite) => userStockFavorite.userAccount, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  userStockFavorites: UserStockFavorite[];
+
+  @OneToMany(() => Board, (board) => board.userAccount, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  boards: Board[];
+
+  @OneToMany(() => BoardComment, (boardComment) => boardComment.userAccount, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  boardComments: BoardComment[];
+
+  @OneToMany(() => BoardLike, (boardLike) => boardLike.userAccount, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  boardLikes: BoardLike[];
+
+  @OneToMany(() => Notice, (notice) => notice.userAccount, {
+    onDelete: 'SET NULL',
+  })
   notices: Notice[];
 
   @OneToMany(() => Inquiry, (inquiry) => inquiry.userAccount)
   inquiries: Inquiry[];
-
-  @OneToMany(() => UserStockFavorite, (userStockFavorite) => userStockFavorite.userAccount)
-  userStockFavorites: UserStockFavorite[];
 }

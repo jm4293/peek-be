@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Generated,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -26,23 +27,26 @@ export class BoardComment {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'varchar', length: 36 })
+  @Generated('uuid')
+  uuid: string;
+
   @Column({ type: 'text' })
   content: string;
 
-  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @Exclude()
-  @KoreanTime()
   @UpdateDateColumn({ type: 'timestamp', default: null })
-  updatedAt: Date;
+  updatedAt: Date | null;
 
   @Exclude()
   @Column()
   boardId: number;
 
-  @ManyToOne(() => Board, (board) => board.comments)
+  @ManyToOne(() => Board, (board) => board.comments, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'boardId' })
   board: Board;
 
@@ -50,7 +54,9 @@ export class BoardComment {
   @Column()
   userAccountId: number;
 
-  @ManyToOne(() => UserAccount, (userAccount) => userAccount.boardComments)
+  @ManyToOne(() => UserAccount, (userAccount) => userAccount.boardComments, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'userAccountId' })
   userAccount: UserAccount;
 
@@ -59,10 +65,14 @@ export class BoardComment {
   @Column({ type: 'int', nullable: true })
   parentCommentId: number | null;
 
-  @ManyToOne(() => BoardComment, (comment) => comment.replies, { nullable: true })
+  @ManyToOne(() => BoardComment, (comment) => comment.replies, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'parentCommentId' })
   parentComment: BoardComment | null;
 
-  @OneToMany(() => BoardComment, (comment) => comment.parentComment)
+  @OneToMany(() => BoardComment, (comment) => comment.parentComment, {
+    onDelete: 'CASCADE',
+  })
   replies: BoardComment[];
 }

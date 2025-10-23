@@ -2,12 +2,12 @@ import { EntityManager, Repository } from 'typeorm';
 
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { StockCompany } from '@database/entities/stock';
+import { StockKoreanCompany } from '@database/entities/stock';
 
 @Injectable()
-export class StockCompanyRepository extends Repository<StockCompany> {
+export class StockCompanyRepository extends Repository<StockKoreanCompany> {
   constructor(manager: EntityManager) {
-    super(StockCompany, manager);
+    super(StockKoreanCompany, manager);
   }
 
   async findById(id: number) {
