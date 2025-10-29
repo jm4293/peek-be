@@ -3,13 +3,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Generated,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
-import { KoreanTime } from '@database/decorators';
 
 import { Inquiry } from './inquiry.entity';
 
@@ -17,6 +16,10 @@ import { Inquiry } from './inquiry.entity';
 export class InquiryImage {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ type: 'varchar', length: 36 })
+  @Generated('uuid')
+  uuid: string;
 
   @Column({ type: 'varchar', length: 255 })
   image: string;

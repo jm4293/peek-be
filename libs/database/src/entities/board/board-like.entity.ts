@@ -1,8 +1,6 @@
 import { Exclude } from 'class-transformer';
 import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
-import { KoreanTime } from '@database/decorators';
-
 import { UserAccount } from '../user';
 import { Board } from './board.entity';
 

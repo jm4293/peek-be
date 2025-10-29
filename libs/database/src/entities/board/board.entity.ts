@@ -14,8 +14,6 @@ import {
 
 import { BoardTypeEnum } from '@constant/enum/board';
 
-import { KoreanTime } from '@database/decorators';
-
 import { StockCategory } from '../stock';
 import { UserAccount } from '../user';
 import { BoardArticle } from './board-article.entity';

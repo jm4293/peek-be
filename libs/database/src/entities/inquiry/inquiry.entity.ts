@@ -12,8 +12,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { KoreanTime } from '@database/decorators';
-
 import { UserAccount } from '../user';
 import { InquiryImage } from './inquiry-image.entity';
 import { InquiryReply } from './inquiry-reply.entity';

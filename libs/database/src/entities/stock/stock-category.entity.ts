@@ -1,4 +1,3 @@
-import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -8,8 +7,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
-import { KoreanTime } from '@database/decorators';
 
 import { Board } from '../board';
 import { StockKoreanCompany } from './stock-korean-company.entity';

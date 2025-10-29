@@ -1,8 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Generated, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { CurrencyUnitEnum } from '@constant/enum/currency';
-
-import { KoreanTime } from '@database/decorators';
 
 // result: number; // 조회 결과, 1 : 성공, 2 : DATA코드 오류, 3 : 인증코드 오류, 4 : 일일제한횟수 마감
 // cur_unit: string; // 통화코드
@@ -20,6 +18,10 @@ import { KoreanTime } from '@database/decorators';
 export class CurrencyHistory {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ type: 'varchar', length: 36 })
+  @Generated('uuid')
+  uuid: string;
 
   @Column({ type: 'varchar', length: 3, nullable: true, enum: CurrencyUnitEnum, comment: '통화 코드' })
   curUnit: CurrencyUnitEnum | null;
@@ -54,7 +56,6 @@ export class CurrencyHistory {
   @Column({ type: 'varchar', length: 10, nullable: true, comment: '서울외국환중개 장부가격' })
   kftcBkpr: string | null;
 
-  @KoreanTime()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 }

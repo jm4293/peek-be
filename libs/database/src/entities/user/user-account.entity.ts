@@ -14,8 +14,6 @@ import {
 
 import { UserAccountStatusEnum, UserAccountTypeEnum } from '@constant/enum/user';
 
-import { KoreanTime } from '@database/decorators';
-
 import { Board, BoardComment, BoardLike } from '../board';
 import { Inquiry } from '../inquiry';
 import { Notice } from '../notice';

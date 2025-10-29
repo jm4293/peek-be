@@ -1,13 +1,15 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Generated, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { StockKoreanIndexTypeEnum } from '@constant/enum/stock';
-
-import { KoreanTime } from '@database/decorators';
 
 @Entity()
 export class StockKoreanIndexHistory {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ type: 'varchar', length: 36 })
+  @Generated('uuid')
+  uuid: string;
 
   @Column({ type: 'tinyint', enum: StockKoreanIndexTypeEnum })
   type: StockKoreanIndexTypeEnum;

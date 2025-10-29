@@ -1,4 +1,3 @@
-import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -11,10 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { KoreanTime } from '@database/decorators';
-
 import { UserAccount } from './user-account.entity';
-import { User } from './user.entity';
 
 @Entity()
 export class UserPushToken {

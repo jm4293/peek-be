@@ -1,18 +1,7 @@
 import { Exclude } from 'class-transformer';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  Generated,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { UserVisitTypeEnum } from '@constant/enum/user';
-
-import { KoreanTime } from '@database/decorators';
 
 import { UserAccount } from './user-account.entity';
 

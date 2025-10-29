@@ -3,8 +3,6 @@ import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToOne, Pri
 
 import { UserNotificationTypeEnum } from '@constant/enum/user';
 
-import { KoreanTime } from '@database/decorators';
-
 import { UserAccount } from './user-account.entity';
 
 @Entity()

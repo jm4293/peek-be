@@ -1,9 +1,6 @@
-import { Exclude } from 'class-transformer';
 import { Column, CreateDateColumn, Entity, Generated, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
-
-import { KoreanTime } from '@database/decorators';
 
 @Entity()
 export class securitiesToken {

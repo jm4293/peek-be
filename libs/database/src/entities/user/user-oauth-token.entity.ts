@@ -2,8 +2,6 @@ import { Column, CreateDateColumn, Entity, Generated, JoinColumn, OneToOne, Prim
 
 import { UserAccountTypeEnum } from '@constant/enum/user';
 
-import { KoreanTime } from '@database/decorators';
-
 import { UserAccount } from './user-account.entity';
 
 @Entity()

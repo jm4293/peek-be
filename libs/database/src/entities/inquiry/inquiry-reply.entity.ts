@@ -10,8 +10,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { KoreanTime } from '@database/decorators';
-
 import { Inquiry } from './inquiry.entity';
 
 @Entity()

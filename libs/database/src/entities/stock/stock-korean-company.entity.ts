@@ -11,8 +11,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { KoreanTime } from '@database/decorators';
-
 import { UserStockFavorite } from '../user';
 import { StockCategory } from './stock-category.entity';
 

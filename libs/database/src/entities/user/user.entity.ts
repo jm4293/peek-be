@@ -11,11 +11,7 @@ import {
 
 import { UserTypeEnum } from '@constant/enum/user';
 
-import { KoreanTime } from '@database/decorators';
-
 import { UserAccount } from './user-account.entity';
-import { UserNotification } from './user-notification.entity';
-import { UserPushToken } from './user-push-token.entity';
 
 @Entity()
 export class User {
