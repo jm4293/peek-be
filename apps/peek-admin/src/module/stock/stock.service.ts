@@ -7,7 +7,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { LIST_LIMIT } from '@peek-admin/constant/list';
 import { GetStockCodeListDto } from '@peek-admin/type/dto';
 
-import { StockCompany } from '@database/entities/stock';
+import { StockKoreanCompany } from '@database/entities/stock';
 import { StockCategoryRepository, StockCompanyRepository } from '@database/repositories/stock';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class StockService {
 
     let whereCondition = {};
 
-    const orderCondition: FindOptionsOrder<StockCompany> = { companyName: 'ASC' };
+    const orderCondition: FindOptionsOrder<StockKoreanCompany> = { companyName: 'ASC' };
 
     if (category) {
       whereCondition = { ...whereCondition, category: category };
@@ -119,7 +119,7 @@ export class StockService {
 
     if (dataType === 'KOSPI') {
       const entities = arr.map((row) => {
-        const entity = new StockCompany();
+        const entity = new StockKoreanCompany();
 
         entity.companyName = row[0];
         entity.code = String(row[1]).padStart(6, '0');
@@ -138,7 +138,7 @@ export class StockService {
 
     if (dataType === 'KOSDAQ') {
       const entities = arr.map((row) => {
-        const entity = new StockCompany();
+        const entity = new StockKoreanCompany();
 
         entity.companyName = row[0];
         entity.code = String(row[1]).padStart(6, '0');

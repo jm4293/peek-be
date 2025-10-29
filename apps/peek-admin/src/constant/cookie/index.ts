@@ -1,2 +1,2 @@
-export const ACCESS_TOKEN_NAME = '__at';
-export const REFRESH_TOKEN_NAME = '__rt';
+export const ACCESS_TOKEN_NAME = 'TKN';
+export const REFRESH_TOKEN_NAME = 'RTKN';
