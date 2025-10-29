@@ -159,7 +159,7 @@ export class AuthService {
     const refreshToken = req.cookies[REFRESH_TOKEN_NAME] as string;
 
     if (!refreshToken) {
-      throw new ForbiddenException();
+      return null;
     }
 
     const { accountId } = this.jwtService.verify<IJwtToken>(refreshToken, this.configService.get('JWT_SECRET_KEY'));
@@ -167,16 +167,14 @@ export class AuthService {
     const userAccount = await this.userAccountRepository.findOne({ where: { id: accountId } });
 
     if (!userAccount) {
-      throw new ForbiddenException();
+      return null;
     }
 
     if (refreshToken !== userAccount.refreshToken) {
-      throw new ForbiddenException();
+      return null;
     }
 
-    const accessToken = await this._generateJwtToken({ accountId: userAccount.id }, ACCESS_TOKEN_TIME);
-
-    return { accessToken };
+    return await this._generateJwtToken({ accountId: userAccount.id }, ACCESS_TOKEN_TIME);
   }
 
   private async _registerUserVisit(params: { req: Request; type: UserVisitTypeEnum; userAccountId: number }) {

@@ -81,26 +81,18 @@ export class AuthController {
   @Public()
   @Post('refresh')
   async refreshToken(@Req() req: Request, @Res() res: Response) {
-    try {
-      const { accessToken } = await this.authService.refreshToken({ req });
+    const response = await this.authService.refreshToken({ req });
 
-      res.cookie(ACCESS_TOKEN_NAME, accessToken, {
-        ...this.cookieOptions,
-        maxAge: ACCESS_TOKEN_COOKIE_TIME,
-      });
-
-      res.status(200).json({ accessToken });
-    } catch (err) {
-      const cookies = req.cookies;
-
-      for (const cookie in cookies) {
-        if (cookies.hasOwnProperty(cookie)) {
-          res.clearCookie(cookie);
-        }
-      }
-
-      res.status(403).json({});
+    if (!response) {
+      return res.status(403).json({ message: 'Forbidden' });
     }
+
+    res.cookie(ACCESS_TOKEN_NAME, response, {
+      ...this.cookieOptions,
+      maxAge: ACCESS_TOKEN_COOKIE_TIME,
+    });
+
+    res.status(200).json({ tkn: response });
   }
 
   @Post('logout')
