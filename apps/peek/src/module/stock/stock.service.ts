@@ -151,7 +151,7 @@ export class StockService implements OnModuleInit {
       where: { userAccountId: accountId },
       skip: (page - 1) * LIST_LIMIT,
       take: LIST_LIMIT,
-      relations: ['stockCompany'],
+      relations: ['stockKoreanCompany'],
       order: { createdAt: 'DESC' },
     });
 
@@ -163,21 +163,24 @@ export class StockService implements OnModuleInit {
 
   async toggleFavoriteStock(params: { body: UpdateStockFavoriteDto; accountId: number }) {
     const { body, accountId } = params;
-    const { stockCompanyId } = body;
+    const { stockKoreanCompanyId } = body;
 
-    await this.stockCompanyRepository.findById(stockCompanyId);
+    await this.stockCompanyRepository.findById(stockKoreanCompanyId);
 
-    const ret = await this.userStockFavoriteRepository.findByUserAccountIdAndStockCompanyId(accountId, stockCompanyId);
+    const ret = await this.userStockFavoriteRepository.findByUserAccountIdAndStockCompanyId(
+      accountId,
+      stockKoreanCompanyId,
+    );
 
     if (!ret) {
       await this.userStockFavoriteRepository.save({
         userAccountId: accountId,
-        stockCompanyId,
+        stockKoreanCompanyId,
       });
     } else {
       await this.userStockFavoriteRepository.delete({
         userAccountId: accountId,
-        stockCompanyId,
+        stockKoreanCompanyId,
       });
     }
   }

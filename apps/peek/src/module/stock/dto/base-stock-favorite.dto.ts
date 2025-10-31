@@ -5,5 +5,5 @@ export class BaseStockFavoriteDto {
   @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
-  stockCompanyId: number;
+  stockKoreanCompanyId: number;
 }

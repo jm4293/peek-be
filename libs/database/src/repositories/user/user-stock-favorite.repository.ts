@@ -10,7 +10,7 @@ export class UserStockFavoriteRepository extends Repository<UserStockFavorite> {
     super(UserStockFavorite, manager);
   }
 
-  async findByUserAccountIdAndStockCompanyId(userAccountId: number, stockCompanyId: number) {
-    return await this.findOneBy({ userAccountId, stockCompanyId });
+  async findByUserAccountIdAndStockCompanyId(userAccountId: number, stockKoreanCompanyId: number) {
+    return await this.findOneBy({ userAccountId, stockKoreanCompanyId });
   }
 }

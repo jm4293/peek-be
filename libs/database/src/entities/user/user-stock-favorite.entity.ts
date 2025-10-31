@@ -24,12 +24,12 @@ export class UserStockFavorite {
 
   @Exclude()
   @PrimaryColumn()
-  stockCompanyId: number;
+  stockKoreanCompanyId: number;
 
   @ManyToOne(() => StockKoreanCompany, (StockKoreanCompany) => StockKoreanCompany.userStockFavorites, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'stockCompanyId' })
+  @JoinColumn({ name: 'stockKoreanCompanyId' })
   stockKoreanCompany: StockKoreanCompany;
 
   @Column({ type: 'varchar', length: 36 })
