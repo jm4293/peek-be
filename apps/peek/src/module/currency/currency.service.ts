@@ -8,19 +8,15 @@ export class CurrencyService {
   constructor(private readonly currencyHistoryRepository: CurrencyHistoryRepository) {}
 
   async getCurrencyList() {
-    const currencyList = await this.currencyHistoryRepository.find({
-      order: { id: 'DESC' },
-      take: 8,
-    });
+    const currencyList = await this.currencyHistoryRepository
+      .createQueryBuilder('currency')
+      .where((qb) => {
+        const subQuery = qb.subQuery().select('MAX(sub.createdAt)').from(CurrencyHistory, 'sub').getQuery();
+        return 'currency.createdAt = ' + subQuery;
+      })
+      .orderBy('currency.id', 'DESC')
+      .getMany();
 
-    const currencyMap = new Map<string, CurrencyHistory>();
-
-    currencyList.forEach((currency) => {
-      if (!currencyMap.has(currency.curUnit)) {
-        currencyMap.set(currency.curUnit, currency);
-      }
-    });
-
-    return { data: Array.from(currencyMap.values()), total: currencyMap.size };
+    return { data: currencyList, total: currencyList.length };
   }
 }

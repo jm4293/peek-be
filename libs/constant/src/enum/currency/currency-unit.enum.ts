@@ -3,4 +3,6 @@ export enum CurrencyUnitEnum {
   EUR = 'EUR',
   JPY = 'JPY',
   CNH = 'CNH',
+  AUD = 'AUD',
+  GBP = 'GBP',
 }

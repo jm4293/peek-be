@@ -14,7 +14,7 @@ export const typeormModuleConfig: TypeOrmModuleAsyncOptions = {
     entities: ['dist/**/*.entity{.ts,.js}'],
     synchronize: false,
     logging: false,
-    timezone: 'Z', // UTC로 설정
+    timezone: 'Z',
     charset: 'utf8mb4',
     extra: {
       authPlugin: 'mysql_native_password',

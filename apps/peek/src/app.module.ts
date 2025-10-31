@@ -52,12 +52,12 @@ import { KisWebSocketModule, KiwoomWebSocketModule } from './module/websocket';
     UserModule,
 
     CurrencyScheduleModule,
-    KisScheduleModule,
-    KiwoomScheduleModule,
-    LsScheduleModule,
+    // KisScheduleModule,
+    // KiwoomScheduleModule,
+    // LsScheduleModule,
 
-    KisWebSocketModule,
-    KiwoomWebSocketModule,
+    // KisWebSocketModule,
+    // KiwoomWebSocketModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuardConfig }, AppService],

@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 
 import { CurrencyUnitEnum } from '@constant/enum/currency';
 
@@ -12,14 +12,14 @@ interface IResponse {
   cur_unit: string; // 통화코드
   cur_nm: string; // 국가/통화명
   cur_unit_desc: string;
-  ttb: string; // 전신환(송금) 받으실때
-  tts: string; // 전신환(송금) 보내실때
-  deal_bas_r: string; // 매매 기준율
-  bkpr: string; // 장부가격
-  yy_efee_r: string; // 년환가료율
-  ten_dd_efee_r: string; // 10일환가료율
-  kftc_deal_bas_r: string; // 서울외국환중개 매매기준율
-  kftc_bkpr: string; // 서울외국환중개 장부가격
+  ttb: string; // 전신환(송금) 받으실때, 은행이 송금을 받을 때 적용되는 매입 환율
+  tts: string; // 전신환(송금) 보내실때, 은행이 송금을 보낼 때 적용되는 매도 환율
+  deal_bas_r: string; // 매매 기준율, 은행의 거래 기준으로 삼는 환율
+  bkpr: string; // 장부가격, 회계상 사용되는 환율로, 대부분 ‘매매기준율’과 같음
+  yy_efee_r: string; // 년환가료율, 연 단위 환가와 관련된 수수료율
+  ten_dd_efee_r: string; // 10일환가료율, 10일 단위 환가 수수료율
+  kftc_deal_bas_r: string; // 서울외국환중개 매매기준율, 한국금융결제원의 기준 환율
+  kftc_bkpr: string; // 서울외국환중개 장부가격, 결제원의 공식 회계 환율
 }
 
 @Injectable()
@@ -27,6 +27,15 @@ export class CurrencyScheduleService {
   private readonly URL = 'https://oapi.koreaexim.go.kr/site/program/financial/exchangeJSON';
   private readonly logger = new Logger(CurrencyScheduleService.name);
   private appKey: string | null = null;
+
+  private readonly validCurrencyUnits = [
+    CurrencyUnitEnum.USD,
+    CurrencyUnitEnum.JPY,
+    CurrencyUnitEnum.EUR,
+    CurrencyUnitEnum.CNH,
+    CurrencyUnitEnum.AUD,
+    CurrencyUnitEnum.GBP,
+  ];
 
   constructor(
     private readonly configService: ConfigService,
@@ -37,20 +46,21 @@ export class CurrencyScheduleService {
     this.appKey = this.configService.get('OPEN_API_KOREA_EXIM');
   }
 
-  // async onModuleInit() {
-  //   if (this.configService.get('NODE_ENV') === 'production') {
-  //     this._getCurrencySchedule();
-  //   }
-  // }
-
-  @Cron(CronExpression.EVERY_5_MINUTES, { name: 'currency', timeZone: 'Asia/Seoul' })
-  private async _getCurrencySchedule() {
+  @Cron('*/30 * * * * *', { name: 'currency', timeZone: 'Asia/Seoul' })
+  private async CurrencySchedule() {
     if (this.configService.get('NODE_ENV') !== 'production') {
       return;
     }
 
+    const koreaTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' });
+    const hour = new Date(koreaTime).getHours();
+
+    if (hour < 12 || hour >= 20) {
+      return;
+    }
+
     if (!this.appKey) {
-      this.logger.error('CurrencyService _getCurrencySchedule: appKey is null');
+      this.logger.error('환율 스케줄러 실행 실패: OPEN_API_KOREA_EXIM 키가 설정되지 않음');
       return;
     }
 
@@ -62,30 +72,28 @@ export class CurrencyScheduleService {
         },
       });
 
-      const { data } = response;
-
-      if (!Array.isArray(data)) {
-        this.logger.warn('Invalid response format: data is not an array');
+      if (response.status !== 200) {
+        this.logger.error(`환율 스케줄러 실행 실패: API 응답 상태 코드 ${response.status}`);
         return;
       }
 
-      const validCurrencyUnits = Object.values(CurrencyUnitEnum);
+      const { data } = response;
 
-      const filtered = data.reduce((acc, cur) => {
-        if (cur.result !== 1) {
+      const filtered = this.validCurrencyUnits.reduce<IResponse[]>((acc, cur) => {
+        const currencyUnit = data.find((item) => item.cur_unit.startsWith(cur));
+
+        if (!currencyUnit) {
           return acc;
         }
 
-        const validCurrency = validCurrencyUnits.find((currency) => cur.cur_unit.startsWith(currency));
-
-        if (!validCurrency) {
+        if (currencyUnit.result !== 1) {
           return acc;
         }
 
-        acc.push({ ...cur, cur_unit: validCurrency, cur_unit_desc: cur.cur_unit });
+        acc.push({ ...currencyUnit, cur_unit: cur, cur_unit_desc: currencyUnit.cur_unit });
 
         return acc;
-      }, [] as IResponse[]);
+      }, []);
 
       const saveResults = await Promise.allSettled(
         filtered.map(async (el) => {
@@ -108,9 +116,8 @@ export class CurrencyScheduleService {
       const failedSaves = saveResults.filter((result) => result.status === 'rejected');
 
       if (failedSaves.length > 0) {
-        this.logger.warn(`Failed to save ${failedSaves.length} currency records`);
         failedSaves.forEach((result, index) => {
-          this.logger.error(`Currency save error for item ${index}:`, (result as PromiseRejectedResult).reason);
+          this.logger.error(`환율 저장 오류 발생: ${index}번째 항목`, (result as PromiseRejectedResult).reason);
         });
       }
 
@@ -118,7 +125,7 @@ export class CurrencyScheduleService {
         `환율 처리 완료: 총 ${filtered.length}개 통화 중 ${saveResults.length - failedSaves.length}개 저장 성공`,
       );
     } catch (error) {
-      this.logger.error('Error in currency schedule:', error);
+      this.logger.error('환율 스케줄러 실행 중 오류 발생:', error);
     }
   }
 }
