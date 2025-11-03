@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import { ENTITY_RELATIONS } from '@peek/constant/entity';
 import { LIST_LIMIT } from '@peek/constant/list';
 
 import { NoticeRepository } from '@database/repositories/notice';
@@ -25,9 +26,10 @@ export class NoticeService {
     return { notices, total, nextPage };
   }
 
-  async getNotice(noticeId: number) {
+  async getNotice(id: number) {
     return await this.noticeRepository.findOne({
-      where: { id: noticeId },
+      where: { id },
+      relations: [ENTITY_RELATIONS.NOTICE.USER_ACCOUNT, ENTITY_RELATIONS.NOTICE.USER_ACCOUNT_USER],
     });
   }
 }

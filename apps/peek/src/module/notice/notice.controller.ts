@@ -24,11 +24,11 @@ export class NoticeController {
   }
 
   @Public()
-  @Get(':noticeId')
+  @Get(':id')
   async getNotice(@Param() param: GetNoticeDto) {
-    const { noticeId } = param;
+    const { id } = param;
 
-    const ret = await this.noticeService.getNotice(noticeId);
+    const ret = await this.noticeService.getNotice(id);
 
     return {
       notice: new Notice(ret),

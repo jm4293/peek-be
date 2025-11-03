@@ -1,6 +1,5 @@
 import cookieParser from 'cookie-parser';
 import * as admin from 'firebase-admin';
-import * as fs from 'fs';
 
 import { ClassSerializerInterceptor } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -11,23 +10,11 @@ import { AppModule } from './app.module';
 import { validationPipeConfig } from './config/validation-pipe';
 
 async function bootstrap() {
-  // const httpsOptions = {
-  //   key: fs.readFileSync('certs/key.pem'),
-  //   cert: fs.readFileSync('certs/cert.pem'),
-  // };
-
-  const app = await NestFactory.create(
-    AppModule,
-    // { httpsOptions }
-  );
+  const app = await NestFactory.create(AppModule);
 
   const configService = app.get(ConfigService);
 
   // configService.get('NODE_ENV') === 'development' && app.setGlobalPrefix('api');
-
-  // 전역 인터셉터 설정
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
-  // 전역 인터셉터 설정 끝
 
   app.enableCors({
     origin: ['http://localhost:3000', 'http://8134293.iptime.org:42930', 'https://stock.peek.run'],
@@ -35,13 +22,17 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // 유효성 검사 설정
+  // 전역 Pipe 설정
   app.useGlobalPipes(validationPipeConfig);
-  // 유효성 검사 설정 끝
+  // 전역 Pipe 설정 끝
 
   // cookie-parser 미들웨어 추가
   app.use(cookieParser());
   // cookie-parser 미들웨어 추가 끝
+
+  //  전역 Serialization 설정
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  //  전역 Serialization 설정 끝
 
   // Firebase Admin SDK 초기화
   const serviceAccount = {
