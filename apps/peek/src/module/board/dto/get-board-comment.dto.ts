@@ -1,9 +1,7 @@
-import { Type } from 'class-transformer';
-import { IsInt, IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsNumberString } from 'class-validator';
 
 export class GetBoardCommentDto {
-  @IsInt()
-  @Type(() => Number)
+  @IsNumberString()
   @IsNotEmpty()
   boardCommentId: number;
 }

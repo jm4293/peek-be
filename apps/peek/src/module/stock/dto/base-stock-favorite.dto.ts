@@ -1,9 +1,7 @@
-import { Type } from 'class-transformer';
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsNumberString } from 'class-validator';
 
 export class BaseStockFavoriteDto {
-  @Type(() => Number)
-  @IsNumber()
+  @IsNumberString()
   @IsNotEmpty()
   stockKoreanCompanyId: number;
 }
