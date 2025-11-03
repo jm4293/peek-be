@@ -32,6 +32,7 @@ export class UserAccount {
     }
   }
 
+  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 
