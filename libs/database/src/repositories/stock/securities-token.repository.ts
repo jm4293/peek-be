@@ -7,7 +7,7 @@ import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 import { securitiesToken } from '@database/entities/stock';
 
 @Injectable()
-export class StockTokenRepository extends Repository<securitiesToken> {
+export class SecuritiesTokenRepository extends Repository<securitiesToken> {
   constructor(manager: EntityManager) {
     super(securitiesToken, manager);
   }
@@ -16,7 +16,7 @@ export class StockTokenRepository extends Repository<securitiesToken> {
     const ret = await this.findOne({ where: { type: TokenTypeEnum.SOCKET, provider } });
 
     if (!ret) {
-      throw new Error('socket token이 DB에 존재하지 않습니다.');
+      throw new Error(`${provider} socket token이 DB에 존재하지 않습니다.`);
     }
 
     return ret;

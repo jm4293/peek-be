@@ -2,10 +2,10 @@ import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 
 import {
+  SecuritiesTokenRepository,
   StockCategoryRepository,
   StockCompanyRepository,
   StockKoreanIndexHistoryRepository,
-  StockTokenRepository,
 } from '@database/repositories/stock';
 import { UserAccountRepository, UserRepository, UserStockFavoriteRepository } from '@database/repositories/user';
 
@@ -22,7 +22,7 @@ import { StockService } from './stock.service';
     StockCategoryRepository,
     StockCompanyRepository,
     StockKoreanIndexHistoryRepository,
-    StockTokenRepository,
+    SecuritiesTokenRepository,
 
     UserStockFavoriteRepository,
   ],

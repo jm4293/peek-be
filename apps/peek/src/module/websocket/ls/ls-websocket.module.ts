@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
 
+import { SecuritiesTokenRepository, StockKoreanIndexHistoryRepository } from '@database/repositories/stock';
+
+import { LsKoreanIndexGateway } from './ls-korean-index.gateway';
+
 @Module({
   imports: [],
   controllers: [],
-  providers: [],
+  providers: [LsKoreanIndexGateway, SecuritiesTokenRepository, StockKoreanIndexHistoryRepository],
   exports: [],
 })
 export class LsWebSocketModule {}

@@ -8,7 +8,7 @@ import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketSe
 import { StockKoreanIndexTypeEnum } from '@constant/enum/stock';
 import { TokenProviderEnum } from '@constant/enum/token';
 
-import { StockKoreanIndexHistoryRepository, StockTokenRepository } from '@database/repositories/stock';
+import { SecuritiesTokenRepository, StockKoreanIndexHistoryRepository } from '@database/repositories/stock';
 
 interface ILsIndex {
   time: string; // 시간
@@ -116,25 +116,25 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
   server: Server;
 
   private readonly logger = new Logger(KisKoreanIndexGateway.name);
+
   private kisWebSocket: WebSocket | null = null;
   private kisWebSocketToken: string | null = null;
+
   private kospiIndex: ILsIndex | null = null;
   private kosdaqIndex: ILsIndex | null = null;
 
   constructor(
     private readonly configService: ConfigService,
 
-    private readonly stockTokenRepository: StockTokenRepository,
+    private readonly securitiesTokenRepository: SecuritiesTokenRepository,
     private readonly stockKoreanIndexHistoryRepository: StockKoreanIndexHistoryRepository,
   ) {}
 
   async onModuleInit() {
     await this._initKoreanIndex();
 
-    if (this.configService.get('NODE_ENV') === 'production') {
-      await this._setKisToken();
-      await this._connectToKis();
-    }
+    await this._setKisToken();
+    await this._connectToKis();
   }
 
   async handleConnection(client: Socket) {
@@ -150,142 +150,147 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
   }
 
   private async _connectToKis() {
-    try {
-      this.kisWebSocket = new WebSocket('ws://ops.koreainvestment.com:21000');
-    } catch (error) {
-      this.logger.error('웹소켓 KIS 한국 지수 연결 실패:', error);
-      return;
-    }
+    this.kisWebSocket = new WebSocket('ws://ops.koreainvestment.com:21000');
 
     this.kisWebSocket.onopen = async () => {
-      try {
-        const messageKOSPI = {
-          header: {
-            approval_key: this.kisWebSocketToken,
-            custtype: 'P',
-            tr_type: '1',
-            'content-type': 'utf-8',
-          },
-          body: {
-            input: {
-              tr_id: 'H0UPCNT0',
-              tr_key: '0001',
-            },
-          },
-        };
+      // const messageKOSPI = {
+      //   header: {
+      //     approval_key: this.kisWebSocketToken,
+      //     custtype: 'P',
+      //     tr_type: '1',
+      //     'content-type': 'utf-8',
+      //   },
+      //   body: {
+      //     input: {
+      //       tr_id: 'H0UPCNT0',
+      //       tr_key: KOSPI_TR_KEY,
+      //     },
+      //   },
+      // };
 
-        const messageKOSDAQ = {
-          header: {
-            approval_key: this.kisWebSocketToken,
-            custtype: 'P',
-            tr_type: '1',
-            'content-type': 'utf-8',
-          },
-          body: {
-            input: {
-              tr_id: 'H0UPCNT0',
-              tr_key: '1001',
-            },
-          },
-        };
+      // const messageKOSDAQ = {
+      //   header: {
+      //     approval_key: this.kisWebSocketToken,
+      //     custtype: 'P',
+      //     tr_type: '1',
+      //     'content-type': 'utf-8',
+      //   },
+      //   body: {
+      //     input: {
+      //       tr_id: 'H0UPCNT0',
+      //       tr_key: KOSDAQ_TR_KEY,
+      //     },
+      //   },
+      // };
 
-        this.kisWebSocket.send(JSON.stringify(messageKOSPI));
-        this.kisWebSocket.send(JSON.stringify(messageKOSDAQ));
+      // this.kisWebSocket.send(JSON.stringify(messageKOSPI));
+      // this.kisWebSocket.send(JSON.stringify(messageKOSDAQ));
 
-        this.logger.log('웹소켓 KIS 한국 지수 연결 성공');
-      } catch (error) {
-        this.logger.error('웹소켓 KIS 한국 지수 onopen 핸들러에서 오류 발생');
-        this.kisWebSocket.close();
-      }
+      const nxtSamsung = {
+        header: {
+          approval_key: this.kisWebSocketToken,
+          custtype: 'P',
+          tr_type: '1',
+          'content-type': 'utf-8',
+        },
+        body: {
+          input: {
+            tr_id: 'H0NXCNT0',
+            tr_key: '005930',
+          },
+        },
+      };
+
+      this.kisWebSocket.send(JSON.stringify(nxtSamsung));
+
+      this.logger.log('웹소켓 KIS 한국 지수 연결 성공');
     };
 
     this.kisWebSocket.onmessage = (event) => {
-      try {
-        const ret = event.data.toString();
+      const ret = event.data.toString();
 
-        const data = ret.split('|')[3]?.split('^');
+      console.log('KIS KOREAN INDEX WEBSOCKET MESSAGE:', ret);
 
-        if (data) {
-          const indexObj = Object.fromEntries(indexKeys.map((key, i) => [key, data[i]]));
+      const data = ret.split('|')[3]?.split('^');
 
-          if (+indexObj.bsop_hour > 222222) {
-            return;
-          }
+      if (data) {
+        const indexObj = Object.fromEntries(indexKeys.map((key, i) => [key, data[i]]));
 
-          if (indexObj.bstp_cls_code === KOSPI_TR_KEY) {
-            const convertedIndexObj = {
-              type: StockKoreanIndexTypeEnum.KOSPI,
-              time: indexObj.bsop_hour,
-              jisu: indexObj.prpr_nmix,
-              sign: indexObj.prdy_vrss_sign,
-              change: indexObj.bstp_nmix_prdy_vrss,
-              drate: indexObj.prdy_ctrt,
-              cvolume: indexObj.pcas_vol,
-              volume: indexObj.acml_vol,
-              value: indexObj.acml_tr_pbmn,
-              upjo: indexObj.uplm_issu_cnt,
-              highjo: indexObj.ascn_issu_cnt,
-              unchgjo: indexObj.stnr_issu_cnt,
-              lowjo: indexObj.down_issu_cnt,
-              downjo: indexObj.lslm_issu_cnt,
-              upjrate: null,
-              openjisu: indexObj.oprc_nmix,
-              opentime: null,
-              highjisu: indexObj.nmix_hgpr,
-              hightime: null,
-              lowjisu: indexObj.nmix_lwpr,
-              lowtime: null,
-              frgsvolume: null,
-              orgsvolume: null,
-              frgsvalue: null,
-              orgsvalue: null,
-              upcode: indexObj.bstp_cls_code,
-            };
-
-            this.kospiIndex = convertedIndexObj;
-            this.server.emit(KOSPI_TR_KEY, convertedIndexObj);
-
-            this.stockKoreanIndexHistoryRepository.save(convertedIndexObj);
-          }
-
-          if (indexObj.bstp_cls_code === KOSDAQ_TR_KEY) {
-            const convertedIndexObj = {
-              type: StockKoreanIndexTypeEnum.KOSDAQ,
-              time: indexObj.bsop_hour,
-              jisu: indexObj.prpr_nmix,
-              sign: indexObj.prdy_vrss_sign,
-              change: indexObj.bstp_nmix_prdy_vrss,
-              drate: indexObj.prdy_ctrt,
-              cvolume: indexObj.pcas_vol,
-              volume: indexObj.acml_vol,
-              value: indexObj.acml_tr_pbmn,
-              upjo: indexObj.uplm_issu_cnt,
-              highjo: indexObj.ascn_issu_cnt,
-              unchgjo: indexObj.stnr_issu_cnt,
-              lowjo: indexObj.down_issu_cnt,
-              downjo: indexObj.lslm_issu_cnt,
-              upjrate: null,
-              openjisu: indexObj.oprc_nmix,
-              opentime: null,
-              highjisu: indexObj.nmix_hgpr,
-              hightime: null,
-              lowjisu: indexObj.nmix_lwpr,
-              lowtime: null,
-              frgsvolume: null,
-              orgsvolume: null,
-              frgsvalue: null,
-              orgsvalue: null,
-              upcode: indexObj.bstp_cls_code,
-            };
-
-            this.kosdaqIndex = convertedIndexObj;
-            this.server.emit(KOSDAQ_TR_KEY, convertedIndexObj);
-
-            this.stockKoreanIndexHistoryRepository.save(convertedIndexObj);
-          }
+        if (+indexObj.bsop_hour > 222222) {
+          return;
         }
-      } catch (error) {
-        this.logger.error('웹소켓 KIS 한국 지수 onmessage 핸들러에서 오류 발생');
+
+        if (indexObj.bstp_cls_code === KOSPI_TR_KEY) {
+          const convertedIndexObj = {
+            type: StockKoreanIndexTypeEnum.KOSPI,
+            time: indexObj.bsop_hour,
+            jisu: indexObj.prpr_nmix,
+            sign: indexObj.prdy_vrss_sign,
+            change: indexObj.bstp_nmix_prdy_vrss,
+            drate: indexObj.prdy_ctrt,
+            cvolume: indexObj.pcas_vol,
+            volume: indexObj.acml_vol,
+            value: indexObj.acml_tr_pbmn,
+            upjo: indexObj.uplm_issu_cnt,
+            highjo: indexObj.ascn_issu_cnt,
+            unchgjo: indexObj.stnr_issu_cnt,
+            lowjo: indexObj.down_issu_cnt,
+            downjo: indexObj.lslm_issu_cnt,
+            upjrate: null,
+            openjisu: indexObj.oprc_nmix,
+            opentime: null,
+            highjisu: indexObj.nmix_hgpr,
+            hightime: null,
+            lowjisu: indexObj.nmix_lwpr,
+            lowtime: null,
+            frgsvolume: null,
+            orgsvolume: null,
+            frgsvalue: null,
+            orgsvalue: null,
+            upcode: indexObj.bstp_cls_code,
+          };
+
+          this.kospiIndex = convertedIndexObj;
+          this.server.emit(KOSPI_TR_KEY, convertedIndexObj);
+
+          this.stockKoreanIndexHistoryRepository.save(convertedIndexObj);
+        }
+
+        if (indexObj.bstp_cls_code === KOSDAQ_TR_KEY) {
+          const convertedIndexObj = {
+            type: StockKoreanIndexTypeEnum.KOSDAQ,
+            time: indexObj.bsop_hour,
+            jisu: indexObj.prpr_nmix,
+            sign: indexObj.prdy_vrss_sign,
+            change: indexObj.bstp_nmix_prdy_vrss,
+            drate: indexObj.prdy_ctrt,
+            cvolume: indexObj.pcas_vol,
+            volume: indexObj.acml_vol,
+            value: indexObj.acml_tr_pbmn,
+            upjo: indexObj.uplm_issu_cnt,
+            highjo: indexObj.ascn_issu_cnt,
+            unchgjo: indexObj.stnr_issu_cnt,
+            lowjo: indexObj.down_issu_cnt,
+            downjo: indexObj.lslm_issu_cnt,
+            upjrate: null,
+            openjisu: indexObj.oprc_nmix,
+            opentime: null,
+            highjisu: indexObj.nmix_hgpr,
+            hightime: null,
+            lowjisu: indexObj.nmix_lwpr,
+            lowtime: null,
+            frgsvolume: null,
+            orgsvolume: null,
+            frgsvalue: null,
+            orgsvalue: null,
+            upcode: indexObj.bstp_cls_code,
+          };
+
+          this.kosdaqIndex = convertedIndexObj;
+          this.server.emit(KOSDAQ_TR_KEY, convertedIndexObj);
+
+          this.stockKoreanIndexHistoryRepository.save(convertedIndexObj);
+        }
       }
     };
 
@@ -300,15 +305,24 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
 
   private async _setKisToken() {
     try {
-      const ret = await this.stockTokenRepository.getSocketToken(TokenProviderEnum.KIS);
+      const { token } = await this.securitiesTokenRepository.getSocketToken(TokenProviderEnum.KIS);
 
-      this.kisWebSocketToken = ret.token;
+      this.kisWebSocketToken = token;
 
       this.logger.log('웹소켓 KIS 한국 지수 토큰 불러오기 성공');
     } catch (error) {
       this.logger.error('웹소켓 KIS 한국 지수 토큰 불러오기 실패');
 
       throw error;
+    }
+  }
+
+  private async _closeKisConnection() {
+    if (this.kisWebSocket) {
+      this.kisWebSocket.close();
+      this.kisWebSocket = null;
+
+      this.logger.log('웹소켓 KIS 한국 지수 연결 종료 완료');
     }
   }
 

@@ -23,7 +23,7 @@ import { NoticeModule } from './module/notice';
 import { CurrencyScheduleModule, KisScheduleModule, KiwoomScheduleModule, LsScheduleModule } from './module/schedule';
 import { StockModule } from './module/stock';
 import { UserModule } from './module/user';
-import { KisWebSocketModule, KiwoomWebSocketModule } from './module/websocket';
+import { KisWebSocketModule, KiwoomWebSocketModule, LsWebSocketModule } from './module/websocket';
 
 /**
  * imports: 다른 모듈을 가져오기
@@ -52,11 +52,12 @@ import { KisWebSocketModule, KiwoomWebSocketModule } from './module/websocket';
     UserModule,
 
     CurrencyScheduleModule,
-    // KisScheduleModule,
-    // KiwoomScheduleModule,
-    // LsScheduleModule,
+    KisScheduleModule,
+    LsScheduleModule,
+    KiwoomScheduleModule,
 
-    // KisWebSocketModule,
+    KisWebSocketModule,
+    LsWebSocketModule,
     // KiwoomWebSocketModule,
   ],
   controllers: [AppController],

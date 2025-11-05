@@ -3,12 +3,12 @@ import { DataSource } from 'typeorm';
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
-import { StockTokenRepository } from '@database/repositories/stock';
+import { SecuritiesTokenRepository } from '@database/repositories/stock';
 
 @Injectable()
 export class KiwoomTokenScheduleService implements OnModuleInit {
@@ -19,30 +19,29 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
 
-    private readonly stockTokenRepository: StockTokenRepository,
+    private readonly securitiesTokenRepository: SecuritiesTokenRepository,
 
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async onModuleInit() {
-    try {
-      if (this.configService.get('NODE_ENV') === 'production') {
-        // await this._deleteKiwoomToken();
-        await this._getKiwoomTokenSchedule();
-      }
-    } catch (error) {
-      this.logger.error('스케줄러 KIWOOM 토큰값 불러오기 실패');
-    }
+    // await this._tokenRevoke();
+    // await this._tokenIssue();
   }
 
-  @Cron(CronExpression.EVERY_12_HOURS, { name: 'stock Token', timeZone: 'Asia/Seoul' })
+  @Cron('0 9 * * *', { name: 'stock Token', timeZone: 'Asia/Seoul' })
   private async _getKiwoomTokenSchedule() {
     if (this.configService.get('NODE_ENV') !== 'production') {
       return;
     }
 
+    // await this._tokenRevoke();
+    // await this._tokenIssue();
+  }
+
+  private async _tokenIssue() {
     try {
-      const ret_oauth = await this.httpService.axiosRef.post<{ token: string; expires_dt: string }>(
+      const oauth = await this.httpService.axiosRef.post<{ token: string; expires_dt: string }>(
         `${this.URL}/oauth2/token`,
         {
           grant_type: 'client_credentials',
@@ -51,9 +50,39 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
         },
       );
 
-      await this.stockTokenRepository.update(
-        { provider: TokenProviderEnum.KIWOOM, type: TokenTypeEnum.OAUTH },
-        { token: ret_oauth.data.token, expire: ret_oauth.data.expires_dt },
+      const socket = await this.httpService.axiosRef.post<{ token: string; expires_dt: string }>(
+        `${this.URL}/oauth2/token`,
+        {
+          grant_type: 'client_credentials',
+          appkey: this.configService.get('KIWOOM_APP_KEY'),
+          secretkey: this.configService.get('KIWOOM_APP_SECRET'),
+        },
+      );
+
+      await this.securitiesTokenRepository.upsert(
+        {
+          provider: TokenProviderEnum.KIWOOM,
+          type: TokenTypeEnum.SOCKET,
+          token: socket.data.token,
+          expire: socket.data.expires_dt,
+        },
+        {
+          conflictPaths: ['provider', 'type'],
+          skipUpdateIfNoValuesChanged: true,
+        },
+      );
+
+      await this.securitiesTokenRepository.upsert(
+        {
+          provider: TokenProviderEnum.KIWOOM,
+          type: TokenTypeEnum.OAUTH,
+          token: socket.data.token,
+          expire: socket.data.expires_dt,
+        },
+        {
+          conflictPaths: ['provider', 'type'],
+          skipUpdateIfNoValuesChanged: true,
+        },
       );
 
       this.logger.log(`스케줄러 KIWOOM Token 갱신 완료`);
@@ -62,18 +91,21 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
     }
   }
 
-  private async _deleteKiwoomToken() {
-    const ret = await this.stockTokenRepository.findOne({
+  private async _tokenRevoke() {
+    const ret = await this.securitiesTokenRepository.findOne({
       where: { provider: TokenProviderEnum.KIWOOM, type: TokenTypeEnum.OAUTH },
     });
 
-    if (ret) {
-      await this.httpService.axiosRef.post(`${this.URL}/oauth2/revoke`, {
-        token: ret.token,
-        appkey: this.configService.get('KIWOOM_APP_KEY'),
-        secretkey: this.configService.get('KIWOOM_APP_SECRET'),
-      });
+    if (!ret) {
+      this.logger.log(`스케줄러 KIWOOM Token 폐기 완료(토큰 없음)`);
+      return;
     }
+
+    await this.httpService.axiosRef.post(`${this.URL}/oauth2/revoke`, {
+      token: ret.token,
+      appkey: this.configService.get('KIWOOM_APP_KEY'),
+      secretkey: this.configService.get('KIWOOM_APP_SECRET'),
+    });
 
     this.logger.log(`스케줄러 KIWOOM Token 폐기 완료`);
   }

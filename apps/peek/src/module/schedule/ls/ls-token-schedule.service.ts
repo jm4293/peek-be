@@ -3,12 +3,12 @@ import { DataSource } from 'typeorm';
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
-import { StockTokenRepository } from '@database/repositories/stock';
+import { SecuritiesTokenRepository } from '@database/repositories/stock';
 
 @Injectable()
 export class LsTokenScheduleService implements OnModuleInit {
@@ -19,30 +19,29 @@ export class LsTokenScheduleService implements OnModuleInit {
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
 
-    private readonly stockTokenRepository: StockTokenRepository,
+    private readonly securitiesTokenRepository: SecuritiesTokenRepository,
 
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async onModuleInit() {
-    try {
-      if (this.configService.get('NODE_ENV') === 'production') {
-        // await this._deleteLsToken();
-        await this._getLsTokenSchedule();
-      }
-    } catch (error) {
-      this.logger.error('스케줄러 LS 토큰값 불러오기 실패');
-    }
+    // await this._tokenRevoke();
+    // await this._tokenIssue();
   }
 
-  @Cron(CronExpression.EVERY_12_HOURS, { name: 'stock Token', timeZone: 'Asia/Seoul' })
+  @Cron('0 9 * * *', { name: 'stock Token', timeZone: 'Asia/Seoul' })
   private async _getLsTokenSchedule() {
     if (this.configService.get('NODE_ENV') !== 'production') {
       return;
     }
 
+    // await this._tokenRevoke();
+    // await this._tokenIssue();
+  }
+
+  private async _tokenIssue() {
     try {
-      const ret_oauth = await this.httpService.axiosRef.post<{ access_token: string; expires_in: string }>(
+      const token = await this.httpService.axiosRef.post<{ access_token: string; expires_in: string }>(
         `${this.URL}/oauth2/token`,
         {
           grant_type: 'client_credentials',
@@ -57,9 +56,35 @@ export class LsTokenScheduleService implements OnModuleInit {
         },
       );
 
-      await this.stockTokenRepository.update(
-        { provider: TokenProviderEnum.LS, type: TokenTypeEnum.OAUTH },
-        { token: ret_oauth.data.access_token, expire: ret_oauth.data.expires_in },
+      if (token.status !== 200) {
+        this.logger.error('스케줄러 LS Token 갱신 실패');
+        return;
+      }
+
+      await this.securitiesTokenRepository.upsert(
+        {
+          provider: TokenProviderEnum.LS,
+          type: TokenTypeEnum.SOCKET,
+          token: token.data.access_token,
+          expire: token.data.expires_in,
+        },
+        {
+          conflictPaths: ['provider', 'type'],
+          skipUpdateIfNoValuesChanged: true,
+        },
+      );
+
+      await this.securitiesTokenRepository.upsert(
+        {
+          provider: TokenProviderEnum.LS,
+          type: TokenTypeEnum.OAUTH,
+          token: token.data.access_token,
+          expire: token.data.expires_in,
+        },
+        {
+          conflictPaths: ['provider', 'type'],
+          skipUpdateIfNoValuesChanged: true,
+        },
       );
 
       this.logger.log(`스케줄러 LS Token 갱신 완료`);
@@ -68,27 +93,30 @@ export class LsTokenScheduleService implements OnModuleInit {
     }
   }
 
-  private async _deleteLsToken() {
-    const ret = await this.stockTokenRepository.findOne({
+  private async _tokenRevoke() {
+    const ret = await this.securitiesTokenRepository.findOne({
       where: { provider: TokenProviderEnum.LS, type: TokenTypeEnum.OAUTH },
     });
 
-    if (ret) {
-      await this.httpService.axiosRef.post(
-        `${this.URL}/oauth2/revoke`,
-        {
-          appkey: this.configService.get('LS_APP_KEY'),
-          appsecretkey: this.configService.get('LS_APP_SECRET'),
-          token_type_hint: 'access_token',
-          token: ret.token,
-        },
-        {
-          headers: {
-            'content-type': 'application/x-www-form-urlencoded',
-          },
-        },
-      );
+    if (!ret) {
+      this.logger.log(`스케줄러 LS Token 폐기 완료(토큰 없음)`);
+      return;
     }
+
+    await this.httpService.axiosRef.post(
+      `${this.URL}/oauth2/revoke`,
+      {
+        appkey: this.configService.get('LS_APP_KEY'),
+        appsecretkey: this.configService.get('LS_APP_SECRET'),
+        token_type_hint: 'access_token',
+        token: ret.token,
+      },
+      {
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+      },
+    );
 
     this.logger.log(`스케줄러 LS Token 폐기 완료`);
   }
