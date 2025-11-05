@@ -51,8 +51,8 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
 
   private readonly logger = new Logger(LsKoreanIndexGateway.name);
 
-  private lsWebSocket: WebSocket | null = null;
-  private lsWebSocketToken: string | null = null;
+  private lsSocket: WebSocket | null = null;
+  private lsSocketToken: string | null = null;
 
   private kospiIndex = null;
   private kosdaqIndex = null;
@@ -65,15 +65,15 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
   ) {}
 
   async onModuleInit() {
-    await this._initKoreanIndex();
-
-    await this._setLsToken();
+    await this.setLsToken();
     await this.connectToLs();
+    await this.initKoreanIndex();
   }
 
   async handleConnection(client: Socket) {
     this.logger.log(`LS 클라이언트 연결: ${client.id}`);
 
+    client.emit('connected', true);
     client.emit(KOSPI_TR_KEY, this.kospiIndex);
     client.emit(KOSDAQ_TR_KEY, this.kosdaqIndex);
   }
@@ -83,51 +83,51 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
   }
 
   async connectToLs() {
-    this.lsWebSocket = new WebSocket('wss://openapi.ls-sec.co.kr:9443/websocket');
+    this.lsSocket = new WebSocket('wss://openapi.ls-sec.co.kr:9443/websocket');
 
-    this.lsWebSocket.onopen = async () => {
-      //   const messageKOSPI = {
-      //     header: {
-      //       token: `${this.lsWebSocketToken}`,
-      //       tr_type: '3',
-      //     },
-      //     body: {
-      //       tr_cd: 'IJ_',
-      //       tr_key: KOSPI_TR_KEY,
-      //     },
-      //   };
-
-      //   const messageKOSDAQ = {
-      //     header: {
-      //       token: `${this.lsWebSocketToken}`,
-      //       tr_type: '3',
-      //     },
-      //     body: {
-      //       tr_cd: 'IJ_',
-      //       tr_key: KOSDAQ_TR_KEY,
-      //     },
-      //   };
-
-      //   this.lsWebSocket.send(JSON.stringify(messageKOSPI));
-      //   this.lsWebSocket.send(JSON.stringify(messageKOSDAQ));
-
-      const nxtSamsung = {
+    this.lsSocket.onopen = async () => {
+      const messageKOSPI = {
         header: {
-          token: `${this.lsWebSocketToken}`,
+          token: `${this.lsSocketToken}`,
           tr_type: '3',
         },
         body: {
-          tr_cd: 'NS3',
-          tr_key: 'N005930   ',
+          tr_cd: 'IJ_',
+          tr_key: KOSPI_TR_KEY,
         },
       };
 
-      this.lsWebSocket.send(JSON.stringify(nxtSamsung));
+      const messageKOSDAQ = {
+        header: {
+          token: `${this.lsSocketToken}`,
+          tr_type: '3',
+        },
+        body: {
+          tr_cd: 'IJ_',
+          tr_key: KOSDAQ_TR_KEY,
+        },
+      };
+
+      this.lsSocket.send(JSON.stringify(messageKOSPI));
+      this.lsSocket.send(JSON.stringify(messageKOSDAQ));
+
+      // const nxtSamsung = {
+      //   header: {
+      //     token: `${this.lsSocketToken}`,
+      //     tr_type: '3',
+      //   },
+      //   body: {
+      //     tr_cd: 'NS3',
+      //     tr_key: 'N005930   ',
+      //   },
+      // };
+
+      // this.lsSocket.send(JSON.stringify(nxtSamsung));
 
       this.logger.log('웹소켓 LS 한국 지수 연결 성공');
     };
 
-    this.lsWebSocket.onmessage = (event) => {
+    this.lsSocket.onmessage = (event) => {
       const ret = event.data.toString();
 
       const { header, body } = JSON.parse(ret);
@@ -161,20 +161,20 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
       }
     };
 
-    this.lsWebSocket.onerror = (error) => {
+    this.lsSocket.onerror = (error) => {
       this.logger.error('LS WebSocket 오류:', error);
     };
 
-    this.lsWebSocket.onclose = (event) => {
+    this.lsSocket.onclose = (event) => {
       this.logger.log(`LS WebSocket 연결 종료: ${event.code} - ${event.reason}`);
     };
   }
 
-  private async _setLsToken() {
+  async setLsToken() {
     try {
       const ret = await this.securitiesTokenRepository.getOAuthToken(TokenProviderEnum.LS);
 
-      this.lsWebSocketToken = ret.token;
+      this.lsSocketToken = ret.token;
 
       this.logger.log('LS 토큰 갱신 완료');
     } catch (error) {
@@ -184,7 +184,16 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
     }
   }
 
-  private async _initKoreanIndex() {
+  closeLsConnection() {
+    if (this.lsSocket) {
+      this.lsSocket.close();
+      this.lsSocket = null;
+
+      this.logger.log('웹소켓 LS 한국 지수 연결 종료 완료');
+    }
+  }
+
+  async initKoreanIndex() {
     const kospiIndex = await this.stockKoreanIndexHistoryRepository.findOne({
       where: { type: StockKoreanIndexTypeEnum.KOSPI },
       order: { createdAt: 'DESC' },

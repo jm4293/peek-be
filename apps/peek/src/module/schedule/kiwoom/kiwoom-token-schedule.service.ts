@@ -29,7 +29,7 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
     // await this._tokenIssue();
   }
 
-  @Cron('0 9 * * *', { name: 'stock Token', timeZone: 'Asia/Seoul' })
+  @Cron('0 8 * * *', { name: 'stock Token', timeZone: 'Asia/Seoul' })
   private async _getKiwoomTokenSchedule() {
     if (this.configService.get('NODE_ENV') !== 'production') {
       return;

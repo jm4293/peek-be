@@ -46,18 +46,18 @@ export class CurrencyScheduleService {
     this.appKey = this.configService.get('OPEN_API_KOREA_EXIM');
   }
 
-  @Cron('*/30 * * * * *', { name: 'currency', timeZone: 'Asia/Seoul' })
+  @Cron('*/30 * 12-19 * * *', { name: 'currency', timeZone: 'Asia/Seoul' })
   private async CurrencySchedule() {
     if (this.configService.get('NODE_ENV') !== 'production') {
       return;
     }
 
-    const koreaTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' });
-    const hour = new Date(koreaTime).getHours();
+    // const koreaTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' });
+    // const hour = new Date(koreaTime).getHours();
 
-    if (hour < 12 || hour >= 20) {
-      return;
-    }
+    // if (hour < 12 || hour >= 20) {
+    //   return;
+    // }
 
     if (!this.appKey) {
       this.logger.error('환율 스케줄러 실행 실패: OPEN_API_KOREA_EXIM 키가 설정되지 않음');

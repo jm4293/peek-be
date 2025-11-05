@@ -50,8 +50,8 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
   server: Server;
 
   private readonly logger = new Logger(KiwoomKoreanStockGateway.name);
-  private kiwoomWebSocketToken: string | null = null;
-  private kiwoomWebSocket: WebSocket | null = null;
+  private kiwoomSocket: WebSocket | null = null;
+  private kiwoomSocketToken: string | null = null;
 
   // Socket.IO room 기능을 사용하므로 수동 채널 관리 제거
   private stockPrices = new Map<string, IStockPrice>(); // 종목코드 -> 최신 가격 정보
@@ -155,23 +155,23 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
 
   private async _connectToKiwoom() {
     try {
-      this.kiwoomWebSocket = new WebSocket('wss://api.kiwoom.com:10000/api/dostk/websocket');
+      this.kiwoomSocket = new WebSocket('wss://api.kiwoom.com:10000/api/dostk/websocket');
     } catch (error) {
       this.logger.error('웹소켓 KIWOOM 한국 주식 연결 실패:', error);
     }
 
-    this.kiwoomWebSocket.onopen = async () => {
-      if (this.kiwoomWebSocketToken) {
+    this.kiwoomSocket.onopen = async () => {
+      if (this.kiwoomSocketToken) {
         const authMessage = {
           trnm: 'LOGIN',
-          token: this.kiwoomWebSocketToken,
+          token: this.kiwoomSocketToken,
         };
 
-        this.kiwoomWebSocket.send(JSON.stringify(authMessage));
+        this.kiwoomSocket.send(JSON.stringify(authMessage));
       }
     };
 
-    this.kiwoomWebSocket.onmessage = (event) => {
+    this.kiwoomSocket.onmessage = (event) => {
       try {
         const ret = JSON.parse(event.data.toString());
 
@@ -189,7 +189,7 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
 
         // kiwoom 웹소켓 연결 유지를 위해 PING 메시지 송신
         if (trnm === 'PING') {
-          this.kiwoomWebSocket.send(JSON.stringify(ret));
+          this.kiwoomSocket.send(JSON.stringify(ret));
           return;
         }
 
@@ -213,11 +213,11 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
       }
     };
 
-    this.kiwoomWebSocket.onerror = (error) => {
+    this.kiwoomSocket.onerror = (error) => {
       this.logger.error('웹소켓 KIWOOM 한국 주식 오류');
     };
 
-    this.kiwoomWebSocket.onclose = (event) => {
+    this.kiwoomSocket.onclose = (event) => {
       this.logger.log(`웹소켓 KIWOOM 한국 주식 연결 종료`);
     };
   }
@@ -245,7 +245,7 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
   }
 
   private async _subscribeToKiwoomStock(symbol: string) {
-    if (!this.kiwoomWebSocket || this.kiwoomWebSocket.readyState !== WebSocket.OPEN) {
+    if (!this.kiwoomSocket || this.kiwoomSocket.readyState !== WebSocket.OPEN) {
       this.logger.warn(`키움 웹소켓이 연결되지 않아 종목 ${symbol} 구독 실패`);
       return;
     }
@@ -254,7 +254,7 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
       // 키움 웹소켓에 종목 구독 요청 (실제 키움 API에 맞게 수정 필요)
       // const subscribeMessage = {
       //   header: {
-      //     token: this.kiwoomWebSocketToken,
+      //     token: this.kiwoomSocketToken,
       //     tr_type: '3', // 실시간 데이터 구독
       //   },
       //   body: {
@@ -275,7 +275,7 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
         ],
       };
 
-      this.kiwoomWebSocket.send(JSON.stringify(subscribeMessage));
+      this.kiwoomSocket.send(JSON.stringify(subscribeMessage));
       this.subscribedStocks.add(symbol);
 
       this.logger.log(`키움 웹소켓에서 종목 ${symbol} 구독 요청 전송`);
@@ -285,7 +285,7 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
   }
 
   private async _unsubscribeFromKiwoomStock(symbol: string) {
-    if (!this.kiwoomWebSocket || this.kiwoomWebSocket.readyState !== WebSocket.OPEN) {
+    if (!this.kiwoomSocket || this.kiwoomSocket.readyState !== WebSocket.OPEN) {
       return;
     }
 
@@ -302,7 +302,7 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
         ],
       };
 
-      this.kiwoomWebSocket.send(JSON.stringify(unsubscribeMessage));
+      this.kiwoomSocket.send(JSON.stringify(unsubscribeMessage));
       this.subscribedStocks.delete(symbol);
 
       this.logger.log(`키움 웹소켓에서 종목 ${symbol} 구독 해제 요청 전송`);
@@ -315,7 +315,7 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
     try {
       const ret = await this.securitiesTokenRepository.getOAuthToken(TokenProviderEnum.KIWOOM);
 
-      this.kiwoomWebSocketToken = ret.token;
+      this.kiwoomSocketToken = ret.token;
 
       this.logger.log('웹소켓 KIWOOM 한국 주식 토큰 불러오기 성공');
     } catch (error) {

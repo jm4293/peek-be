@@ -8,6 +8,6 @@ import { LsKoreanIndexGateway } from './ls-korean-index.gateway';
   imports: [],
   controllers: [],
   providers: [LsKoreanIndexGateway, SecuritiesTokenRepository, StockKoreanIndexHistoryRepository],
-  exports: [],
+  exports: [LsKoreanIndexGateway],
 })
 export class LsWebSocketModule {}

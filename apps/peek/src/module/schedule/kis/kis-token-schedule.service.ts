@@ -6,6 +6,8 @@ import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { InjectDataSource } from '@nestjs/typeorm';
 
+import { KisKoreanIndexGateway } from '@peek/module/websocket';
+
 import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
 import { SecuritiesTokenRepository } from '@database/repositories/stock';
@@ -21,6 +23,8 @@ export class KisTokenScheduleService implements OnModuleInit {
 
     private readonly securitiesTokenRepository: SecuritiesTokenRepository,
 
+    private readonly kisKoreanIndexGateway: KisKoreanIndexGateway,
+
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
@@ -29,14 +33,22 @@ export class KisTokenScheduleService implements OnModuleInit {
     // await this._tokenIssue();
   }
 
-  @Cron('0 9 * * *', { name: 'stock Token', timeZone: 'Asia/Seoul' })
+  @Cron('0 8 * * *', { name: 'kis stock Token', timeZone: 'Asia/Seoul' })
   private async _getKisTokenSchedule() {
     if (this.configService.get('NODE_ENV') !== 'production') {
       return;
     }
 
-    // await this._tokenRevoke();
-    // await this._tokenIssue();
+    this.logger.log('KIS Token 스케줄러 시작');
+
+    await this._tokenRevoke();
+    await this._tokenIssue();
+    this.kisKoreanIndexGateway.closeKisConnection();
+    await this.kisKoreanIndexGateway.setKisToken();
+    await this.kisKoreanIndexGateway.connectToKis();
+    await this.kisKoreanIndexGateway.initKoreanIndex();
+
+    this.logger.log('KIS Token 스케줄러 종료');
   }
 
   private async _tokenIssue() {

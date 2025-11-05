@@ -6,6 +6,8 @@ import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { InjectDataSource } from '@nestjs/typeorm';
 
+import { LsKoreanIndexGateway } from '@peek/module/websocket';
+
 import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
 import { SecuritiesTokenRepository } from '@database/repositories/stock';
@@ -21,6 +23,8 @@ export class LsTokenScheduleService implements OnModuleInit {
 
     private readonly securitiesTokenRepository: SecuritiesTokenRepository,
 
+    private readonly lsKoreanIndexGateway: LsKoreanIndexGateway,
+
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
@@ -29,14 +33,22 @@ export class LsTokenScheduleService implements OnModuleInit {
     // await this._tokenIssue();
   }
 
-  @Cron('0 9 * * *', { name: 'stock Token', timeZone: 'Asia/Seoul' })
+  @Cron('0 8 * * *', { name: 'ls stock Token', timeZone: 'Asia/Seoul' })
   private async _getLsTokenSchedule() {
     if (this.configService.get('NODE_ENV') !== 'production') {
       return;
     }
 
-    // await this._tokenRevoke();
-    // await this._tokenIssue();
+    this.logger.log('LS Token 스케줄러 시작');
+
+    await this._tokenRevoke();
+    await this._tokenIssue();
+    this.lsKoreanIndexGateway.closeLsConnection();
+    await this.lsKoreanIndexGateway.setLsToken();
+    await this.lsKoreanIndexGateway.connectToLs();
+    await this.lsKoreanIndexGateway.initKoreanIndex();
+
+    this.logger.log('LS Token 스케줄러 종료');
   }
 
   private async _tokenIssue() {

@@ -8,6 +8,6 @@ import { KisKoreanIndexGateway } from './kis-korean-index.gateway';
   imports: [],
   controllers: [],
   providers: [KisKoreanIndexGateway, SecuritiesTokenRepository, StockKoreanIndexHistoryRepository],
-  exports: [],
+  exports: [KisKoreanIndexGateway],
 })
 export class KisWebSocketModule {}
