@@ -38,18 +38,6 @@ export class BoardController {
   }
 
   @Public()
-  @Get(':boardId')
-  async getBoardDetail(@Param() param: GetBoardDto) {
-    const { boardId } = param;
-
-    const ret = await this.boardService.getBoardDetail(boardId);
-
-    return {
-      board: new Board(ret),
-    };
-  }
-
-  @Public()
   @Get()
   async getBoardList(@Query() query: GetBoardListDto) {
     const { boards, total, nextPage } = await this.boardService.getBoardList(query);
@@ -58,6 +46,18 @@ export class BoardController {
       boardList: boards.map((item) => new Board(item)),
       total,
       nextPage,
+    };
+  }
+
+  @Public()
+  @Get(':boardId')
+  async getBoardDetail(@Param() param: GetBoardDto) {
+    const { boardId } = param;
+
+    const ret = await this.boardService.getBoardDetail(boardId);
+
+    return {
+      board: new Board(ret),
     };
   }
 

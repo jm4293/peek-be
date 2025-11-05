@@ -5,5 +5,5 @@ import { BaseBoardCommentDto } from './base-board-comment.dto';
 export class CreateBoardCommentDto extends BaseBoardCommentDto {
   @IsNumber()
   @IsOptional()
-  commentId: number;
+  boardCommentId: number;
 }

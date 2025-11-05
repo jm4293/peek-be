@@ -56,7 +56,7 @@ export class UserService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async getMyInfo(accountId: number) {
+  async getUserInfo(accountId: number) {
     return await this.userAccountRepository.findById(accountId);
   }
 

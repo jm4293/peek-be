@@ -60,11 +60,11 @@ export class Inquiry {
     cascade: true,
     onDelete: 'CASCADE',
   })
-  reply: InquiryReply;
+  inquiryReply: InquiryReply;
 
   @OneToMany(() => InquiryImage, (inquiryImage) => inquiryImage.inquiry, {
     cascade: true,
     onDelete: 'CASCADE',
   })
-  images: InquiryImage[];
+  inquiryImages: InquiryImage[];
 }

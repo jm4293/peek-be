@@ -31,7 +31,7 @@ export class InquiryImage {
   @Column()
   inquiryId: number;
 
-  @ManyToOne(() => Inquiry, (inquiry) => inquiry.images, {
+  @ManyToOne(() => Inquiry, (inquiry) => inquiry.inquiryImages, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'inquiryId' })

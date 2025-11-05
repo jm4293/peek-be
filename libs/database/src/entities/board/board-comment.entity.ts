@@ -42,7 +42,7 @@ export class BoardComment {
   @Column()
   boardId: number;
 
-  @ManyToOne(() => Board, (board) => board.comments, {
+  @ManyToOne(() => Board, (board) => board.boardComments, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'boardId' })

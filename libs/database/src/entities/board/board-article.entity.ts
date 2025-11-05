@@ -34,7 +34,7 @@ export class BoardArticle {
   @Column()
   boardId: number;
 
-  @OneToOne(() => Board, (board) => board.article, {
+  @OneToOne(() => Board, (board) => board.boardArticle, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'boardId' })

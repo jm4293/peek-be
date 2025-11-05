@@ -58,7 +58,7 @@ export class Board {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'stockCategoryId' })
-  category: StockCategory;
+  stockCategory: StockCategory;
 
   @Exclude()
   @Column()
@@ -74,17 +74,17 @@ export class Board {
     cascade: true,
     onDelete: 'CASCADE',
   })
-  article: BoardArticle;
+  boardArticle: BoardArticle;
 
   @OneToMany(() => BoardComment, (boardComment) => boardComment.board, {
     cascade: true,
     onDelete: 'CASCADE',
   })
-  comments: BoardComment[];
+  boardComments: BoardComment[];
 
   @OneToMany(() => BoardLike, (boardLike) => boardLike.board, {
     cascade: true,
     onDelete: 'CASCADE',
   })
-  likes: BoardLike[];
+  boardLikes: BoardLike[];
 }

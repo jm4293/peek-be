@@ -7,5 +7,5 @@ export class GetBoardListDto {
   page: number;
 
   @IsOptional()
-  category?: number;
+  stockCategory?: number;
 }

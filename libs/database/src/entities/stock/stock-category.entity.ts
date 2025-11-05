@@ -38,12 +38,12 @@ export class StockCategory {
   @UpdateDateColumn({ type: 'timestamp', default: null })
   updatedAt: Date | null;
 
-  @OneToMany(() => Board, (board) => board.category, {
+  @OneToMany(() => Board, (board) => board.stockCategory, {
     onDelete: 'SET NULL',
   })
   boards: Board[];
 
-  @OneToMany(() => StockKoreanCompany, (stockKoreanCompany) => stockKoreanCompany.category, {
+  @OneToMany(() => StockKoreanCompany, (stockKoreanCompany) => stockKoreanCompany.stockCategory, {
     onDelete: 'SET NULL',
   })
   stockKoreanCompanies: StockKoreanCompany[];

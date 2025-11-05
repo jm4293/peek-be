@@ -58,7 +58,7 @@ export class StockKoreanCompany {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'stockCategoryId' })
-  category: StockCategory;
+  stockCategory: StockCategory;
 
   @OneToMany(() => UserStockFavorite, (userStockFavorite) => userStockFavorite.stockKoreanCompany, {
     cascade: true,

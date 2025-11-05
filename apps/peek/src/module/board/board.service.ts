@@ -55,13 +55,16 @@ export class BoardService {
 
     const queryBuilder = this.boardRepository
       .createQueryBuilder('board')
-      .leftJoinAndSelect('board.category', 'category')
+      .leftJoinAndSelect('board.stockCategory', 'stockCategory')
       // .leftJoinAndSelect('board.userAccount', 'userAccount')
       // .leftJoinAndSelect('userAccount.user', 'user')
-      .loadRelationCountAndMap('board.commentCount', 'board.comments', 'comments', (qb) =>
-        qb.andWhere('comments.parentCommentId IS NULL'),
+      .loadRelationCountAndMap(
+        'board.commentCount',
+        'board.boardComments',
+        'boardComments',
+        // (qb) =>qb.andWhere('boardComments.parentCommentId IS NULL'),
       )
-      .loadRelationCountAndMap('board.likeCount', 'board.likes')
+      .loadRelationCountAndMap('board.likeCount', 'board.boardLikes')
       // .where('board.deletedAt IS NULL')
       .andWhere('board.userAccountId = :accountId', { accountId })
       .orderBy('board.id', 'DESC')
@@ -76,10 +79,42 @@ export class BoardService {
     return { boards, total, nextPage };
   }
 
+  async getBoardList(query: GetBoardListDto) {
+    const { page, stockCategory } = query;
+
+    const queryBuilder = this.boardRepository
+      .createQueryBuilder('board')
+      .leftJoinAndSelect('board.stockCategory', 'stockCategory')
+      .leftJoinAndSelect('board.userAccount', 'userAccount')
+      .leftJoinAndSelect('userAccount.user', 'user')
+      .loadRelationCountAndMap(
+        'board.commentCount',
+        'board.boardComments',
+        'boardComments',
+        //  (qb) => qb.andWhere('boardComments.parentCommentId IS NULL'),
+      )
+      .loadRelationCountAndMap('board.likeCount', 'board.boardLikes')
+      // .where('board.deletedAt IS NULL')
+      .orderBy('board.id', 'DESC')
+      .skip((page - 1) * LIST_LIMIT)
+      .take(LIST_LIMIT);
+
+    if (stockCategory) {
+      queryBuilder.andWhere('board.stockCategory = :stockCategory', { stockCategory });
+    }
+
+    const [boards, total] = await queryBuilder.getManyAndCount();
+
+    const hasNextPage = page * LIST_LIMIT < total;
+    const nextPage = hasNextPage ? Number(page) + 1 : null;
+
+    return { boards, total, nextPage };
+  }
+
   async getBoardDetail(boardId: number) {
     const board = await this.boardRepository.findOne({
       where: { id: boardId },
-      relations: ['category', 'userAccount', 'userAccount.user', 'article'],
+      relations: ['stockCategory', 'userAccount', 'userAccount.user', 'boardArticle'],
     });
 
     if (!board) {
@@ -89,35 +124,6 @@ export class BoardService {
     await this.boardRepository.increaseViewCount(boardId);
 
     return board;
-  }
-
-  async getBoardList(query: GetBoardListDto) {
-    const { page, category } = query;
-
-    const queryBuilder = this.boardRepository
-      .createQueryBuilder('board')
-      .leftJoinAndSelect('board.category', 'category')
-      .leftJoinAndSelect('board.userAccount', 'userAccount')
-      .leftJoinAndSelect('userAccount.user', 'user')
-      .loadRelationCountAndMap('board.commentCount', 'board.comments', 'comments', (qb) =>
-        qb.andWhere('comments.parentCommentId IS NULL'),
-      )
-      .loadRelationCountAndMap('board.likeCount', 'board.likes')
-      // .where('board.deletedAt IS NULL')
-      .orderBy('board.id', 'DESC')
-      .skip((page - 1) * LIST_LIMIT)
-      .take(LIST_LIMIT);
-
-    if (category) {
-      queryBuilder.andWhere('board.category = :category', { category });
-    }
-
-    const [boards, total] = await queryBuilder.getManyAndCount();
-
-    const hasNextPage = page * LIST_LIMIT < total;
-    const nextPage = hasNextPage ? Number(page) + 1 : null;
-
-    return { boards, total, nextPage };
   }
 
   async createBoard(params: { dto: CreateBoardDto; accountId: number }) {
@@ -177,7 +183,7 @@ export class BoardService {
     const queryBuilder = this.boardCommentRepository
       .createQueryBuilder('boardComment')
       .innerJoinAndSelect('boardComment.board', 'board')
-      .leftJoinAndSelect('board.category', 'category')
+      .leftJoinAndSelect('board.stockCategory', 'stockCategory')
       // .leftJoinAndSelect('boardComment.userAccount', 'userAccount')
       // .leftJoinAndSelect('userAccount.user', 'user')
       .where('boardComment.userAccountId = :accountId', { accountId })
@@ -203,7 +209,6 @@ export class BoardService {
       .leftJoinAndSelect('boardComment.userAccount', 'userAccount')
       .leftJoinAndSelect('userAccount.user', 'user')
       .where('boardComment.boardId = :boardId', { boardId })
-      // .withDeleted()
       .orderBy('boardComment.createdAt', 'ASC')
       .skip((page - 1) * LIST_LIMIT)
       .take(LIST_LIMIT);
@@ -220,7 +225,7 @@ export class BoardService {
 
   async createBoardComment(params: { boardId: number; accountId: number; dto: CreateBoardCommentDto }) {
     const { boardId, dto, accountId } = params;
-    const { content, commentId } = dto;
+    const { content, boardCommentId } = dto;
 
     const board = await this.boardRepository.findById(boardId);
 
@@ -230,12 +235,12 @@ export class BoardService {
       content,
       boardId,
       userAccountId: accountId,
-      parentCommentId: commentId || null,
+      parentCommentId: boardCommentId || null,
     });
 
     await this.boardCommentRepository.save(comment);
 
-    if (!commentId) {
+    if (!boardCommentId) {
       if (userPushToken) {
         await this.notificationHandler.sendPushNotification({
           pushToken: userPushToken.pushToken,

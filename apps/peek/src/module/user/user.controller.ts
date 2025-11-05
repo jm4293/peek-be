@@ -37,13 +37,13 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  async getMyInfo(@Req() req: Request) {
+  async getUserInfo(@Req() req: Request) {
     const { accountId } = ParseReqHandler.parseReq(req);
 
-    const ret = await this.userService.getMyInfo(accountId);
+    const ret = await this.userService.getUserInfo(accountId);
 
     return {
-      myInfo: new UserAccount(ret),
+      userInfo: new UserAccount(ret),
     };
   }
 

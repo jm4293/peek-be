@@ -34,7 +34,7 @@ export class InquiryReply {
   @Column()
   inquiryId: number;
 
-  @OneToOne(() => Inquiry, (inquiry) => inquiry.reply, {
+  @OneToOne(() => Inquiry, (inquiry) => inquiry.inquiryReply, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'inquiryId' })

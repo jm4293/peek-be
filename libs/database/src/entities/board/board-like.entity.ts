@@ -24,7 +24,7 @@ export class BoardLike {
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @ManyToOne(() => Board, (board) => board.likes, {
+  @ManyToOne(() => Board, (board) => board.boardLikes, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'boardId' })
