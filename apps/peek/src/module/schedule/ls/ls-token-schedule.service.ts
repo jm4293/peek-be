@@ -79,32 +79,6 @@ export class LsTokenScheduleService implements OnModuleInit {
         return;
       }
 
-      // await this.securitiesTokenRepository.upsert(
-      //   {
-      //     provider: TokenProviderEnum.LS,
-      //     type: TokenTypeEnum.SOCKET,
-      //     token: token.data.access_token,
-      //     expire: String(token.data.expires_in),
-      //   },
-      //   {
-      //     conflictPaths: ['provider', 'type'],
-      //     skipUpdateIfNoValuesChanged: true,
-      //   },
-      // );
-
-      // await this.securitiesTokenRepository.upsert(
-      //   {
-      //     provider: TokenProviderEnum.LS,
-      //     type: TokenTypeEnum.OAUTH,
-      //     token: token.data.access_token,
-      //     expire: String(token.data.expires_in),
-      //   },
-      //   {
-      //     conflictPaths: ['provider', 'type'],
-      //     skipUpdateIfNoValuesChanged: true,
-      //   },
-      // );
-
       await this.securitiesTokenRepository.save({
         provider: TokenProviderEnum.LS,
         type: TokenTypeEnum.SOCKET,

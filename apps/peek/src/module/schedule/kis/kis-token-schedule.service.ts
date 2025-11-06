@@ -82,32 +82,6 @@ export class KisTokenScheduleService implements OnModuleInit {
         },
       );
 
-      // await this.securitiesTokenRepository.upsert(
-      //   {
-      //     provider: TokenProviderEnum.KIS,
-      //     type: TokenTypeEnum.SOCKET,
-      //     token: socket.data.approval_key,
-      //     expire: null,
-      //   },
-      //   {
-      //     conflictPaths: ['provider', 'type'],
-      //     skipUpdateIfNoValuesChanged: true,
-      //   },
-      // );
-
-      // await this.securitiesTokenRepository.upsert(
-      //   {
-      //     provider: TokenProviderEnum.KIS,
-      //     type: TokenTypeEnum.OAUTH,
-      //     token: oauth.data.access_token,
-      //     expire: oauth.data.access_token_token_expired,
-      //   },
-      //   {
-      //     conflictPaths: ['provider', 'type'],
-      //     skipUpdateIfNoValuesChanged: true,
-      //   },
-      // );
-
       await this.securitiesTokenRepository.save({
         provider: TokenProviderEnum.KIS,
         type: TokenTypeEnum.SOCKET,

@@ -52,11 +52,11 @@ import { KisWebSocketModule, KiwoomWebSocketModule, LsWebSocketModule } from './
     UserModule,
 
     CurrencyScheduleModule,
-    KisScheduleModule,
+    // KisScheduleModule,
     LsScheduleModule,
-    KiwoomScheduleModule,
+    // KiwoomScheduleModule,
 
-    KisWebSocketModule,
+    // KisWebSocketModule,
     LsWebSocketModule,
     // KiwoomWebSocketModule,
   ],

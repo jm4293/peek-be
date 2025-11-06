@@ -1,3 +1,4 @@
+import { create } from 'node_modules/axios/index.cjs';
 import { Server, Socket } from 'socket.io';
 import { WebSocket } from 'ws';
 
@@ -68,8 +69,8 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
     this.logger.log(`웹소켓 LS 클라이언트 연결: ${client.id}`);
 
     client.emit('connected', true);
-    client.emit(KOSPI_TR_KEY, this.kospiIndex);
-    client.emit(KOSDAQ_TR_KEY, this.kosdaqIndex);
+    client.emit(KOSPI_TR_KEY, { ...this.kospiIndex, createdAt: new Date() });
+    client.emit(KOSDAQ_TR_KEY, { ...this.kosdaqIndex, createdAt: new Date() });
   }
 
   async handleDisconnect(client: Socket) {
@@ -134,22 +135,22 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
         if (tr_key === KOSPI_TR_KEY) {
           this.kospiIndex = body;
 
-          this.server.emit(KOSPI_TR_KEY, this.kospiIndex);
+          this.server.emit(KOSPI_TR_KEY, { ...this.kospiIndex, createdAt: new Date() });
 
           this.stockKoreanIndexHistoryRepository.save({
-            type: StockKoreanIndexTypeEnum.KOSPI,
             ...body,
+            type: StockKoreanIndexTypeEnum.KOSPI,
           });
         }
 
         if (tr_key === KOSDAQ_TR_KEY) {
           this.kosdaqIndex = body;
 
-          this.server.emit(KOSDAQ_TR_KEY, this.kosdaqIndex);
+          this.server.emit(KOSDAQ_TR_KEY, { ...this.kosdaqIndex, createdAt: new Date() });
 
           this.stockKoreanIndexHistoryRepository.save({
-            type: StockKoreanIndexTypeEnum.KOSDAQ,
             ...body,
+            type: StockKoreanIndexTypeEnum.KOSDAQ,
           });
         }
       }
