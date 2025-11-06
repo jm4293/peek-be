@@ -24,8 +24,8 @@ interface IResponse {
 
 @Injectable()
 export class CurrencyScheduleService {
-  private readonly URL = 'https://oapi.koreaexim.go.kr/site/program/financial/exchangeJSON';
   private readonly logger = new Logger(CurrencyScheduleService.name);
+
   private appKey: string | null = null;
 
   private readonly validCurrencyUnits = [
@@ -52,25 +52,21 @@ export class CurrencyScheduleService {
       return;
     }
 
-    // const koreaTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' });
-    // const hour = new Date(koreaTime).getHours();
-
-    // if (hour < 12 || hour >= 20) {
-    //   return;
-    // }
-
     if (!this.appKey) {
       this.logger.error('환율 스케줄러 실행 실패: OPEN_API_KOREA_EXIM 키가 설정되지 않음');
       return;
     }
 
     try {
-      const response = await this.httpService.axiosRef.get<Omit<IResponse, 'cur_unit_desc'>[]>(`${this.URL}`, {
-        params: {
-          authkey: this.appKey,
-          data: 'AP01',
+      const response = await this.httpService.axiosRef.get<Omit<IResponse, 'cur_unit_desc'>[]>(
+        'https://oapi.koreaexim.go.kr/site/program/financial/exchangeJSON',
+        {
+          params: {
+            authkey: this.appKey,
+            data: 'AP01',
+          },
         },
-      });
+      );
 
       if (response.status !== 200) {
         this.logger.error(`환율 스케줄러 실행 실패: API 응답 상태 코드 ${response.status}`);

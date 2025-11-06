@@ -5,12 +5,12 @@ import { LsWebSocketModule } from '@peek/module/websocket';
 
 import { SecuritiesTokenRepository } from '@database/repositories/stock';
 
-import { LsTokenScheduleService } from './ls-token-schedule.service';
+import { LsScheduleService } from './ls-schedule.service';
 
 @Module({
   imports: [HttpModule, LsWebSocketModule],
   controllers: [],
-  providers: [LsTokenScheduleService, SecuritiesTokenRepository],
+  providers: [LsScheduleService, SecuritiesTokenRepository],
   exports: [],
 })
 export class LsScheduleModule {}

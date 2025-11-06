@@ -134,8 +134,12 @@ export class KisKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisc
     this.logger.log(`웹소켓 KIS 클라이언트 연결: ${client.id}`);
 
     client.emit('connected', true);
-    client.emit(KOSPI_TR_KEY, this.kospiIndex);
-    client.emit(KOSDAQ_TR_KEY, this.kosdaqIndex);
+    if (this.kospiIndex) {
+      client.emit(KOSPI_TR_KEY, this.kospiIndex);
+    }
+    if (this.kosdaqIndex) {
+      client.emit(KOSDAQ_TR_KEY, this.kosdaqIndex);
+    }
   }
 
   async handleDisconnect(client: Socket) {
@@ -212,6 +216,23 @@ export class KisKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisc
       // };
 
       // this.kisSocket.send(JSON.stringify(aapl));
+
+      const nasdaq = {
+        header: {
+          approval_key: this.kisSocketToken,
+          custtype: 'P',
+          tr_type: '1',
+          'content-type': 'utf-8',
+        },
+        body: {
+          input: {
+            tr_id: 'H0GSCNI0',
+            tr_key: 'DNASAAPL',
+          },
+        },
+      };
+
+      this.kisSocket.send(JSON.stringify(nasdaq));
 
       this.logger.log('웹소켓 KIS 한국 지수 연결 성공');
     };

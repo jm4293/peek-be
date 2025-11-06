@@ -1,2 +1,2 @@
 export * from './ls-schedule.module';
-export * from './ls-token-schedule.service';
+export * from './ls-schedule.service';
