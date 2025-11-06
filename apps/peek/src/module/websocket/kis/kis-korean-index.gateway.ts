@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { WebSocket } from 'ws';
 
-import { Logger, OnModuleInit } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 
@@ -111,7 +111,7 @@ const KOSDAQ_TR_KEY = '1001';
   cors: { origin: ['http://localhost:3000', 'https://stock.peek.run'] },
   namespace: '/kis/korean/index',
 })
-export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, OnGatewayDisconnect {
+export class KisKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -130,14 +130,8 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
     private readonly stockKoreanIndexHistoryRepository: StockKoreanIndexHistoryRepository,
   ) {}
 
-  async onModuleInit() {
-    await this.setKisToken();
-    await this.connectToKis();
-    await this.initKoreanIndex();
-  }
-
   async handleConnection(client: Socket) {
-    this.logger.log(`KIS 클라이언트 연결: ${client.id}`);
+    this.logger.log(`웹소켓 KIS 클라이언트 연결: ${client.id}`);
 
     client.emit('connected', true);
     client.emit(KOSPI_TR_KEY, this.kospiIndex);
@@ -145,45 +139,45 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
   }
 
   async handleDisconnect(client: Socket) {
-    this.logger.log(`KIS 클라이언트 연결 해제: ${client.id}`);
+    this.logger.log(`웹소켓 KIS 클라이언트 연결 해제: ${client.id}`);
   }
 
   async connectToKis() {
     this.kisSocket = new WebSocket('ws://ops.koreainvestment.com:21000');
 
     this.kisSocket.onopen = async () => {
-      // const messageKOSPI = {
-      //   header: {
-      //     approval_key: this.kisSocketToken,
-      //     custtype: 'P',
-      //     tr_type: '1',
-      //     'content-type': 'utf-8',
-      //   },
-      //   body: {
-      //     input: {
-      //       tr_id: 'H0UPCNT0',
-      //       tr_key: KOSPI_TR_KEY,
-      //     },
-      //   },
-      // };
+      const messageKOSPI = {
+        header: {
+          approval_key: this.kisSocketToken,
+          custtype: 'P',
+          tr_type: '1',
+          'content-type': 'utf-8',
+        },
+        body: {
+          input: {
+            tr_id: 'H0UPCNT0',
+            tr_key: KOSPI_TR_KEY,
+          },
+        },
+      };
 
-      // const messageKOSDAQ = {
-      //   header: {
-      //     approval_key: this.kisSocketToken,
-      //     custtype: 'P',
-      //     tr_type: '1',
-      //     'content-type': 'utf-8',
-      //   },
-      //   body: {
-      //     input: {
-      //       tr_id: 'H0UPCNT0',
-      //       tr_key: KOSDAQ_TR_KEY,
-      //     },
-      //   },
-      // };
+      const messageKOSDAQ = {
+        header: {
+          approval_key: this.kisSocketToken,
+          custtype: 'P',
+          tr_type: '1',
+          'content-type': 'utf-8',
+        },
+        body: {
+          input: {
+            tr_id: 'H0UPCNT0',
+            tr_key: KOSDAQ_TR_KEY,
+          },
+        },
+      };
 
-      // this.kisSocket.send(JSON.stringify(messageKOSPI));
-      // this.kisSocket.send(JSON.stringify(messageKOSDAQ));
+      this.kisSocket.send(JSON.stringify(messageKOSPI));
+      this.kisSocket.send(JSON.stringify(messageKOSDAQ));
 
       // const nxtSamsung = {
       //   header: {
@@ -202,22 +196,22 @@ export class KisKoreanIndexGateway implements OnModuleInit, OnGatewayConnection,
 
       // this.kisSocket.send(JSON.stringify(nxtSamsung));
 
-      const aapl = {
-        header: {
-          approval_key: this.kisSocketToken,
-          custtype: 'P',
-          tr_type: '1',
-          'content-type': 'utf-8',
-        },
-        body: {
-          input: {
-            tr_id: 'HDFSASP0',
-            tr_key: 'DNASAAPL',
-          },
-        },
-      };
+      // const aapl = {
+      //   header: {
+      //     approval_key: this.kisSocketToken,
+      //     custtype: 'P',
+      //     tr_type: '1',
+      //     'content-type': 'utf-8',
+      //   },
+      //   body: {
+      //     input: {
+      //       tr_id: 'HDFSASP0',
+      //       tr_key: 'DNASAAPL',
+      //     },
+      //   },
+      // };
 
-      this.kisSocket.send(JSON.stringify(aapl));
+      // this.kisSocket.send(JSON.stringify(aapl));
 
       this.logger.log('웹소켓 KIS 한국 지수 연결 성공');
     };

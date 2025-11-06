@@ -41,7 +41,7 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
 
   private async _tokenIssue() {
     try {
-      const oauth = await this.httpService.axiosRef.post<{ token: string; expires_dt: string }>(
+      const socket = await this.httpService.axiosRef.post<{ token: string; expires_dt: string }>(
         `${this.URL}/oauth2/token`,
         {
           grant_type: 'client_credentials',
@@ -50,7 +50,7 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
         },
       );
 
-      const socket = await this.httpService.axiosRef.post<{ token: string; expires_dt: string }>(
+      const oauth = await this.httpService.axiosRef.post<{ token: string; expires_dt: string }>(
         `${this.URL}/oauth2/token`,
         {
           grant_type: 'client_credentials',

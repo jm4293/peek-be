@@ -29,8 +29,13 @@ export class KisTokenScheduleService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    this.kisKoreanIndexGateway.closeKisConnection();
+
     // await this._tokenRevoke();
     // await this._tokenIssue();
+    await this.kisKoreanIndexGateway.setKisToken();
+    await this.kisKoreanIndexGateway.connectToKis();
+    await this.kisKoreanIndexGateway.initKoreanIndex();
   }
 
   @Cron('0 8 * * *', { name: 'kis stock Token', timeZone: 'Asia/Seoul' })
@@ -41,9 +46,10 @@ export class KisTokenScheduleService implements OnModuleInit {
 
     this.logger.log('KIS Token 스케줄러 시작');
 
+    this.kisKoreanIndexGateway.closeKisConnection();
+
     await this._tokenRevoke();
     await this._tokenIssue();
-    this.kisKoreanIndexGateway.closeKisConnection();
     await this.kisKoreanIndexGateway.setKisToken();
     await this.kisKoreanIndexGateway.connectToKis();
     await this.kisKoreanIndexGateway.initKoreanIndex();
@@ -53,15 +59,6 @@ export class KisTokenScheduleService implements OnModuleInit {
 
   private async _tokenIssue() {
     try {
-      const oauth = await this.httpService.axiosRef.post<{ access_token: string; expires_in: string }>(
-        `${this.URL}/oauth2/tokenP`,
-        {
-          grant_type: 'client_credentials',
-          appkey: this.configService.get('KIS_APP_KEY'),
-          appsecret: this.configService.get('KIS_APP_SECRET'),
-        },
-      );
-
       const socket = await this.httpService.axiosRef.post<{ approval_key: string }>(
         `${this.URL}/oauth2/Approval`,
         {
@@ -76,31 +73,54 @@ export class KisTokenScheduleService implements OnModuleInit {
         },
       );
 
-      await this.securitiesTokenRepository.upsert(
+      const oauth = await this.httpService.axiosRef.post<{ access_token: string; access_token_token_expired: string }>(
+        `${this.URL}/oauth2/tokenP`,
         {
-          provider: TokenProviderEnum.KIS,
-          type: TokenTypeEnum.SOCKET,
-          token: socket.data.approval_key,
-          expire: null,
-        },
-        {
-          conflictPaths: ['provider', 'type'],
-          skipUpdateIfNoValuesChanged: true,
+          grant_type: 'client_credentials',
+          appkey: this.configService.get('KIS_APP_KEY'),
+          appsecret: this.configService.get('KIS_APP_SECRET'),
         },
       );
 
-      await this.securitiesTokenRepository.upsert(
-        {
-          provider: TokenProviderEnum.KIS,
-          type: TokenTypeEnum.OAUTH,
-          token: oauth.data.access_token,
-          expire: oauth.data.expires_in,
-        },
-        {
-          conflictPaths: ['provider', 'type'],
-          skipUpdateIfNoValuesChanged: true,
-        },
-      );
+      // await this.securitiesTokenRepository.upsert(
+      //   {
+      //     provider: TokenProviderEnum.KIS,
+      //     type: TokenTypeEnum.SOCKET,
+      //     token: socket.data.approval_key,
+      //     expire: null,
+      //   },
+      //   {
+      //     conflictPaths: ['provider', 'type'],
+      //     skipUpdateIfNoValuesChanged: true,
+      //   },
+      // );
+
+      // await this.securitiesTokenRepository.upsert(
+      //   {
+      //     provider: TokenProviderEnum.KIS,
+      //     type: TokenTypeEnum.OAUTH,
+      //     token: oauth.data.access_token,
+      //     expire: oauth.data.access_token_token_expired,
+      //   },
+      //   {
+      //     conflictPaths: ['provider', 'type'],
+      //     skipUpdateIfNoValuesChanged: true,
+      //   },
+      // );
+
+      await this.securitiesTokenRepository.save({
+        provider: TokenProviderEnum.KIS,
+        type: TokenTypeEnum.SOCKET,
+        token: socket.data.approval_key,
+        expire: null,
+      });
+
+      await this.securitiesTokenRepository.save({
+        provider: TokenProviderEnum.KIS,
+        type: TokenTypeEnum.OAUTH,
+        token: oauth.data.access_token,
+        expire: oauth.data.access_token_token_expired,
+      });
 
       this.logger.log(`스케줄러 KIS Token 갱신 완료`);
     } catch (error) {
@@ -123,6 +143,16 @@ export class KisTokenScheduleService implements OnModuleInit {
       token: `Bearer ${ret.token}`,
       appkey: this.configService.get('KIS_APP_KEY'),
       appsecret: this.configService.get('KIS_APP_SECRET'),
+    });
+
+    await this.securitiesTokenRepository.delete({
+      provider: TokenProviderEnum.KIS,
+      type: TokenTypeEnum.SOCKET,
+    });
+
+    await this.securitiesTokenRepository.delete({
+      provider: TokenProviderEnum.KIS,
+      type: TokenTypeEnum.OAUTH,
     });
 
     this.logger.log(`스케줄러 KIS Token 폐기 완료`);

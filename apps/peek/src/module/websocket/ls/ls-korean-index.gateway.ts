@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { WebSocket } from 'ws';
 
-import { Logger, OnModuleInit } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 
@@ -45,7 +45,7 @@ const KOSDAQ_TR_KEY = '301';
   cors: { origin: ['http://localhost:3000', 'https://stock.peek.run'] },
   namespace: '/ls/korean/index',
 })
-export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, OnGatewayDisconnect {
+export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -64,14 +64,8 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
     private readonly stockKoreanIndexHistoryRepository: StockKoreanIndexHistoryRepository,
   ) {}
 
-  async onModuleInit() {
-    await this.setLsToken();
-    await this.connectToLs();
-    await this.initKoreanIndex();
-  }
-
   async handleConnection(client: Socket) {
-    this.logger.log(`LS 클라이언트 연결: ${client.id}`);
+    this.logger.log(`웹소켓 LS 클라이언트 연결: ${client.id}`);
 
     client.emit('connected', true);
     client.emit(KOSPI_TR_KEY, this.kospiIndex);
@@ -79,7 +73,7 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
   }
 
   async handleDisconnect(client: Socket) {
-    this.logger.log(`LS 클라이언트 연결 해제: ${client.id}`);
+    this.logger.log(`웹소켓 LS 클라이언트 연결 해제: ${client.id}`);
   }
 
   async connectToLs() {
@@ -162,11 +156,11 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
     };
 
     this.lsSocket.onerror = (error) => {
-      this.logger.error('LS WebSocket 오류:', error);
+      this.logger.error('웹소켓 LS 오류:', error);
     };
 
     this.lsSocket.onclose = (event) => {
-      this.logger.log(`LS WebSocket 연결 종료: ${event.code} - ${event.reason}`);
+      this.logger.log(`웹소켓 LS 연결 종료: ${event.code} - ${event.reason}`);
     };
   }
 
@@ -176,9 +170,9 @@ export class LsKoreanIndexGateway implements OnModuleInit, OnGatewayConnection, 
 
       this.lsSocketToken = ret.token;
 
-      this.logger.log('LS 토큰 갱신 완료');
+      this.logger.log('웹소켓 LS 토큰 갱신 완료');
     } catch (error) {
-      this.logger.error('LS 토큰 갱신 실패:', error);
+      this.logger.error('웹소켓 LS 토큰 갱신 실패:', error);
 
       throw error;
     }

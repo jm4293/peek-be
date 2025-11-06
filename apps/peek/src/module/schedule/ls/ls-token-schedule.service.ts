@@ -29,8 +29,13 @@ export class LsTokenScheduleService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    this.lsKoreanIndexGateway.closeLsConnection();
+
     // await this._tokenRevoke();
     // await this._tokenIssue();
+    await this.lsKoreanIndexGateway.setLsToken();
+    await this.lsKoreanIndexGateway.connectToLs();
+    await this.lsKoreanIndexGateway.initKoreanIndex();
   }
 
   @Cron('0 8 * * *', { name: 'ls stock Token', timeZone: 'Asia/Seoul' })
@@ -41,9 +46,10 @@ export class LsTokenScheduleService implements OnModuleInit {
 
     this.logger.log('LS Token 스케줄러 시작');
 
+    this.lsKoreanIndexGateway.closeLsConnection();
+
     await this._tokenRevoke();
     await this._tokenIssue();
-    this.lsKoreanIndexGateway.closeLsConnection();
     await this.lsKoreanIndexGateway.setLsToken();
     await this.lsKoreanIndexGateway.connectToLs();
     await this.lsKoreanIndexGateway.initKoreanIndex();
@@ -53,7 +59,7 @@ export class LsTokenScheduleService implements OnModuleInit {
 
   private async _tokenIssue() {
     try {
-      const token = await this.httpService.axiosRef.post<{ access_token: string; expires_in: string }>(
+      const token = await this.httpService.axiosRef.post<{ access_token: string; expires_in: number }>(
         `${this.URL}/oauth2/token`,
         {
           grant_type: 'client_credentials',
@@ -73,34 +79,49 @@ export class LsTokenScheduleService implements OnModuleInit {
         return;
       }
 
-      await this.securitiesTokenRepository.upsert(
-        {
-          provider: TokenProviderEnum.LS,
-          type: TokenTypeEnum.SOCKET,
-          token: token.data.access_token,
-          expire: token.data.expires_in,
-        },
-        {
-          conflictPaths: ['provider', 'type'],
-          skipUpdateIfNoValuesChanged: true,
-        },
-      );
+      // await this.securitiesTokenRepository.upsert(
+      //   {
+      //     provider: TokenProviderEnum.LS,
+      //     type: TokenTypeEnum.SOCKET,
+      //     token: token.data.access_token,
+      //     expire: String(token.data.expires_in),
+      //   },
+      //   {
+      //     conflictPaths: ['provider', 'type'],
+      //     skipUpdateIfNoValuesChanged: true,
+      //   },
+      // );
 
-      await this.securitiesTokenRepository.upsert(
-        {
-          provider: TokenProviderEnum.LS,
-          type: TokenTypeEnum.OAUTH,
-          token: token.data.access_token,
-          expire: token.data.expires_in,
-        },
-        {
-          conflictPaths: ['provider', 'type'],
-          skipUpdateIfNoValuesChanged: true,
-        },
-      );
+      // await this.securitiesTokenRepository.upsert(
+      //   {
+      //     provider: TokenProviderEnum.LS,
+      //     type: TokenTypeEnum.OAUTH,
+      //     token: token.data.access_token,
+      //     expire: String(token.data.expires_in),
+      //   },
+      //   {
+      //     conflictPaths: ['provider', 'type'],
+      //     skipUpdateIfNoValuesChanged: true,
+      //   },
+      // );
+
+      await this.securitiesTokenRepository.save({
+        provider: TokenProviderEnum.LS,
+        type: TokenTypeEnum.SOCKET,
+        token: token.data.access_token,
+        expire: String(token.data.expires_in),
+      });
+
+      await this.securitiesTokenRepository.save({
+        provider: TokenProviderEnum.LS,
+        type: TokenTypeEnum.OAUTH,
+        token: token.data.access_token,
+        expire: String(token.data.expires_in),
+      });
 
       this.logger.log(`스케줄러 LS Token 갱신 완료`);
     } catch (error) {
+      console.error(error);
       this.logger.error('스케줄러 LS Token 갱신 실패');
     }
   }
@@ -129,6 +150,16 @@ export class LsTokenScheduleService implements OnModuleInit {
         },
       },
     );
+
+    await this.securitiesTokenRepository.delete({
+      provider: TokenProviderEnum.LS,
+      type: TokenTypeEnum.SOCKET,
+    });
+
+    await this.securitiesTokenRepository.delete({
+      provider: TokenProviderEnum.LS,
+      type: TokenTypeEnum.OAUTH,
+    });
 
     this.logger.log(`스케줄러 LS Token 폐기 완료`);
   }
