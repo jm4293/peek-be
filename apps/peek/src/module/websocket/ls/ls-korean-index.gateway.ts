@@ -69,12 +69,24 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
     this.logger.log(`웹소켓 LS 클라이언트 연결: ${client.id}`);
 
     client.emit('connected', true);
-    client.emit(KOSPI_TR_KEY, { ...this.kospiIndex, createdAt: new Date() });
-    client.emit(KOSDAQ_TR_KEY, { ...this.kosdaqIndex, createdAt: new Date() });
+    if (this.kospiIndex) {
+      client.emit(KOSPI_TR_KEY, {
+        ...this.kospiIndex,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    if (this.kosdaqIndex) {
+      client.emit(KOSDAQ_TR_KEY, {
+        ...this.kosdaqIndex,
+        createdAt: new Date().toISOString(),
+      });
+    }
   }
 
   async handleDisconnect(client: Socket) {
     this.logger.log(`웹소켓 LS 클라이언트 연결 해제: ${client.id}`);
+    return;
   }
 
   async connectToLs() {
@@ -135,7 +147,10 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
         if (tr_key === KOSPI_TR_KEY) {
           this.kospiIndex = body;
 
-          this.server.emit(KOSPI_TR_KEY, { ...this.kospiIndex, createdAt: new Date() });
+          this.server.emit(KOSPI_TR_KEY, {
+            ...this.kospiIndex,
+            createdAt: new Date().toISOString(),
+          });
 
           this.stockKoreanIndexHistoryRepository.save({
             ...body,
@@ -146,7 +161,10 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
         if (tr_key === KOSDAQ_TR_KEY) {
           this.kosdaqIndex = body;
 
-          this.server.emit(KOSDAQ_TR_KEY, { ...this.kosdaqIndex, createdAt: new Date() });
+          this.server.emit(KOSDAQ_TR_KEY, {
+            ...this.kosdaqIndex,
+            createdAt: new Date().toISOString(),
+          });
 
           this.stockKoreanIndexHistoryRepository.save({
             ...body,
