@@ -198,7 +198,10 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
       order: { createdAt: 'DESC' },
     });
 
-    this.kospiIndex = kospiIndex;
-    this.kosdaqIndex = kosdaqIndex;
+    // this.kospiIndex = kospiIndex;
+    // this.kosdaqIndex = kosdaqIndex;
+
+    this.kospiIndex = kospiIndex ? JSON.parse(JSON.stringify(kospiIndex)) : null;
+    this.kosdaqIndex = kosdaqIndex ? JSON.parse(JSON.stringify(kosdaqIndex)) : null;
   }
 }
