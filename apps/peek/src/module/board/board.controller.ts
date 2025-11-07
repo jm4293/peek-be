@@ -11,6 +11,8 @@ import { BoardService } from './board.service';
 import {
   CreateBoardCommentDto,
   CreateBoardDto,
+  DeleteBoardCommentDto,
+  DeleteBoardDto,
   GetBoardCommentDto,
   GetBoardCommentListDto,
   GetBoardDto,
@@ -77,7 +79,7 @@ export class BoardController {
   }
 
   @Delete(':boardId')
-  async deleteBoard(@Param() param: GetBoardDto, @Req() req: Request) {
+  async deleteBoard(@Param() param: DeleteBoardDto, @Req() req: Request) {
     const { boardId } = param;
     const { accountId } = ParseReqHandler.parseReq(req);
 
@@ -135,13 +137,8 @@ export class BoardController {
   }
 
   @Delete(':boardId/comment/:boardCommentId')
-  async deleteBoardComment(
-    @Param() boardParam: GetBoardDto,
-    @Param() boardCommentParam: GetBoardCommentDto,
-    @Req() req: Request,
-  ) {
-    const { boardId } = boardParam;
-    const { boardCommentId } = boardCommentParam;
+  async deleteBoardComment(@Param() param: DeleteBoardCommentDto, @Req() req: Request) {
+    const { boardId, boardCommentId } = param;
     const { accountId } = ParseReqHandler.parseReq(req);
 
     await this.boardService.deleteBoardComment({ boardId, boardCommentId, accountId });

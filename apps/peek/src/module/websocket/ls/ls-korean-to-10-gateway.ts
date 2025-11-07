@@ -22,7 +22,7 @@ export class LsKoreanTo10Gateway implements OnGatewayConnection, OnGatewayDiscon
 
     client.emit('connected', true);
 
-    if (!this.korean10.length) {
+    if (!this.korean10.createdAt) {
       return;
     }
 

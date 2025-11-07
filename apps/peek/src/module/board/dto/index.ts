@@ -2,6 +2,8 @@ export * from './base-board-comment.dto';
 export * from './base-board.dto';
 export * from './create-board-comment.dto';
 export * from './create-board.dto';
+export * from './delete-board-comment.dto';
+export * from './delete-board.dto';
 export * from './get-board-comment-list.dto';
 export * from './get-board-list.dto';
 export * from './get-board-comment.dto';
