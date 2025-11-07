@@ -34,20 +34,20 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
   ) {}
 
   async handleConnection(client: Socket) {
-    this.logger.log(`웹소켓 LS 클라이언트 연결: ${client.id}`);
+    this.logger.log(`웹소켓 LS 한국 지수 클라이언트 연결: ${client.id}`);
 
     client.emit('connected', true);
     if (this.kospiIndex) {
-      client.emit(KOSPI_TR_KEY, this.kospiIndex);
+      client.emit(KOSPI_TR_KEY, this.kospiIndex, JSON.parse(JSON.stringify(this.kospiIndex.createdAt)));
     }
 
     if (this.kosdaqIndex) {
-      client.emit(KOSDAQ_TR_KEY, this.kosdaqIndex);
+      client.emit(KOSDAQ_TR_KEY, this.kosdaqIndex, JSON.parse(JSON.stringify(this.kosdaqIndex.createdAt)));
     }
   }
 
   async handleDisconnect(client: Socket) {
-    this.logger.log(`웹소켓 LS 클라이언트 연결 해제: ${client.id}`);
+    this.logger.log(`웹소켓 LS 한국 지수 클라이언트 연결 해제: ${client.id}`);
   }
 
   async connectToLs() {
@@ -106,12 +106,9 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
         const { tr_cd, tr_key } = header;
 
         if (tr_key === KOSPI_TR_KEY) {
-          this.kospiIndex = body;
+          this.kospiIndex = { ...body, createdAt: new Date() };
 
-          this.socketServer.emit(KOSPI_TR_KEY, {
-            ...this.kospiIndex,
-            createdAt: new Date().toISOString(),
-          });
+          this.socketServer.emit(KOSPI_TR_KEY, this.kospiIndex, this.kospiIndex.createdAt.toISOString());
 
           this.stockKoreanIndexHistoryRepository.save({
             ...body,
@@ -120,12 +117,9 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
         }
 
         if (tr_key === KOSDAQ_TR_KEY) {
-          this.kosdaqIndex = body;
+          this.kosdaqIndex = { ...body, createdAt: new Date() };
 
-          this.socketServer.emit(KOSDAQ_TR_KEY, {
-            ...this.kosdaqIndex,
-            createdAt: new Date().toISOString(),
-          });
+          this.socketServer.emit(KOSDAQ_TR_KEY, this.kosdaqIndex, this.kosdaqIndex.createdAt.toISOString());
 
           this.stockKoreanIndexHistoryRepository.save({
             ...body,

@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { InjectDataSource } from '@nestjs/typeorm';
 
-import { LsKoreanIndexGateway } from '@peek/module/websocket';
+import { LsKoreanIndexGateway, LsKoreanTo10Gateway } from '@peek/module/websocket';
 
 import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
@@ -26,13 +26,12 @@ export class LsScheduleService implements OnModuleInit {
     private readonly securitiesTokenRepository: SecuritiesTokenRepository,
 
     private readonly lsKoreanIndexGateway: LsKoreanIndexGateway,
+    private readonly lsKoreanTo10Gateway: LsKoreanTo10Gateway,
 
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async onModuleInit() {
-    this.lsKoreanIndexGateway.closeLsConnection();
-
     // await this._tokenRevoke();
     // await this._tokenIssue();
     await this.lsKoreanIndexGateway.setLsToken();
@@ -48,20 +47,34 @@ export class LsScheduleService implements OnModuleInit {
       return;
     }
 
-    this.logger.log('LS Token 스케줄러 시작');
-
-    this.lsKoreanIndexGateway.closeLsConnection();
-
     await this._tokenRevoke();
     await this._tokenIssue();
+    this._setLsToken();
+  }
 
+  @Cron('0 9 * * *', { name: 'ls stock Token', timeZone: 'Asia/Seoul' })
+  private async LsKoreanIndexSchedule() {
+    if (this.configService.get('NODE_ENV') !== 'production') {
+      return;
+    }
+
+    this.lsKoreanIndexGateway.closeLsConnection();
     await this.lsKoreanIndexGateway.setLsToken();
     await this.lsKoreanIndexGateway.connectToLs();
     await this.lsKoreanIndexGateway.initKoreanIndex();
+  }
 
-    this._setLsToken();
+  @Cron('*/10 * 9-16 * * *', { name: 'ls korean top 10 night', timeZone: 'Asia/Seoul' })
+  private async LsKoreanTop10Schedule() {
+    const { order: order1, list: list1 } = await this._getKoreanTop10(0); // 1-20 순위
+    const { order: order2, list: list2 } = await this._getKoreanTop10(order1); // 21-40 순위
+    // const { order: order3, list: list3 } = await this._getKoreanTop10(order2); // 41-60 순위
+    // const { order: order4, list: list4 } = await this._getKoreanTop10(order3); // 61-80 순위
+    // const { order: order5, list: list5 } = await this._getKoreanTop10(order4); // 81-100 순위
 
-    this.logger.log('LS Token 스케줄러 종료');
+    const list = [...list1, ...list2];
+
+    this.lsKoreanTo10Gateway.updateKorean10(list);
   }
 
   @Cron('*/10 * 22-23 * * *', { name: 'ls us index night', timeZone: 'Asia/Seoul' })
@@ -205,5 +218,37 @@ export class LsScheduleService implements OnModuleInit {
     }
 
     console.log('LS US Index Data:', response.data);
+  }
+
+  private async _getKoreanTop10(cont_key: number) {
+    const response = await this.httpService.axiosRef.post(
+      'https://openapi.ls-sec.co.kr:8080/stock/high-item',
+      {
+        t1444InBlock: {
+          upcode: '001',
+          idx: cont_key,
+        },
+      },
+      {
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+          authorization: `Bearer ${this.oauthToken}`,
+          tr_cd: 't1444',
+          tr_cont: 'Y',
+          tr_cont_key: '',
+          mac_address: '',
+        },
+      },
+    );
+
+    if (response.status !== 200) {
+      this.logger.error(`LS 한국 Top10 조회 실패: API 응답 상태 코드 ${response.status}`);
+      return;
+    }
+
+    const { t1444OutBlock, t1444OutBlock1 } = response.data;
+    const { idx } = t1444OutBlock;
+
+    return { order: cont_key + idx, list: t1444OutBlock1 };
   }
 }
