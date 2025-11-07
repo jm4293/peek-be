@@ -1,0 +1,181 @@
+# PEEK Backend - Claude 개발 규칙
+
+## 프로젝트 컨텍스트
+
+- **프로젝트명**: PEEK Backend
+- **구조**: NestJS Monorepo (pnpm workspace)
+- **주요 서비스**: 
+  - `apps/peek`: 사용자 서비스 (포트: 42973)
+  - `apps/peek-admin`: 관리자 서비스 (포트: 62740)
+- **공유 라이브러리**: `libs/` (constant, database)
+
+## 코딩 스타일 및 컨벤션
+
+### 1. TypeScript 규칙
+- **엄격 모드 사용**: strict mode 활성화
+- **타입 명시**: any 사용 금지, 명확한 타입 정의
+- **인터페이스 우선**: type보다 interface 선호
+- **Enum 사용**: 상수는 `libs/constant/src/enum/`에 정의
+
+### 2. NestJS 아키텍처
+- **모듈 구조**: Controller - Service - Repository 패턴 준수
+- **의존성 주입**: Constructor injection 사용
+- **Decorator 활용**: @Injectable(), @Controller() 등 적절히 사용
+- **DTO 검증**: class-validator 및 class-transformer 사용
+- **Exception 처리**: HttpException 또는 커스텀 Exception 사용
+
+### 3. 파일 및 폴더 구조
+```
+module/
+├── dto/
+│   ├── request/
+│   │   ├── *.req.dto.ts
+│   └── response/
+│       ├── *.res.dto.ts
+├── *.controller.ts
+├── *.service.ts
+├── *.module.ts
+└── index.ts
+```
+
+### 4. 네이밍 컨벤션
+- **파일명**: kebab-case (예: `user-profile.service.ts`)
+- **클래스명**: PascalCase (예: `UserProfileService`)
+- **변수/함수**: camelCase (예: `getUserProfile`)
+- **상수**: UPPER_SNAKE_CASE (예: `MAX_RETRY_COUNT`)
+- **DTO 접미사**: 
+  - Request DTO: `*.req.dto.ts` (예: `create-user.req.dto.ts`)
+  - Response DTO: `*.res.dto.ts` (예: `user-profile.res.dto.ts`)
+- **Entity**: PascalCase + Entity (예: `UserEntity`)
+- **Repository**: PascalCase + Repository (예: `UserRepository`)
+
+### 5. Import 순서 (prettier-plugin-sort-imports 사용)
+1. Node.js built-in modules
+2. External libraries (@nestjs, third-party)
+3. Internal aliases (@constant, @database)
+4. Relative imports (../,  ./)
+
+### 6. 데이터베이스
+- **ORM**: TypeORM 사용
+- **Entity**: `libs/database/src/entities/` 에 위치
+- **Repository**: `libs/database/src/repositories/` 에 위치
+- **Migration**: 필요 시 migration 파일 생성
+- **Decorator**: `@KoreanTime()` 사용으로 한국 시간 자동 변환
+
+### 7. API 문서화
+- **Swagger**: 모든 API에 @ApiOperation, @ApiResponse 추가
+- **DTO 문서화**: @ApiProperty로 필드 설명
+- **태그 사용**: @ApiTags로 API 그룹화
+
+## 개발 가이드라인
+
+### 1. 에러 처리
+- 명확한 에러 메시지 작성
+- HTTP 상태 코드 적절히 사용
+- 에러 로깅 추가 (필요시)
+
+### 2. 보안
+- **인증**: JWT 기반 인증 사용
+- **비밀번호**: bcrypt로 해싱
+- **환경 변수**: 민감한 정보는 .env에 저장
+- **Validation**: 모든 입력값 검증
+
+### 3. 성능
+- **캐싱**: Cache Manager 활용
+- **DB 쿼리**: N+1 문제 방지, 적절한 인덱스 사용
+- **페이지네이션**: 대량 데이터 조회 시 필수
+
+### 4. 코드 품질
+- **단일 책임 원칙**: 함수/클래스는 하나의 책임만
+- **DRY 원칙**: 중복 코드 제거
+- **주석**: 복잡한 로직에만 최소한으로 작성
+- **함수 크기**: 한 함수는 50줄 이내 권장
+
+### 5. Git 커밋 메시지
+```
+<타입>: <제목>
+
+<본문 (선택사항)>
+```
+
+**타입**:
+- `Feat`: 새로운 기능 추가
+- `Fix`: 버그 수정
+- `Docs`: 문서 수정
+- `Style`: 코드 포맷팅
+- `Refactor`: 코드 리팩토링
+- `Test`: 테스트 코드
+- `Chore`: 기타 변경사항
+
+## 외부 API 연동
+
+### 1. 증권사 API
+- **한국투자증권 (KIS)**: 토큰 자동 갱신 (매일 8시)
+- **LS증권**: 토큰 자동 갱신
+- **키움증권**: 토큰 자동 갱신
+- **에러 핸들링**: 재시도 로직 구현 (p-limit 사용)
+
+### 2. 소셜 로그인
+- **Kakao, Naver, Google**: OAuth 2.0
+- **토큰 검증**: 각 플랫폼의 검증 API 사용
+
+### 3. AWS 서비스
+- **S3**: 이미지 업로드 (sharp로 최적화)
+- **RDS**: MySQL 데이터베이스
+
+## 테스트
+
+- **Unit Test**: Service 로직 테스트
+- **E2E Test**: API 엔드포인트 테스트
+- **Mock**: 외부 API는 Mock 처리
+
+## 주의사항
+
+1. **Monorepo 구조**: 공통 코드는 `libs/`에 위치
+2. **환경 변수**: 절대 하드코딩하지 않음
+3. **TypeORM Relations**: Lazy loading 대신 Eager/Join 사용
+4. **WebSocket**: Socket.io 네임스페이스 분리
+5. **스케줄러**: Cron 표현식 정확히 작성
+6. **이메일**: Nodemailer로 Gmail SMTP 사용
+7. **Push 알림**: Firebase Admin SDK 사용
+
+## 코드 작성 시 체크리스트
+
+- [ ] DTO 검증 추가 (class-validator)
+- [ ] Swagger 문서화 (@ApiOperation, @ApiResponse)
+- [ ] 에러 처리 (try-catch, HttpException)
+- [ ] 타입 안정성 (any 사용 금지)
+- [ ] 환경 변수 사용 (하드코딩 금지)
+- [ ] Repository 패턴 사용 (TypeORM Repository)
+- [ ] 적절한 HTTP 상태 코드 반환
+- [ ] 로깅 추가 (필요시)
+- [ ] 보안 검증 (인증, 권한)
+- [ ] 성능 고려 (캐싱, 쿼리 최적화)
+
+## 응답 시 지침
+
+1. **파일 생성/수정 시**: 
+   - 전체 코드 제공 (일부만 제공 금지)
+   - Import 문부터 Export까지 완전한 코드
+   - 주석은 최소화
+
+2. **설명 시**:
+   - 간결하고 명확하게
+   - 코드 예시 포함
+   - 관련 파일 경로 명시
+
+3. **에러 해결 시**:
+   - 원인 분석
+   - 해결 방법 제시
+   - 예방 방법 설명
+
+4. **리팩토링 시**:
+   - 변경 이유 설명
+   - Before/After 비교
+   - 영향 범위 확인
+
+## 한국어 사용
+
+- 모든 설명은 한국어로 작성
+- 변수/함수명은 영어 사용
+- 주석이 필요한 경우 한국어로 작성
