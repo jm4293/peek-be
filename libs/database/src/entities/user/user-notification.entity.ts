@@ -1,7 +1,6 @@
 import { Exclude } from 'class-transformer';
+import { UserNotificationType, UserNotificationTypeValue } from 'libs/shared/src/const/user';
 import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-
-import { UserNotificationTypeEnum } from '@constant/enum/user';
 
 import { UserAccount } from './user-account.entity';
 
@@ -14,8 +13,8 @@ export class UserNotification {
   @Generated('uuid')
   uuid: string;
 
-  @Column({ type: 'tinyint', enum: UserNotificationTypeEnum })
-  userNotificationType: UserNotificationTypeEnum;
+  @Column({ type: 'tinyint', enum: UserNotificationType })
+  userNotificationType: UserNotificationTypeValue;
 
   @Column({ type: 'varchar', length: 255 })
   message: string;

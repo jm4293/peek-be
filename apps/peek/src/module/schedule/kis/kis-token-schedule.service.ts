@@ -1,3 +1,4 @@
+import { TokenProvider, TokenType } from 'libs/shared/src/const/token';
 import { DataSource } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
@@ -7,8 +8,6 @@ import { Cron } from '@nestjs/schedule';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 import { KisKoreanIndexGateway } from '@peek/module/websocket';
-
-import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
 import { SecuritiesTokenRepository } from '@database/repositories/stock';
 
@@ -83,15 +82,15 @@ export class KisTokenScheduleService implements OnModuleInit {
       );
 
       await this.securitiesTokenRepository.save({
-        provider: TokenProviderEnum.KIS,
-        type: TokenTypeEnum.SOCKET,
+        provider: TokenProvider.KIS,
+        type: TokenType.SOCKET,
         token: socket.data.approval_key,
         expire: null,
       });
 
       await this.securitiesTokenRepository.save({
-        provider: TokenProviderEnum.KIS,
-        type: TokenTypeEnum.OAUTH,
+        provider: TokenProvider.KIS,
+        type: TokenType.OAUTH,
         token: oauth.data.access_token,
         expire: oauth.data.access_token_token_expired,
       });
@@ -105,7 +104,7 @@ export class KisTokenScheduleService implements OnModuleInit {
 
   private async _tokenRevoke() {
     const ret = await this.securitiesTokenRepository.findOne({
-      where: { provider: TokenProviderEnum.KIS, type: TokenTypeEnum.OAUTH },
+      where: { provider: TokenProvider.KIS, type: TokenType.OAUTH },
     });
 
     if (!ret) {
@@ -120,13 +119,13 @@ export class KisTokenScheduleService implements OnModuleInit {
     });
 
     await this.securitiesTokenRepository.delete({
-      provider: TokenProviderEnum.KIS,
-      type: TokenTypeEnum.SOCKET,
+      provider: TokenProvider.KIS,
+      type: TokenType.SOCKET,
     });
 
     await this.securitiesTokenRepository.delete({
-      provider: TokenProviderEnum.KIS,
-      type: TokenTypeEnum.OAUTH,
+      provider: TokenProvider.KIS,
+      type: TokenType.OAUTH,
     });
 
     this.logger.log(`스케줄러 KIS Token 폐기 완료`);

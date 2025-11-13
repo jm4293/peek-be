@@ -1,4 +1,5 @@
 import { Exclude } from 'class-transformer';
+import { UserType, UserTypeValue } from 'libs/shared/src/const/user';
 import {
   Column,
   CreateDateColumn,
@@ -8,8 +9,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
-import { UserTypeEnum } from '@constant/enum/user';
 
 import { UserAccount } from './user-account.entity';
 
@@ -36,8 +35,8 @@ export class User {
   name: string | null;
 
   @Exclude()
-  @Column({ type: 'tinyint', enum: UserTypeEnum, default: UserTypeEnum.USER })
-  type: UserTypeEnum;
+  @Column({ type: 'tinyint', enum: UserType, default: UserType.USER })
+  type: UserTypeValue;
 
   @Exclude()
   @Column({ type: 'boolean' })

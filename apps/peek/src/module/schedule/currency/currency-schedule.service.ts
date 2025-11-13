@@ -1,9 +1,9 @@
+import { CurrencyUnit, CurrencyUnitValue } from 'libs/shared/src/const/currency';
+
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
-
-import { CurrencyUnitEnum } from '@constant/enum/currency';
 
 import { CurrencyHistoryRepository } from '@database/repositories/currency';
 
@@ -27,15 +27,6 @@ export class CurrencyScheduleService {
   private readonly logger = new Logger(CurrencyScheduleService.name);
 
   private appKey: string | null = null;
-
-  private readonly validCurrencyUnits = [
-    CurrencyUnitEnum.USD,
-    CurrencyUnitEnum.JPY,
-    CurrencyUnitEnum.EUR,
-    CurrencyUnitEnum.CNH,
-    CurrencyUnitEnum.AUD,
-    CurrencyUnitEnum.GBP,
-  ];
 
   constructor(
     private readonly configService: ConfigService,
@@ -75,7 +66,7 @@ export class CurrencyScheduleService {
 
       const { data } = response;
 
-      const filtered = this.validCurrencyUnits.reduce<IResponse[]>((acc, cur) => {
+      const filtered = Object.values(CurrencyUnit).reduce<IResponse[]>((acc, cur) => {
         const currencyUnit = data.find((item) => item.cur_unit.startsWith(cur));
 
         if (!currencyUnit) {
@@ -94,7 +85,7 @@ export class CurrencyScheduleService {
       const saveResults = await Promise.allSettled(
         filtered.map(async (el) => {
           return this.currencyHistoryRepository.save({
-            curUnit: el.cur_unit as CurrencyUnitEnum,
+            curUnit: el.cur_unit as CurrencyUnitValue,
             curNm: el.cur_nm,
             curUnitDesc: el.cur_unit_desc,
             ttb: el.ttb,

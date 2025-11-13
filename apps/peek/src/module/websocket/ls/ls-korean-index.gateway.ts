@@ -1,11 +1,10 @@
+import { StockKoreanIndexType } from 'libs/shared/src/const/stock';
+import { TokenProvider } from 'libs/shared/src/const/token';
 import { Server, Socket } from 'socket.io';
 import { WebSocket } from 'ws';
 
 import { Logger } from '@nestjs/common';
 import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-
-import { StockKoreanIndexTypeEnum } from '@constant/enum/stock';
-import { TokenProviderEnum } from '@constant/enum/token';
 
 import { SecuritiesTokenRepository, StockKoreanIndexHistoryRepository } from '@database/repositories/stock';
 
@@ -112,7 +111,7 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
 
           this.stockKoreanIndexHistoryRepository.save({
             ...body,
-            type: StockKoreanIndexTypeEnum.KOSPI,
+            type: StockKoreanIndexType.KOSPI,
           });
         }
 
@@ -123,7 +122,7 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
 
           this.stockKoreanIndexHistoryRepository.save({
             ...body,
-            type: StockKoreanIndexTypeEnum.KOSDAQ,
+            type: StockKoreanIndexType.KOSDAQ,
           });
         }
       }
@@ -140,7 +139,7 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
 
   async setLsToken() {
     try {
-      const ret = await this.securitiesTokenRepository.getOAuthToken(TokenProviderEnum.LS);
+      const ret = await this.securitiesTokenRepository.getOAuthToken(TokenProvider.LS);
 
       this.lsSocketToken = ret.token;
 
@@ -163,11 +162,11 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
 
   async initKoreanIndex() {
     const kospiIndex = await this.stockKoreanIndexHistoryRepository.findOne({
-      where: { type: StockKoreanIndexTypeEnum.KOSPI },
+      where: { type: StockKoreanIndexType.KOSPI },
       order: { createdAt: 'DESC' },
     });
     const kosdaqIndex = await this.stockKoreanIndexHistoryRepository.findOne({
-      where: { type: StockKoreanIndexTypeEnum.KOSDAQ },
+      where: { type: StockKoreanIndexType.KOSDAQ },
       order: { createdAt: 'DESC' },
     });
 

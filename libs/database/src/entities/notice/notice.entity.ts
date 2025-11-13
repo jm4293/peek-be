@@ -1,4 +1,5 @@
 import { Exclude } from 'class-transformer';
+import { NoticeType, NoticeTypeValue } from 'libs/shared/src/const/notice';
 import {
   Column,
   CreateDateColumn,
@@ -9,8 +10,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
-import { NoticeTypeEnum } from '@constant/enum/notice';
 
 import { UserAccount } from '../user';
 
@@ -29,8 +28,8 @@ export class Notice {
   @Generated('uuid')
   uuid: string;
 
-  @Column({ type: 'tinyint', enum: NoticeTypeEnum })
-  type: NoticeTypeEnum;
+  @Column({ type: 'tinyint', enum: NoticeType })
+  type: NoticeTypeValue;
 
   @Column({ type: 'varchar', length: 255 })
   title: string;

@@ -1,4 +1,6 @@
 import { Request } from 'express';
+import { UserAccountType, UserType, UserVisitType, UserVisitTypeValue } from 'libs/shared/src/const/user';
+import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from 'libs/shared/src/jwt/index';
 
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -7,8 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { BcryptHandler } from '@peek-admin/handler/bcrypt';
 import { LoginDto } from '@peek-admin/type/dto';
 
-import { UserAccountTypeEnum, UserTypeEnum, UserVisitTypeEnum } from '@constant/enum/user';
-import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from '@constant/jwt/index';
+import { EntityName } from '@shared/const/entity';
 
 import { UserAccountRepository, UserVisitRepository } from '@database/repositories/user';
 
@@ -27,8 +28,9 @@ export class AuthService {
     const { email, password } = dto;
 
     const userAccount = await this.userAccountRepository.findOne({
-      where: { email, userAccountType: UserAccountTypeEnum.EMAIL },
-      relations: ['user'],
+      where: { email, userAccountType: UserAccountType.EMAIL },
+      // relations: ['user'],
+      relations: [EntityName.User],
     });
 
     if (!userAccount) {
@@ -36,7 +38,7 @@ export class AuthService {
     }
 
     const adminAccount = await this.userAccountRepository.findOne({
-      where: { email, user: { type: UserTypeEnum.ADMIN } },
+      where: { email, user: { type: UserType.ADMIN } },
     });
 
     if (!adminAccount) {
@@ -49,7 +51,7 @@ export class AuthService {
       throw new BadRequestException('비밀번호가 일치하지 않습니다.');
     }
 
-    await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_IN_EMAIL, userAccountId: userAccount.id });
+    await this._registerUserVisit({ req, type: UserVisitType.SIGN_IN_EMAIL, userAccountId: userAccount.id });
 
     const accessToken = await this.jwtService.signAsync(
       { userSeq: userAccount.user, userAccountType: userAccount.userAccountType },
@@ -67,10 +69,10 @@ export class AuthService {
   async logout(params: { req: Request; accountId: number }) {
     const { req, accountId } = params;
 
-    await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_IN_EMAIL, userAccountId: accountId });
+    await this._registerUserVisit({ req, type: UserVisitType.SIGN_IN_EMAIL, userAccountId: accountId });
   }
 
-  private async _registerUserVisit(params: { req: Request; type: UserVisitTypeEnum; userAccountId: number }) {
+  private async _registerUserVisit(params: { req: Request; type: UserVisitTypeValue; userAccountId: number }) {
     const { req, type, userAccountId } = params;
     const { headers, ip = null } = req;
     const { 'user-agent': userAgent = null, referer = null } = headers;

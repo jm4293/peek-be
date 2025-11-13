@@ -1,7 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsNotEmpty } from 'class-validator';
-
-import { StockRankEnum } from '@constant/enum/stock';
+import { StockRank, StockRankValue } from 'libs/shared/src/const/stock';
 
 export class GetStockKoreanRankDto {
   @IsInt()
@@ -9,6 +8,6 @@ export class GetStockKoreanRankDto {
   page: number;
 
   @IsNotEmpty()
-  @IsEnum(StockRankEnum)
-  type: StockRankEnum;
+  @IsEnum(StockRank)
+  type: StockRankValue;
 }

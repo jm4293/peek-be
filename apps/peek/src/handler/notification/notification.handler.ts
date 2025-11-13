@@ -1,9 +1,8 @@
 import * as firebaseAdmin from 'firebase-admin';
+import { UserNotificationType, UserNotificationTypeValue } from 'libs/shared/src/const/user';
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-
-import { UserNotificationTypeEnum } from '@constant/enum/user';
 
 import { UserNotification } from '@database/entities/user';
 import { UserNotificationRepository } from '@database/repositories/user';
@@ -18,7 +17,7 @@ export class NotificationHandler {
   async sendPushNotification(params: {
     pushToken: string | null;
     message: string;
-    userNotificationType: UserNotificationTypeEnum;
+    userNotificationType: UserNotificationTypeValue;
     accountId: number;
   }) {
     const { pushToken, message, userNotificationType, accountId } = params;

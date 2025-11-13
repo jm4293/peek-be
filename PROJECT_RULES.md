@@ -112,7 +112,7 @@ libs/
 **사용 예시:**
 
 ```typescript
-import { UserRoleEnum } from '@constant/enum/user';
+import { UserRoleEnum } from '@shared/const/user';
 
 import { UserEntity } from '@database/entities/user';
 ```
@@ -238,14 +238,14 @@ Prettier plugin을 사용하여 자동 정렬:
 
 ```typescript
 // 1. Node.js built-in
+// 3. Internal aliases
 import { readFileSync } from 'fs';
 
 // 2. External libraries
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-// 3. Internal aliases
-import { UserRoleEnum } from '@constant/enum/user';
+import { UserRoleEnum } from '@shared/const/user';
 
 import { UserEntity } from '@database/entities/user';
 

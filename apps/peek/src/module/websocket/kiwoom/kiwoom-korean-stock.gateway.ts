@@ -1,3 +1,4 @@
+import { TokenProvider } from 'libs/shared/src/const/token';
 import { Server, Socket } from 'socket.io';
 import { WebSocket } from 'ws';
 
@@ -12,8 +13,6 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-
-import { TokenProviderEnum } from '@constant/enum/token';
 
 import { SecuritiesTokenRepository } from '@database/repositories/stock';
 
@@ -313,7 +312,7 @@ export class KiwoomKoreanStockGateway implements OnModuleInit, OnGatewayConnecti
 
   private async _setKiwoomToken() {
     try {
-      const ret = await this.securitiesTokenRepository.getOAuthToken(TokenProviderEnum.KIWOOM);
+      const ret = await this.securitiesTokenRepository.getOAuthToken(TokenProvider.KIWOOM);
 
       this.kiwoomSocketToken = ret.token;
 

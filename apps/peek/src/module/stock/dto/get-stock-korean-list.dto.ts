@@ -1,7 +1,6 @@
 import { Transform, Type } from 'class-transformer';
 import { IsInt, IsOptional, IsString } from 'class-validator';
-
-import { StockCategoryEnum } from '@constant/enum/stock';
+import { StockCategoryValue } from 'libs/shared/src/const/stock';
 
 export class GetStockKoreanListDto {
   @IsInt()
@@ -10,7 +9,7 @@ export class GetStockKoreanListDto {
 
   @IsOptional()
   @Type(() => Number)
-  kind: StockCategoryEnum;
+  kind: StockCategoryValue;
 
   @Transform(({ value }) => value.trim())
   @IsString()

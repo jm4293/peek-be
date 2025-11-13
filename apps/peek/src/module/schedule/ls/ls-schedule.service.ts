@@ -1,3 +1,4 @@
+import { TokenProvider, TokenType } from 'libs/shared/src/const/token';
 import { DataSource } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
@@ -7,8 +8,6 @@ import { Cron } from '@nestjs/schedule';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 import { LsKoreanIndexGateway, LsKoreanTo10Gateway } from '@peek/module/websocket';
-
-import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
 import { SecuritiesTokenRepository } from '@database/repositories/stock';
 
@@ -111,15 +110,15 @@ export class LsScheduleService implements OnModuleInit {
       }
 
       await this.securitiesTokenRepository.save({
-        provider: TokenProviderEnum.LS,
-        type: TokenTypeEnum.SOCKET,
+        provider: TokenProvider.LS,
+        type: TokenType.SOCKET,
         token: token.data.access_token,
         expire: String(token.data.expires_in),
       });
 
       await this.securitiesTokenRepository.save({
-        provider: TokenProviderEnum.LS,
-        type: TokenTypeEnum.OAUTH,
+        provider: TokenProvider.LS,
+        type: TokenType.OAUTH,
         token: token.data.access_token,
         expire: String(token.data.expires_in),
       });
@@ -133,7 +132,7 @@ export class LsScheduleService implements OnModuleInit {
 
   private async _tokenRevoke() {
     const ret = await this.securitiesTokenRepository.findOne({
-      where: { provider: TokenProviderEnum.LS, type: TokenTypeEnum.OAUTH },
+      where: { provider: TokenProvider.LS, type: TokenType.OAUTH },
     });
 
     if (!ret) {
@@ -157,13 +156,13 @@ export class LsScheduleService implements OnModuleInit {
     );
 
     await this.securitiesTokenRepository.delete({
-      provider: TokenProviderEnum.LS,
-      type: TokenTypeEnum.SOCKET,
+      provider: TokenProvider.LS,
+      type: TokenType.SOCKET,
     });
 
     await this.securitiesTokenRepository.delete({
-      provider: TokenProviderEnum.LS,
-      type: TokenTypeEnum.OAUTH,
+      provider: TokenProvider.LS,
+      type: TokenType.OAUTH,
     });
 
     this.logger.log(`스케줄러 LS Token 폐기 완료`);
@@ -171,7 +170,7 @@ export class LsScheduleService implements OnModuleInit {
 
   private async _setLsToken() {
     const socketRet = await this.securitiesTokenRepository.findOne({
-      where: { provider: TokenProviderEnum.LS, type: TokenTypeEnum.SOCKET },
+      where: { provider: TokenProvider.LS, type: TokenType.SOCKET },
     });
 
     if (socketRet) {
@@ -179,7 +178,7 @@ export class LsScheduleService implements OnModuleInit {
     }
 
     const oauthRet = await this.securitiesTokenRepository.findOne({
-      where: { provider: TokenProviderEnum.LS, type: TokenTypeEnum.OAUTH },
+      where: { provider: TokenProvider.LS, type: TokenType.OAUTH },
     });
 
     if (oauthRet) {

@@ -1,3 +1,4 @@
+import { TokenProvider } from 'libs/shared/src/const/token';
 import { FindOptionsOrder, Like } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
@@ -6,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { LIST_LIMIT } from '@peek/constant/list';
 
-import { TokenProviderEnum } from '@constant/enum/token';
+import { EntityName } from '@shared/const/entity';
 
 import { StockKoreanCompany } from '@database/entities/stock';
 import {
@@ -151,7 +152,8 @@ export class StockService implements OnModuleInit {
       where: { userAccountId: accountId },
       skip: (page - 1) * LIST_LIMIT,
       take: LIST_LIMIT,
-      relations: ['stockKoreanCompany'],
+      // relations: ['stockKoreanCompany'],
+      relations: [EntityName.StockKoreanCompany],
       order: { createdAt: 'DESC' },
     });
 
@@ -186,7 +188,7 @@ export class StockService implements OnModuleInit {
   }
 
   private async _getKiwoomToken() {
-    const ret = await this.securitiesTokenRepository.getOAuthToken(TokenProviderEnum.KIWOOM);
+    const ret = await this.securitiesTokenRepository.getOAuthToken(TokenProvider.KIWOOM);
 
     if (!ret) {
       throw new Error('Kiwoom token이 존재하지 않습니다.');
@@ -196,7 +198,7 @@ export class StockService implements OnModuleInit {
   }
 
   private async _getLSToken() {
-    const ret = await this.securitiesTokenRepository.getOAuthToken(TokenProviderEnum.LS);
+    const ret = await this.securitiesTokenRepository.getOAuthToken(TokenProvider.LS);
 
     if (!ret) {
       throw new Error('Ls token이 존재하지 않습니다.');

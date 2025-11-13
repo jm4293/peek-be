@@ -1,6 +1,5 @@
+import { UserAccountType, UserAccountTypeValue } from 'libs/shared/src/const/user';
 import { Column, CreateDateColumn, Entity, Generated, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
-
-import { UserAccountTypeEnum } from '@constant/enum/user';
 
 import { UserAccount } from './user-account.entity';
 
@@ -15,8 +14,8 @@ export class UserOauthToken {
   @JoinColumn({ name: 'userAccountId', referencedColumnName: 'id' })
   userAccount: UserAccount;
 
-  @PrimaryColumn({ type: 'tinyint', enum: UserAccountTypeEnum })
-  userAccountType: UserAccountTypeEnum;
+  @PrimaryColumn({ type: 'tinyint', enum: UserAccountType })
+  userAccountType: UserAccountTypeValue;
 
   @Column({ type: 'varchar', length: 36 })
   @Generated('uuid')

@@ -1,6 +1,5 @@
+import { CurrencyUnit, CurrencyUnitValue } from 'libs/shared/src/const/currency';
 import { Column, CreateDateColumn, Entity, Generated, PrimaryGeneratedColumn } from 'typeorm';
-
-import { CurrencyUnitEnum } from '@constant/enum/currency';
 
 // result: number; // 조회 결과, 1 : 성공, 2 : DATA코드 오류, 3 : 인증코드 오류, 4 : 일일제한횟수 마감
 // cur_unit: string; // 통화코드
@@ -23,8 +22,8 @@ export class CurrencyHistory {
   @Generated('uuid')
   uuid: string;
 
-  @Column({ type: 'varchar', length: 3, nullable: true, enum: CurrencyUnitEnum, comment: '통화 코드' })
-  curUnit: CurrencyUnitEnum | null;
+  @Column({ type: 'varchar', length: 3, nullable: true, enum: CurrencyUnit, comment: '통화 코드' })
+  curUnit: CurrencyUnitValue | null;
 
   @Column({ type: 'varchar', length: 10, nullable: true, comment: '국가/통화명' })
   curNm: string | null;

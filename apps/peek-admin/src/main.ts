@@ -14,7 +14,8 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
-  // configService.get('NODE_ENV') === 'development' && app.setGlobalPrefix('api');
+  // configService.get('NODE_ENV') === 'development' && app.setGlobalPrefix('admin');
+  app.setGlobalPrefix('admin');
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
@@ -24,9 +25,13 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // 전역 Pipe 설정
   app.useGlobalPipes(validationPipeConfig);
+  // 전역 Pipe 설정 끝
 
+  // cookie-parser 미들웨어 추가
   app.use(cookieParser());
+  // cookie-parser 미들웨어 추가 끝
 
   // Swagger 설정
   const config = new DocumentBuilder().setTitle('PEEK API Documentation').setVersion('1.0').build();

@@ -1,5 +1,6 @@
 import { Cache } from 'cache-manager';
 import { Request } from 'express';
+import { UserAccountType } from 'libs/shared/src/const/user';
 import { DataSource } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
@@ -10,12 +11,8 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { BcryptHandler } from '@peek/handler/bcrypt';
 
-import { UserAccountTypeEnum } from '@constant/enum/user';
+import { EntityName } from '@shared/const/entity';
 
-import { Board } from '@database/entities/board';
-import { Inquiry } from '@database/entities/inquiry';
-import { Notice } from '@database/entities/notice';
-import { User, UserAccount, UserNotification, UserOauthToken, UserPushToken, UserVisit } from '@database/entities/user';
 import {
   UserAccountRepository,
   UserNotificationRepository,
@@ -65,7 +62,8 @@ export class UserService {
 
     const { user } = await this.userAccountRepository.findOne({
       where: { id: accountId },
-      relations: ['user'],
+      // relations: ['user'],
+      relations: [EntityName.User],
     });
 
     user.nickname = dto.nickname;
@@ -82,7 +80,8 @@ export class UserService {
 
     const { user } = await this.userAccountRepository.findOne({
       where: { id: accountId },
-      relations: ['user'],
+      // relations: ['user'],
+      relations: [EntityName.User],
     });
 
     user.thumbnail = thumbnail;
@@ -100,7 +99,7 @@ export class UserService {
         throw new BadRequestException('이메일이 존재하지 않습니다.');
       }
 
-      if (userAccount.userAccountType !== UserAccountTypeEnum.EMAIL) {
+      if (userAccount.userAccountType !== UserAccountType.EMAIL) {
         throw new BadRequestException('이메일로 가입한 회원이 아닙니다.');
       }
 
@@ -207,14 +206,14 @@ export class UserService {
       const { tokenType, accessToken } = oauthToken;
 
       switch (userAccountType) {
-        case UserAccountTypeEnum.GOOGLE: {
+        case UserAccountType.GOOGLE: {
           const URL = 'https://oauth2.googleapis.com/revoke';
 
           await this.httpService.axiosRef.post(`${URL}?token=${accessToken}`);
 
           break;
         }
-        case UserAccountTypeEnum.KAKAO: {
+        case UserAccountType.KAKAO: {
           const URL_ME = 'https://kapi.kakao.com/v2/user/me';
           const URL = 'https://kapi.kakao.com/v1/user/unlink';
 
@@ -236,7 +235,7 @@ export class UserService {
 
           break;
         }
-        case UserAccountTypeEnum.NAVER: {
+        case UserAccountType.NAVER: {
           const URL = 'https://nid.naver.com/oauth2.0/token';
 
           await this.httpService.axiosRef.post(

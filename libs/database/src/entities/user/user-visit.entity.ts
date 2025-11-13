@@ -1,7 +1,6 @@
 import { Exclude } from 'class-transformer';
+import { UserVisitType, UserVisitTypeValue } from 'libs/shared/src/const/user';
 import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-
-import { UserVisitTypeEnum } from '@constant/enum/user';
 
 import { UserAccount } from './user-account.entity';
 
@@ -14,8 +13,8 @@ export class UserVisit {
   @Generated('uuid')
   uuid: string;
 
-  @Column({ type: 'tinyint', enum: UserVisitTypeEnum })
-  type: UserVisitTypeEnum;
+  @Column({ type: 'tinyint', enum: UserVisitType })
+  type: UserVisitTypeValue;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   ip: string | null;

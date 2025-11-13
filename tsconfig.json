@@ -45,17 +45,17 @@
       "@peek-admin/type": ["apps/peek-admin/src/type"],
       "@peek-admin/type/*": ["apps/peek-admin/src/type/*"],
 
-      "@constant/enum": ["libs/constant/src/enum"],
-      "@constant/enum/*": ["libs/constant/src/enum/*"],
-      "@constant/jwt": ["libs/constant/src/jwt"],
-      "@constant/jwt/*": ["libs/constant/src/jwt/*"],
-
       "@database/decorators": ["libs/database/src/decorators"],
       "@database/decorators/*": ["libs/database/src/decorators/*"],
       "@database/entities": ["libs/database/src/entities"],
       "@database/entities/*": ["libs/database/src/entities/*"],
       "@database/repositories": ["libs/database/src/repositories"],
-      "@database/repositories/*": ["libs/database/src/repositories/*"]
+      "@database/repositories/*": ["libs/database/src/repositories/*"],
+
+      "@shared/const": ["libs/shared/src/const"],
+      "@shared/const/*": ["libs/shared/src/const/*"],
+      "@shared/jwt": ["libs/shared/src/jwt"],
+      "@shared/jwt/*": ["libs/shared/src/jwt/*"]
     }
   }
 }

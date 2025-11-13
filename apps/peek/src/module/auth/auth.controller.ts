@@ -1,12 +1,11 @@
 import { CookieOptions, Request, Response } from 'express';
+import { ACCESS_TOKEN_COOKIE_TIME, REFRESH_TOKEN_COOKIE_TIME } from 'libs/shared/src/jwt';
 
 import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
 
 import { ACCESS_TOKEN_NAME, REFRESH_TOKEN_NAME } from '@peek/constant/cookie';
 import { Public } from '@peek/decorator/public';
 import { ParseReqHandler } from '@peek/handler/parseReq';
-
-import { ACCESS_TOKEN_COOKIE_TIME, REFRESH_TOKEN_COOKIE_TIME } from '@constant/jwt';
 
 import { AuthService } from './auth.service';
 import { CheckEmailCodeDto, CheckEmailDto, LoginEmailDto, LoginOauthDto, SignupEmailDto } from './dto';

@@ -1,4 +1,6 @@
 import { Request } from 'express';
+import { BoardType } from 'libs/shared/src/const/board';
+import { UserNotificationType } from 'libs/shared/src/const/user';
 import { DataSource } from 'typeorm';
 
 import { BadRequestException, Injectable } from '@nestjs/common';
@@ -7,8 +9,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { LIST_LIMIT } from '@peek/constant/list';
 import { NotificationHandler } from '@peek/handler/notification';
 
-import { BoardTypeEnum } from '@constant/enum/board';
-import { UserNotificationTypeEnum } from '@constant/enum/user';
+import { EntityName } from '@shared/const/entity';
 
 import { Board, BoardArticle, BoardComment, BoardLike } from '@database/entities/board';
 import {
@@ -114,7 +115,8 @@ export class BoardService {
   async getBoardDetail(boardId: number) {
     const board = await this.boardRepository.findOne({
       where: { id: boardId },
-      relations: ['stockCategory', 'userAccount', 'userAccount.user', 'boardArticle'],
+      // relations: ['stockCategory', 'userAccount', 'userAccount.user', 'boardArticle'],
+      relations: [EntityName.StockCategory, EntityName.UserAccount, EntityName.User, EntityName.BoardArticle],
     });
 
     if (!board) {
@@ -132,7 +134,7 @@ export class BoardService {
 
     await this.dataSource.transaction(async (manager) => {
       const board = manager.getRepository(Board).create({
-        type: BoardTypeEnum.GENERAL,
+        type: BoardType.GENERAL,
         title,
         stockCategoryId: categoryId,
         userAccountId: accountId,
@@ -245,7 +247,7 @@ export class BoardService {
         await this.notificationHandler.sendPushNotification({
           pushToken: userPushToken.pushToken,
           message: content,
-          userNotificationType: UserNotificationTypeEnum.BOARD_COMMENT,
+          userNotificationType: UserNotificationType.BOARD_COMMENT,
           accountId: board.userAccountId,
         });
       }
@@ -318,7 +320,8 @@ export class BoardService {
 
     const board = await this.boardRepository.findOne({
       where: { id: boardId },
-      relations: ['userAccount'],
+      // relations: ['userAccount'],
+      relations: [EntityName.UserAccount],
     });
 
     if (accountId !== board.userAccount.id) {

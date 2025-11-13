@@ -3,6 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { LIST_LIMIT } from '@peek-admin/constant/list';
 import { GetUserListDto } from '@peek-admin/type/dto';
 
+import { EntityName } from '@shared/const/entity';
+
 import { UserRepository } from '@database/repositories/user';
 
 @Injectable()
@@ -19,7 +21,8 @@ export class UserService {
     return await this.userRepository.findAndCount({
       take: LIST_LIMIT,
       skip: (page - 1) * LIST_LIMIT,
-      relations: ['userAccounts'],
+      // relations: ['userAccounts'],
+      relations: [EntityName.UserAccount],
     });
   }
 

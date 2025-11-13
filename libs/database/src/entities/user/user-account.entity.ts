@@ -1,5 +1,11 @@
 import { Exclude } from 'class-transformer';
 import {
+  UserAccountStatus,
+  UserAccountStatusValue,
+  UserAccountType,
+  UserAccountTypeValue,
+} from 'libs/shared/src/const/user';
+import {
   Column,
   CreateDateColumn,
   Entity,
@@ -11,8 +17,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
-import { UserAccountStatusEnum, UserAccountTypeEnum } from '@constant/enum/user';
 
 import { Board, BoardComment, BoardLike } from '../board';
 import { Inquiry } from '../inquiry';
@@ -44,11 +48,11 @@ export class UserAccount {
   email: string;
 
   @Exclude()
-  @Column({ type: 'tinyint', enum: UserAccountStatusEnum, default: UserAccountStatusEnum.ACTIVE })
-  status: UserAccountStatusEnum;
+  @Column({ type: 'tinyint', enum: UserAccountStatus, default: UserAccountStatus.ACTIVE })
+  status: UserAccountStatusValue;
 
-  @Column({ type: 'tinyint', enum: UserAccountTypeEnum })
-  userAccountType: UserAccountTypeEnum;
+  @Column({ type: 'tinyint', enum: UserAccountType })
+  userAccountType: UserAccountTypeValue;
 
   @Exclude()
   @Column({ type: 'varchar', length: 255, nullable: true })

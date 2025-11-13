@@ -1,3 +1,4 @@
+import { TokenProvider, TokenType } from 'libs/shared/src/const/token';
 import { DataSource } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
@@ -5,8 +6,6 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { InjectDataSource } from '@nestjs/typeorm';
-
-import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
 import { SecuritiesTokenRepository } from '@database/repositories/stock';
 
@@ -61,8 +60,8 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
 
       await this.securitiesTokenRepository.upsert(
         {
-          provider: TokenProviderEnum.KIWOOM,
-          type: TokenTypeEnum.SOCKET,
+          provider: TokenProvider.KIWOOM,
+          type: TokenType.SOCKET,
           token: socket.data.token,
           expire: socket.data.expires_dt,
         },
@@ -74,8 +73,8 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
 
       await this.securitiesTokenRepository.upsert(
         {
-          provider: TokenProviderEnum.KIWOOM,
-          type: TokenTypeEnum.OAUTH,
+          provider: TokenProvider.KIWOOM,
+          type: TokenType.OAUTH,
           token: socket.data.token,
           expire: socket.data.expires_dt,
         },
@@ -93,7 +92,7 @@ export class KiwoomTokenScheduleService implements OnModuleInit {
 
   private async _tokenRevoke() {
     const ret = await this.securitiesTokenRepository.findOne({
-      where: { provider: TokenProviderEnum.KIWOOM, type: TokenTypeEnum.OAUTH },
+      where: { provider: TokenProvider.KIWOOM, type: TokenType.OAUTH },
     });
 
     if (!ret) {

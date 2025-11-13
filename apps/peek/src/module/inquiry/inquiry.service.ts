@@ -5,6 +5,8 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { LIST_LIMIT } from '@peek/constant/list';
 
+import { EntityName } from '@shared/const/entity';
+
 import { Inquiry, InquiryImage } from '@database/entities/inquiry';
 import { InquiryImageRepository, InquiryReplyRepository, InquiryRepository } from '@database/repositories/inquiry';
 
@@ -23,7 +25,8 @@ export class InquiryService {
   async getInquiry(inquiryId: number, accountId: number) {
     const inquiry = await this.inquiryRepository.findOne({
       where: { id: inquiryId, userAccountId: accountId },
-      relations: ['userAccount', 'inquiryImages', 'inquiryReply'],
+      // relations: ['userAccount', 'inquiryImages', 'inquiryReply'],
+      relations: [EntityName.UserAccount, EntityName.InquiryImage, EntityName.InquiryReply],
     });
 
     if (!inquiry) {

@@ -1,4 +1,12 @@
 import { Request } from 'express';
+import {
+  UserAccountType,
+  UserAccountTypeValue,
+  UserVisitType,
+  UserVisitTypeValue,
+  userAccountTypeDescription,
+} from 'libs/shared/src/const/user';
+import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from 'libs/shared/src/jwt/index';
 import { catchError, firstValueFrom } from 'rxjs';
 import { DataSource, EntityManager } from 'typeorm';
 
@@ -12,8 +20,7 @@ import { REFRESH_TOKEN_NAME } from '@peek/constant/cookie';
 import { BcryptHandler } from '@peek/handler/bcrypt';
 import { IJwtToken } from '@peek/type/interface';
 
-import { UserAccountTypeEnum, UserVisitTypeEnum, userAccountTypeDescription } from '@constant/enum/user';
-import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from '@constant/jwt/index';
+import { EntityName } from '@shared/const/entity';
 
 import { User, UserAccount } from '@database/entities/user';
 import {
@@ -52,7 +59,7 @@ export class AuthService {
     if (userAccount) {
       const { email, userAccountType } = userAccount;
 
-      if (userAccountType === UserAccountTypeEnum.EMAIL) {
+      if (userAccountType === UserAccountType.EMAIL) {
         return {
           isExist: true,
           email,
@@ -60,7 +67,7 @@ export class AuthService {
         };
       }
 
-      if (userAccountType === UserAccountTypeEnum.GOOGLE) {
+      if (userAccountType === UserAccountType.GOOGLE) {
         return {
           isExist: true,
           email,
@@ -89,7 +96,7 @@ export class AuthService {
 
       const userAccount = manager.create(UserAccount, {
         userId: savedUser.id,
-        userAccountType: UserAccountTypeEnum.EMAIL,
+        userAccountType: UserAccountType.EMAIL,
         email,
         password: hashedPassword,
       });
@@ -105,15 +112,16 @@ export class AuthService {
     const { email, password } = dto;
 
     const userAccount = await this.userAccountRepository.findOne({
-      where: { email, userAccountType: UserAccountTypeEnum.EMAIL },
-      relations: ['user'],
+      where: { email, userAccountType: UserAccountType.EMAIL },
+      // relations: ['user'],
+      relations: [EntityName.User],
     });
 
     if (!userAccount) {
       throw new BadRequestException('존재하지 않는 이메일계정입니다.');
     }
 
-    if (userAccount.userAccountType !== UserAccountTypeEnum.EMAIL) {
+    if (userAccount.userAccountType !== UserAccountType.EMAIL) {
       throw new BadRequestException(
         `이메일: ${email}은 ${userAccountTypeDescription[userAccount.userAccountType]} 간편로그인 회원입니다.`,
       );
@@ -125,7 +133,7 @@ export class AuthService {
       throw new BadRequestException('비밀번호가 일치하지 않습니다.');
     }
 
-    return await this._login({ req, type: UserVisitTypeEnum.SIGN_IN_EMAIL, user: userAccount.user, userAccount });
+    return await this._login({ req, type: UserVisitType.SIGN_IN_EMAIL, user: userAccount.user, userAccount });
   }
 
   async loginOauth(params: { dto: LoginOauthDto; req: Request }) {
@@ -133,11 +141,11 @@ export class AuthService {
     const { userAccountType, token, tokenType, expire } = dto;
 
     switch (userAccountType) {
-      case UserAccountTypeEnum.GOOGLE:
+      case UserAccountType.GOOGLE:
         return await this._googleOauthLogin({ req, token, tokenType, expire });
-      case UserAccountTypeEnum.KAKAO:
+      case UserAccountType.KAKAO:
         return await this._kakaoOauthLogin({ req, token });
-      case UserAccountTypeEnum.NAVER:
+      case UserAccountType.NAVER:
         return await this._naverOauthLogin({ req, token });
       default:
         break;
@@ -150,7 +158,7 @@ export class AuthService {
     await this.userAccountRepository.update({ id: accountId }, { refreshToken: null });
     await this.userOauthTokenRepository.delete({ userAccountId: accountId });
 
-    await this._registerUserVisit({ req, type: UserVisitTypeEnum.SIGN_OUT, userAccountId: accountId });
+    await this._registerUserVisit({ req, type: UserVisitType.SIGN_OUT, userAccountId: accountId });
   }
 
   async refreshToken(params: { req: Request }) {
@@ -177,7 +185,7 @@ export class AuthService {
     return await this._generateJwtToken({ accountId: userAccount.id }, ACCESS_TOKEN_TIME);
   }
 
-  private async _registerUserVisit(params: { req: Request; type: UserVisitTypeEnum; userAccountId: number }) {
+  private async _registerUserVisit(params: { req: Request; type: UserVisitTypeValue; userAccountId: number }) {
     const { req, type, userAccountId } = params;
     const { headers, ip = null } = req;
     const { 'user-agent': userAgent = null, referer = null } = headers;
@@ -208,7 +216,7 @@ export class AuthService {
     );
   }
 
-  private async _login(params: { req: Request; type: UserVisitTypeEnum; user: User; userAccount: UserAccount }) {
+  private async _login(params: { req: Request; type: UserVisitTypeValue; user: User; userAccount: UserAccount }) {
     const { req, type, user, userAccount } = params;
 
     const accessToken = await this._generateJwtToken({ accountId: userAccount.id }, ACCESS_TOKEN_TIME);
@@ -242,7 +250,7 @@ export class AuthService {
     const { email, name, picture } = response.data;
 
     return await this._OAuthLogin({
-      type: UserAccountTypeEnum.GOOGLE,
+      type: UserAccountType.GOOGLE,
       imageUrl: picture,
       email,
       name,
@@ -296,7 +304,7 @@ export class AuthService {
     const { nickname } = profile;
 
     return await this._OAuthLogin({
-      type: UserAccountTypeEnum.KAKAO,
+      type: UserAccountType.KAKAO,
       imageUrl: null,
       email,
       name: nickname,
@@ -347,7 +355,7 @@ export class AuthService {
     const { email, name, nickname, profile_image } = userInfo.data.response;
 
     return await this._OAuthLogin({
-      type: UserAccountTypeEnum.NAVER,
+      type: UserAccountType.NAVER,
       imageUrl: profile_image,
       email,
       name,
@@ -363,7 +371,7 @@ export class AuthService {
 
   private async _OAuthLogin(params: {
     imageUrl: string;
-    type: UserAccountTypeEnum;
+    type: UserAccountTypeValue;
     email: string;
     name: string;
     nickname: string;
@@ -392,7 +400,8 @@ export class AuthService {
 
     const oauthAccount = await this.userAccountRepository.findOne({
       where: { email, userAccountType: type },
-      relations: ['user'],
+      // relations: ['user'],
+      relations: [EntityName.User],
     });
 
     // 계정이 있는 경우 로그인으로 진행
@@ -409,7 +418,7 @@ export class AuthService {
 
       return await this._login({
         req,
-        type: UserVisitTypeEnum.SIGN_IN_OAUTH,
+        type: UserVisitType.SIGN_IN_OAUTH,
         user: oauthAccount.user,
         userAccount: oauthAccount,
       });
@@ -440,8 +449,9 @@ export class AuthService {
     // }
 
     const emailAccount = await this.userAccountRepository.findOne({
-      where: { email, userAccountType: UserAccountTypeEnum.EMAIL },
-      relations: ['user'],
+      where: { email, userAccountType: UserAccountType.EMAIL },
+      // relations: ['user'],
+      relations: [EntityName.User],
     });
 
     // 계정이 이메일 타입으로 있는 경우, OAuth 계정 연동 후 로그인으로 진행
@@ -468,7 +478,7 @@ export class AuthService {
 
       return await this._login({
         req,
-        type: UserVisitTypeEnum.SIGN_IN_OAUTH,
+        type: UserVisitType.SIGN_IN_OAUTH,
         user: emailAccount.user,
         userAccount: emailAccount,
       });
@@ -505,7 +515,7 @@ export class AuthService {
 
     return await this._login({
       req,
-      type: UserVisitTypeEnum.SIGN_IN_OAUTH,
+      type: UserVisitType.SIGN_IN_OAUTH,
       user: newUser,
       userAccount: newAccount,
     });
@@ -513,7 +523,7 @@ export class AuthService {
 
   private async _oauthTokenSave(params: {
     accountId: number;
-    accountType: UserAccountTypeEnum;
+    accountType: UserAccountTypeValue;
     tokenType: string;
     accessToken: string;
     accessTokenExpire: string | null;

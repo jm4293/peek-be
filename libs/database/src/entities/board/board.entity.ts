@@ -1,4 +1,5 @@
 import { Exclude } from 'class-transformer';
+import { BoardType, BoardTypeValue } from 'libs/shared/src/const/board';
 import {
   Column,
   CreateDateColumn,
@@ -11,8 +12,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
-import { BoardTypeEnum } from '@constant/enum/board';
 
 import { StockCategory } from '../stock';
 import { UserAccount } from '../user';
@@ -35,8 +34,8 @@ export class Board {
   @Generated('uuid')
   uuid: string;
 
-  @Column({ type: 'tinyint', enum: BoardTypeEnum })
-  type: BoardTypeEnum;
+  @Column({ type: 'tinyint', enum: BoardType })
+  type: BoardTypeValue;
 
   @Column({ type: 'varchar', length: 255 })
   title: string;

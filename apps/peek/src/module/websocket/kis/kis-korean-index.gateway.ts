@@ -1,12 +1,11 @@
+import { StockKoreanIndexType } from 'libs/shared/src/const/stock';
+import { TokenProvider } from 'libs/shared/src/const/token';
 import { Server, Socket } from 'socket.io';
 import { WebSocket } from 'ws';
 
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-
-import { StockKoreanIndexTypeEnum } from '@constant/enum/stock';
-import { TokenProviderEnum } from '@constant/enum/token';
 
 import { SecuritiesTokenRepository, StockKoreanIndexHistoryRepository } from '@database/repositories/stock';
 
@@ -338,7 +337,7 @@ export class KisKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisc
 
   async setKisToken() {
     try {
-      const { token } = await this.securitiesTokenRepository.getSocketToken(TokenProviderEnum.KIS);
+      const { token } = await this.securitiesTokenRepository.getSocketToken(TokenProvider.KIS);
 
       this.kisSocketToken = token;
 
@@ -361,11 +360,11 @@ export class KisKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisc
 
   async initKoreanIndex() {
     const kospiIndex = await this.stockKoreanIndexHistoryRepository.findOne({
-      where: { type: StockKoreanIndexTypeEnum.KOSPI },
+      where: { type: StockKoreanIndexType.KOSPI },
       order: { id: 'DESC' },
     });
     const kosdaqIndex = await this.stockKoreanIndexHistoryRepository.findOne({
-      where: { type: StockKoreanIndexTypeEnum.KOSDAQ },
+      where: { type: StockKoreanIndexType.KOSDAQ },
       order: { id: 'DESC' },
     });
 

@@ -1,8 +1,7 @@
+import { TokenProviderKey, TokenProviderValue, TokenType } from 'libs/shared/src/const/token';
 import { EntityManager, Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
-
-import { TokenProviderEnum, TokenTypeEnum } from '@constant/enum/token';
 
 import { securitiesToken } from '@database/entities/stock';
 
@@ -12,8 +11,8 @@ export class SecuritiesTokenRepository extends Repository<securitiesToken> {
     super(securitiesToken, manager);
   }
 
-  async getSocketToken(provider: TokenProviderEnum) {
-    const ret = await this.findOne({ where: { type: TokenTypeEnum.SOCKET, provider } });
+  async getSocketToken(provider: TokenProviderValue) {
+    const ret = await this.findOne({ where: { type: TokenType.SOCKET, provider } });
 
     if (!ret) {
       throw new Error(`${provider} socket token이 DB에 존재하지 않습니다.`);
@@ -22,8 +21,8 @@ export class SecuritiesTokenRepository extends Repository<securitiesToken> {
     return ret;
   }
 
-  async getOAuthToken(provider: TokenProviderEnum) {
-    const ret = await this.findOne({ where: { type: TokenTypeEnum.OAUTH, provider } });
+  async getOAuthToken(provider: TokenProviderValue) {
+    const ret = await this.findOne({ where: { type: TokenType.OAUTH, provider } });
 
     if (!ret) {
       throw new Error('oauth token이 DB에 존재하지 않습니다.');

@@ -6,7 +6,8 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { LIST_LIMIT } from '@peek-admin/constant/list';
 import { GetBoardListDto } from '@peek-admin/type/dto';
 
-import { Board, BoardArticle, BoardComment } from '@database/entities/board';
+import { EntityName } from '@shared/const/entity';
+
 import { BoardArticleRepository, BoardCommentRepository, BoardRepository } from '@database/repositories/board';
 
 @Injectable()
@@ -23,7 +24,14 @@ export class BoardService {
     // return await this.boardRepository.findById(boardId);
     return await this.boardRepository.findOne({
       where: { id: boardId },
-      relations: ['category', 'userAccount', 'article', 'comments', 'likes'],
+      // relations: ['category', 'userAccount', 'article', 'comments', 'likes'],
+      relations: [
+        EntityName.StockCategory,
+        EntityName.UserAccount,
+        EntityName.BoardArticle,
+        EntityName.BoardComment,
+        EntityName.BoardLike,
+      ],
     });
   }
 
@@ -33,7 +41,8 @@ export class BoardService {
     return await this.boardRepository.findAndCount({
       take: LIST_LIMIT,
       skip: (page - 1) * LIST_LIMIT,
-      relations: ['category', 'userAccount'],
+      // relations: ['category', 'userAccount'],
+      relations: [EntityName.StockCategory, EntityName.UserAccount],
     });
   }
 
