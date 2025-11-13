@@ -38,7 +38,8 @@ export class LsScheduleService implements OnModuleInit {
     await this.lsKoreanIndexGateway.connectToLs();
     await this.lsKoreanIndexGateway.initKoreanIndex();
 
-    this._setLsToken();
+    await this._setLsToken();
+    await this.LsKoreanTop10Schedule();
   }
 
   @Cron('0 8 * * *', { name: 'ls stock Token', timeZone: 'Asia/Seoul' })
@@ -49,7 +50,7 @@ export class LsScheduleService implements OnModuleInit {
 
     await this._tokenRevoke();
     await this._tokenIssue();
-    this._setLsToken();
+    await this._setLsToken();
   }
 
   @Cron('0 9 * * *', { name: 'ls stock Token', timeZone: 'Asia/Seoul' })
@@ -67,12 +68,12 @@ export class LsScheduleService implements OnModuleInit {
   @Cron('*/10 * 9-16 * * *', { name: 'ls korean top 10 night', timeZone: 'Asia/Seoul' })
   private async LsKoreanTop10Schedule() {
     const { order: order1, list: list1 } = await this._getKoreanTop10(0); // 1-20 순위
-    const { order: order2, list: list2 } = await this._getKoreanTop10(order1); // 21-40 순위
+    // const { order: order2, list: list2 } = await this._getKoreanTop10(order1); // 21-40 순위
     // const { order: order3, list: list3 } = await this._getKoreanTop10(order2); // 41-60 순위
     // const { order: order4, list: list4 } = await this._getKoreanTop10(order3); // 61-80 순위
     // const { order: order5, list: list5 } = await this._getKoreanTop10(order4); // 81-100 순위
 
-    const list = [...list1, ...list2];
+    const list = [...list1];
 
     this.lsKoreanTo10Gateway.updateKorean10(list);
   }

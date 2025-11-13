@@ -23,7 +23,7 @@ export class InquiryService {
   async getInquiry(inquiryId: number, accountId: number) {
     const inquiry = await this.inquiryRepository.findOne({
       where: { id: inquiryId, userAccountId: accountId },
-      relations: ['images', 'reply'],
+      relations: ['userAccount', 'inquiryImages', 'inquiryReply'],
     });
 
     if (!inquiry) {
