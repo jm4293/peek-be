@@ -1,17 +1,17 @@
 import { Request } from 'express';
-import { UserAccountType, UserType, UserVisitType, UserVisitTypeValue } from 'libs/shared/src/const/user';
-import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from 'libs/shared/src/jwt/index';
 
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 import { BcryptHandler } from '@peek-admin/handler/bcrypt';
+import { ADMIN_ACCESS_TOKEN_TIME, ADMIN_REFRESH_TOKEN_TIME } from '@peek-admin/shared/cookie';
 import { LoginDto } from '@peek-admin/type/dto';
 
-import { EntityName } from '@shared/const/entity';
+import { UserAccountRepository, UserVisitRepository } from '@libs/database/repositories/user';
 
-import { UserAccountRepository, UserVisitRepository } from '@database/repositories/user';
+import { EntityName } from '@libs/shared/const/entity';
+import { UserAccountType, UserType, UserVisitType, UserVisitTypeValue } from '@libs/shared/const/user';
 
 @Injectable()
 export class AuthService {
@@ -55,12 +55,12 @@ export class AuthService {
 
     const accessToken = await this.jwtService.signAsync(
       { userSeq: userAccount.user, userAccountType: userAccount.userAccountType },
-      { expiresIn: ACCESS_TOKEN_TIME, secret: this.configService.get('JWT_SECRET_KEY') },
+      { expiresIn: ADMIN_ACCESS_TOKEN_TIME, secret: this.configService.get('JWT_SECRET_KEY') },
     );
 
     const refreshToken = await this.jwtService.signAsync(
       { userSeq: userAccount.user, userAccountType: userAccount.userAccountType },
-      { expiresIn: REFRESH_TOKEN_TIME, secret: this.configService.get('JWT_SECRET_KEY') },
+      { expiresIn: ADMIN_REFRESH_TOKEN_TIME, secret: this.configService.get('JWT_SECRET_KEY') },
     );
 
     return { accessToken, refreshToken };

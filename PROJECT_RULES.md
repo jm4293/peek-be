@@ -112,9 +112,9 @@ libs/
 **사용 예시:**
 
 ```typescript
-import { UserRoleEnum } from '@shared/const/user';
+import { UserRoleEnum } from '@libs/share/const/user';
 
-import { UserEntity } from '@database/entities/user';
+import { UserEntity } from '@libs/database/entities/user';
 ```
 
 ---
@@ -239,15 +239,14 @@ Prettier plugin을 사용하여 자동 정렬:
 ```typescript
 // 1. Node.js built-in
 // 3. Internal aliases
+import { UserRoleEnum } from '@libs/share/const/user';
 import { readFileSync } from 'fs';
 
 // 2. External libraries
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { UserRoleEnum } from '@shared/const/user';
-
-import { UserEntity } from '@database/entities/user';
+import { UserEntity } from '@libs/database/entities/user';
 
 // 4. Relative imports
 import { CreateUserReqDto } from './dto/request/create-user.req.dto';
@@ -650,7 +649,7 @@ async getUserList(dto: PaginationReqDto): Promise<PaginationResDto<UserEntity>> 
 ```typescript
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-import { KoreanTime } from '@database/decorators';
+import { KoreanTime } from '@libs/database/decorators';
 
 @Entity('users')
 export class UserEntity {

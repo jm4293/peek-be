@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 
 import { LsWebSocketModule } from '@peek/module/websocket';
 
-import { SecuritiesTokenRepository } from '@database/repositories/stock';
+import { SecuritiesTokenRepository } from '@libs/database/repositories/stock';
 
 import { LsScheduleService } from './ls-schedule.service';
 

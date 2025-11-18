@@ -19,7 +19,7 @@ import {
 import { Public } from '@peek/decorator/public';
 import { ParseReqHandler } from '@peek/handler/parseReq';
 
-import { UserAccount } from '@database/entities/user';
+import { UserAccount } from '@libs/database/entities/user';
 
 import { CheckEmailCodeDto, CheckEmailDto } from '../auth/dto';
 import {

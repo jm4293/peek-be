@@ -3,7 +3,7 @@ import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 
-import { SecuritiesTokenRepository } from '@database/repositories/stock';
+import { SecuritiesTokenRepository } from '@libs/database/repositories/stock';
 
 @WebSocketGateway({})
 export class LsUsIndexGateway implements OnGatewayConnection, OnGatewayDisconnect {

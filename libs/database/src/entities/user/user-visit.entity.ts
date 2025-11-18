@@ -1,6 +1,7 @@
 import { Exclude } from 'class-transformer';
-import { UserVisitType, UserVisitTypeValue } from 'libs/shared/src/const/user';
 import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import { UserVisitType, UserVisitTypeValue } from '@libs/shared/const/user';
 
 import { UserAccount } from './user-account.entity';
 

@@ -3,15 +3,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { NotificationHandler } from '@peek/handler/notification';
 
-import { UserNotification } from '@database/entities/user';
+import { UserNotification } from '@libs/database/entities/user';
 import {
   BoardArticleRepository,
   BoardCommentRepository,
   BoardLikeRepository,
   BoardRepository,
-} from '@database/repositories/board';
-import { StockCategoryRepository } from '@database/repositories/stock';
-import { UserAccountRepository, UserPushTokenRepository, UserRepository } from '@database/repositories/user';
+} from '@libs/database/repositories/board';
+import { StockCategoryRepository } from '@libs/database/repositories/stock';
+import { UserAccountRepository, UserPushTokenRepository, UserRepository } from '@libs/database/repositories/user';
 
 import { BoardController } from './board.controller';
 import { BoardService } from './board.service';

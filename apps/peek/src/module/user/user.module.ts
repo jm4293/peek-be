@@ -8,7 +8,7 @@ import {
   UserPushTokenRepository,
   UserRepository,
   UserVisitRepository,
-} from '@database/repositories/user';
+} from '@libs/database/repositories/user';
 
 import { AWSService } from '../aws';
 import { EmailVerificationService } from '../email-verification';

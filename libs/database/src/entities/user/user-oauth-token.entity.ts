@@ -1,5 +1,6 @@
-import { UserAccountType, UserAccountTypeValue } from 'libs/shared/src/const/user';
 import { Column, CreateDateColumn, Entity, Generated, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
+
+import { UserAccountType, UserAccountTypeValue } from '@libs/shared/const/user';
 
 import { UserAccount } from './user-account.entity';
 

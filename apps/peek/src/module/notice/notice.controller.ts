@@ -2,7 +2,7 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 
 import { Public } from '@peek/decorator/public';
 
-import { Notice } from '@database/entities/notice';
+import { Notice } from '@libs/database/entities/notice';
 
 import { GetNoticeDto, GetNoticeListDto } from './dto';
 import { NoticeService } from './notice.service';

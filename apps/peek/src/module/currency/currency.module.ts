@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { CurrencyHistoryRepository } from '@database/repositories/currency';
+import { CurrencyHistoryRepository } from '@libs/database/repositories/currency';
 
 import { CurrencyController } from './currency.controller';
 import { CurrencyService } from './currency.service';

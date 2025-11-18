@@ -3,12 +3,12 @@ import { DataSource } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 
-import { LIST_LIMIT } from '@peek-admin/constant/list';
+import { ADMIN_LIST_LIMIT } from '@peek-admin/shared/list';
 import { GetBoardListDto } from '@peek-admin/type/dto';
 
-import { EntityName } from '@shared/const/entity';
+import { BoardArticleRepository, BoardCommentRepository, BoardRepository } from '@libs/database/repositories/board';
 
-import { BoardArticleRepository, BoardCommentRepository, BoardRepository } from '@database/repositories/board';
+import { EntityName } from '@libs/shared/const/entity';
 
 @Injectable()
 export class BoardService {
@@ -39,8 +39,8 @@ export class BoardService {
     const { page } = query;
 
     return await this.boardRepository.findAndCount({
-      take: LIST_LIMIT,
-      skip: (page - 1) * LIST_LIMIT,
+      take: ADMIN_LIST_LIMIT,
+      skip: (page - 1) * ADMIN_LIST_LIMIT,
       // relations: ['category', 'userAccount'],
       relations: [EntityName.StockCategory, EntityName.UserAccount],
     });

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
-import { CurrencyHistory } from '@database/entities/currency';
-import { CurrencyHistoryRepository } from '@database/repositories/currency';
+import { CurrencyHistory } from '@libs/database/entities/currency';
+import { CurrencyHistoryRepository } from '@libs/database/repositories/currency';
 
 @Injectable()
 export class CurrencyService {

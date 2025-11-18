@@ -1,10 +1,13 @@
 import { Request, Response } from 'express';
-import { ACCESS_TOKEN_COOKIE_TIME, REFRESH_TOKEN_COOKIE_TIME } from 'libs/shared/src/jwt/index';
 
 import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 
-import { ACCESS_TOKEN_NAME, REFRESH_TOKEN_NAME } from '@peek/constant/cookie';
-
+import {
+  ADMIN_ACCESS_TOKEN_COOKIE_TIME,
+  ADMIN_ACCESS_TOKEN_NAME,
+  ADMIN_REFRESH_TOKEN_COOKIE_TIME,
+  ADMIN_REFRESH_TOKEN_NAME,
+} from '@peek-admin/shared/cookie';
 import { LoginDto } from '@peek-admin/type/dto';
 
 import { AuthService } from './auth.service';
@@ -17,18 +20,18 @@ export class AuthController {
   async login(@Body() dto: LoginDto, @Req() req: Request, @Res() res: Response) {
     const { accessToken, refreshToken } = await this.authService.login({ dto, req });
 
-    res.cookie(ACCESS_TOKEN_NAME, accessToken, {
+    res.cookie(ADMIN_ACCESS_TOKEN_NAME, accessToken, {
       httpOnly: true,
       // secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: ACCESS_TOKEN_COOKIE_TIME,
+      maxAge: ADMIN_ACCESS_TOKEN_COOKIE_TIME,
     });
 
-    res.cookie(REFRESH_TOKEN_NAME, refreshToken, {
+    res.cookie(ADMIN_REFRESH_TOKEN_NAME, refreshToken, {
       httpOnly: true,
       // secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: REFRESH_TOKEN_COOKIE_TIME,
+      maxAge: ADMIN_REFRESH_TOKEN_COOKIE_TIME,
     });
 
     res.status(200).json({ accessToken });

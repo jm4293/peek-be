@@ -2,7 +2,7 @@ import { EntityManager, Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 
-import { InquiryReply } from '@database/entities/inquiry';
+import { InquiryReply } from '@libs/database/entities/inquiry';
 
 @Injectable()
 export class InquiryReplyRepository extends Repository<InquiryReply> {

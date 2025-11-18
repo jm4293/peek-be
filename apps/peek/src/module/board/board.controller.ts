@@ -5,7 +5,7 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, R
 import { Public } from '@peek/decorator/public';
 import { ParseReqHandler } from '@peek/handler/parseReq';
 
-import { Board, BoardComment } from '@database/entities/board';
+import { Board, BoardComment } from '@libs/database/entities/board';
 
 import { BoardService } from './board.service';
 import {

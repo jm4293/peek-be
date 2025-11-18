@@ -2,7 +2,7 @@ import { EntityManager, Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 
-import { UserPushToken } from '@database/entities/user';
+import { UserPushToken } from '@libs/database/entities/user';
 
 @Injectable()
 export class UserPushTokenRepository extends Repository<UserPushToken> {

@@ -1,22 +1,22 @@
-import { TokenProvider } from 'libs/shared/src/const/token';
 import { FindOptionsOrder, Like } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { LIST_LIMIT } from '@peek/constant/list';
+import { LIST_LIMIT } from '@peek/shared/const/list';
 
-import { EntityName } from '@shared/const/entity';
-
-import { StockKoreanCompany } from '@database/entities/stock';
+import { StockKoreanCompany } from '@libs/database/entities/stock';
 import {
   SecuritiesTokenRepository,
   StockCategoryRepository,
   StockCompanyRepository,
   StockKoreanIndexHistoryRepository,
-} from '@database/repositories/stock';
-import { UserStockFavoriteRepository } from '@database/repositories/user';
+} from '@libs/database/repositories/stock';
+import { UserStockFavoriteRepository } from '@libs/database/repositories/user';
+
+import { EntityName } from '@libs/shared/const/entity';
+import { TokenProvider } from '@libs/shared/const/token';
 
 import {
   GetStockCandleDto,

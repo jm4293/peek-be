@@ -4,11 +4,11 @@ import * as XLSX from 'xlsx';
 
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { LIST_LIMIT } from '@peek-admin/constant/list';
+import { ADMIN_LIST_LIMIT } from '@peek-admin/shared/list';
 import { GetStockCodeListDto } from '@peek-admin/type/dto';
 
-import { StockKoreanCompany } from '@database/entities/stock';
-import { StockCategoryRepository, StockCompanyRepository } from '@database/repositories/stock';
+import { StockKoreanCompany } from '@libs/database/entities/stock';
+import { StockCategoryRepository, StockCompanyRepository } from '@libs/database/repositories/stock';
 
 @Injectable()
 export class StockService {
@@ -35,8 +35,8 @@ export class StockService {
     return await this.stockRepository.findAndCount({
       where: whereCondition,
       order: orderCondition,
-      take: LIST_LIMIT,
-      skip: (page - 1) * LIST_LIMIT,
+      take: ADMIN_LIST_LIMIT,
+      skip: (page - 1) * ADMIN_LIST_LIMIT,
     });
   }
 

@@ -1,3 +1,6 @@
+export const ACCESS_TOKEN_NAME = 'TKN';
+export const REFRESH_TOKEN_NAME = 'RTKN';
+
 export const ACCESS_TOKEN_TIME = 30 * 60; // 1800초 (30분)
 export const REFRESH_TOKEN_TIME = 7 * 24 * 60 * 60; // 604800초 (7일)
 

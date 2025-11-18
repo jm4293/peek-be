@@ -1,5 +1,4 @@
 import { Exclude } from 'class-transformer';
-import { BoardType, BoardTypeValue } from 'libs/shared/src/const/board';
 import {
   Column,
   CreateDateColumn,
@@ -12,6 +11,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
+import { BoardType, BoardTypeValue } from '@libs/shared/const/board';
 
 import { StockCategory } from '../stock';
 import { UserAccount } from '../user';

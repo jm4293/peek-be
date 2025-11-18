@@ -1,4 +1,3 @@
-import { TokenProvider, TokenType } from 'libs/shared/src/const/token';
 import { DataSource } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
@@ -9,7 +8,9 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { LsKoreanIndexGateway, LsKoreanTo10Gateway } from '@peek/module/websocket';
 
-import { SecuritiesTokenRepository } from '@database/repositories/stock';
+import { SecuritiesTokenRepository } from '@libs/database/repositories/stock';
+
+import { TokenProvider, TokenType } from '@libs/shared/const/token';
 
 @Injectable()
 export class LsScheduleService implements OnModuleInit {

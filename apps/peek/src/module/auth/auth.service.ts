@@ -1,34 +1,32 @@
 import { Request } from 'express';
+import { DataSource, EntityManager } from 'typeorm';
+
+import { HttpService } from '@nestjs/axios';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { InjectDataSource } from '@nestjs/typeorm';
+
+import { BcryptHandler } from '@peek/handler/bcrypt';
+import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_NAME, REFRESH_TOKEN_TIME } from '@peek/shared/const/cookie';
+import { IJwtToken } from '@peek/type/interface';
+
+import { User, UserAccount } from '@libs/database/entities/user';
+import {
+  UserAccountRepository,
+  UserOauthTokenRepository,
+  UserRepository,
+  UserVisitRepository,
+} from '@libs/database/repositories/user';
+
+import { EntityName } from '@libs/shared/const/entity';
 import {
   UserAccountType,
   UserAccountTypeValue,
   UserVisitType,
   UserVisitTypeValue,
   userAccountTypeDescription,
-} from 'libs/shared/src/const/user';
-import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_TIME } from 'libs/shared/src/jwt/index';
-import { catchError, firstValueFrom } from 'rxjs';
-import { DataSource, EntityManager } from 'typeorm';
-
-import { HttpService } from '@nestjs/axios';
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { InjectDataSource } from '@nestjs/typeorm';
-
-import { REFRESH_TOKEN_NAME } from '@peek/constant/cookie';
-import { BcryptHandler } from '@peek/handler/bcrypt';
-import { IJwtToken } from '@peek/type/interface';
-
-import { EntityName } from '@shared/const/entity';
-
-import { User, UserAccount } from '@database/entities/user';
-import {
-  UserAccountRepository,
-  UserOauthTokenRepository,
-  UserRepository,
-  UserVisitRepository,
-} from '@database/repositories/user';
+} from '@libs/shared/const/user';
 
 import { AWSService } from '../aws';
 import { EmailVerificationService } from '../email-verification';

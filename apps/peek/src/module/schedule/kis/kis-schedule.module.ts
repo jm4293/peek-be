@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 
 import { KisWebSocketModule } from '@peek/module/websocket';
 
-import { SecuritiesTokenRepository } from '@database/repositories/stock';
+import { SecuritiesTokenRepository } from '@libs/database/repositories/stock';
 
 import { KisTokenScheduleService } from './kis-token-schedule.service';
 

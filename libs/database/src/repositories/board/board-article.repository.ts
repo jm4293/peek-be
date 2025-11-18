@@ -2,7 +2,7 @@ import { EntityManager, Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 
-import { BoardArticle } from '@database/entities/board';
+import { BoardArticle } from '@libs/database/entities/board';
 
 @Injectable()
 export class BoardArticleRepository extends Repository<BoardArticle> {

@@ -1,5 +1,4 @@
 import { Exclude } from 'class-transformer';
-import { UserType, UserTypeValue } from 'libs/shared/src/const/user';
 import {
   Column,
   CreateDateColumn,
@@ -9,6 +8,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
+import { UserType, UserTypeValue } from '@libs/shared/const/user';
 
 import { UserAccount } from './user-account.entity';
 

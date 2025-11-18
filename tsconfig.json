@@ -21,41 +21,37 @@
     "paths": {
       "@peek/config": ["apps/peek/src/config"],
       "@peek/config/*": ["apps/peek/src/config/*"],
-      "@peek/constant": ["apps/peek/src/constant"],
-      "@peek/constant/*": ["apps/peek/src/constant/*"],
       "@peek/decorator": ["apps/peek/src/decorator"],
       "@peek/decorator/*": ["apps/peek/src/decorator/*"],
       "@peek/handler": ["apps/peek/src/handler"],
       "@peek/handler/*": ["apps/peek/src/handler/*"],
       "@peek/module": ["apps/peek/src/module"],
       "@peek/module/*": ["apps/peek/src/module/*"],
+      "@peek/shared": ["apps/peek/src/shared"],
+      "@peek/shared/*": ["apps/peek/src/shared/*"],
       "@peek/type": ["apps/peek/src/type"],
       "@peek/type/*": ["apps/peek/src/type/*"],
 
       "@peek-admin/config": ["apps/peek-admin/src/config"],
       "@peek-admin/config/*": ["apps/peek-admin/src/config/*"],
-      "@peek-admin/constant": ["apps/peek-admin/src/constant"],
-      "@peek-admin/constant/*": ["apps/peek-admin/src/constant/*"],
       "@peek-admin/decorator": ["apps/peek-admin/src/decorator"],
       "@peek-admin/decorator/*": ["apps/peek-admin/src/decorator/*"],
       "@peek-admin/handler": ["apps/peek-admin/src/handler"],
       "@peek-admin/handler/*": ["apps/peek-admin/src/handler/*"],
       "@peek-admin/module": ["apps/peek-admin/src/module"],
       "@peek-admin/module/*": ["apps/peek-admin/src/module/*"],
+      "@peek-admin/shared": ["apps/peek-admin/src/shared/const"],
+      "@peek-admin/shared/*": ["apps/peek-admin/src/shared/const/*"],
       "@peek-admin/type": ["apps/peek-admin/src/type"],
       "@peek-admin/type/*": ["apps/peek-admin/src/type/*"],
 
-      "@database/decorators": ["libs/database/src/decorators"],
-      "@database/decorators/*": ["libs/database/src/decorators/*"],
-      "@database/entities": ["libs/database/src/entities"],
-      "@database/entities/*": ["libs/database/src/entities/*"],
-      "@database/repositories": ["libs/database/src/repositories"],
-      "@database/repositories/*": ["libs/database/src/repositories/*"],
+      "@libs/database/entities": ["libs/database/src/entities"],
+      "@libs/database/entities/*": ["libs/database/src/entities/*"],
+      "@libs/database/repositories": ["libs/database/src/repositories"],
+      "@libs/database/repositories/*": ["libs/database/src/repositories/*"],
 
-      "@shared/const": ["libs/shared/src/const"],
-      "@shared/const/*": ["libs/shared/src/const/*"],
-      "@shared/jwt": ["libs/shared/src/jwt"],
-      "@shared/jwt/*": ["libs/shared/src/jwt/*"]
+      "@libs/shared/const": ["libs/shared/src/const"],
+      "@libs/shared/const/*": ["libs/shared/src/const/*"]
     }
   }
 }

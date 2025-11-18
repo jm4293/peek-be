@@ -6,8 +6,8 @@ import {
   StockCategoryRepository,
   StockCompanyRepository,
   StockKoreanIndexHistoryRepository,
-} from '@database/repositories/stock';
-import { UserAccountRepository, UserRepository, UserStockFavoriteRepository } from '@database/repositories/user';
+} from '@libs/database/repositories/stock';
+import { UserAccountRepository, UserRepository, UserStockFavoriteRepository } from '@libs/database/repositories/user';
 
 import { UserModule } from '../user';
 import { StockController } from './stock.controller';

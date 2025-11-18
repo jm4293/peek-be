@@ -15,7 +15,7 @@
 - **엄격 모드 사용**: strict mode 활성화
 - **타입 명시**: any 사용 금지, 명확한 타입 정의
 - **인터페이스 우선**: type보다 interface 선호
-- **Enum 사용**: 상수는 `libs/constant/src/enum/`에 정의
+- **Enum 사용**: 상수는 `libs/constant/enum/`에 정의
 
 ### 2. NestJS 아키텍처
 - **모듈 구조**: Controller - Service - Repository 패턴 준수
@@ -52,13 +52,13 @@ module/
 ### 5. Import 순서 (prettier-plugin-sort-imports 사용)
 1. Node.js built-in modules
 2. External libraries (@nestjs, third-party)
-3. Internal aliases (@constant, @database)
+3. Internal aliases (@constant, @libs/database)
 4. Relative imports (../,  ./)
 
 ### 6. 데이터베이스
 - **ORM**: TypeORM 사용
-- **Entity**: `libs/database/src/entities/` 에 위치
-- **Repository**: `libs/database/src/repositories/` 에 위치
+- **Entity**: `libs/database/entities/` 에 위치
+- **Repository**: `libs/database/repositories/` 에 위치
 - **Migration**: 필요 시 migration 파일 생성
 - **Decorator**: `@KoreanTime()` 사용으로 한국 시간 자동 변환
 

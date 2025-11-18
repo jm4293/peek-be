@@ -1,6 +1,7 @@
 import { Transform, Type } from 'class-transformer';
 import { IsInt, IsOptional, IsString } from 'class-validator';
-import { StockCategoryValue } from 'libs/shared/src/const/stock';
+
+import { StockCategoryValue } from '@libs/shared/const/stock';
 
 export class GetStockKoreanListDto {
   @IsInt()

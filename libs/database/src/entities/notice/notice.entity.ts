@@ -1,5 +1,4 @@
 import { Exclude } from 'class-transformer';
-import { NoticeType, NoticeTypeValue } from 'libs/shared/src/const/notice';
 import {
   Column,
   CreateDateColumn,
@@ -10,6 +9,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
+import { NoticeType, NoticeTypeValue } from '@libs/shared/const/notice';
 
 import { UserAccount } from '../user';
 

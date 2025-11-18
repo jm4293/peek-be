@@ -1,11 +1,11 @@
-import { CurrencyUnit, CurrencyUnitValue } from 'libs/shared/src/const/currency';
-
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 
-import { CurrencyHistoryRepository } from '@database/repositories/currency';
+import { CurrencyHistoryRepository } from '@libs/database/repositories/currency';
+
+import { CurrencyUnit, CurrencyUnitValue } from '@libs/shared/const/currency';
 
 interface IResponse {
   result: number; // 조회 결과, 1 : 성공, 2 : DATA코드 오류, 3 : 인증코드 오류, 4 : 일일제한횟수 마감

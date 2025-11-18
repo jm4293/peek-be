@@ -4,7 +4,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req } from '@ne
 
 import { ParseReqHandler } from '@peek/handler/parseReq';
 
-import { Inquiry } from '@database/entities/inquiry';
+import { Inquiry } from '@libs/database/entities/inquiry';
 
 import { CreateInquiryDto, GetInquiryDto, GetInquiryListDto, UpdateInquiryDto } from './dto';
 import { InquiryService } from './inquiry.service';

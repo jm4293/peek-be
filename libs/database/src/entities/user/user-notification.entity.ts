@@ -1,6 +1,7 @@
 import { Exclude } from 'class-transformer';
-import { UserNotificationType, UserNotificationTypeValue } from 'libs/shared/src/const/user';
 import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import { UserNotificationType, UserNotificationTypeValue } from '@libs/shared/const/user';
 
 import { UserAccount } from './user-account.entity';
 

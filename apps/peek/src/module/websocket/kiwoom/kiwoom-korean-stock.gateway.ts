@@ -1,4 +1,3 @@
-import { TokenProvider } from 'libs/shared/src/const/token';
 import { Server, Socket } from 'socket.io';
 import { WebSocket } from 'ws';
 
@@ -14,7 +13,9 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 
-import { SecuritiesTokenRepository } from '@database/repositories/stock';
+import { SecuritiesTokenRepository } from '@libs/database/repositories/stock';
+
+import { TokenProvider } from '@libs/shared/const/token';
 
 interface IStockPrice {
   symbol: string; // 종목 코드 (예: 005930)

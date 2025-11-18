@@ -5,7 +5,7 @@ import { Body, Controller, Delete, Get, HttpCode, Param, Post, Query, Req } from
 import { Public } from '@peek/decorator/public';
 import { ParseReqHandler } from '@peek/handler/parseReq';
 
-import { StockCategory } from '@database/entities/stock';
+import { StockCategory } from '@libs/database/entities/stock';
 
 import { UserService } from '../user';
 import {

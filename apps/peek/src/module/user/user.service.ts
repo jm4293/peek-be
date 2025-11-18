@@ -1,6 +1,5 @@
 import { Cache } from 'cache-manager';
 import { Request } from 'express';
-import { UserAccountType } from 'libs/shared/src/const/user';
 import { DataSource } from 'typeorm';
 
 import { HttpService } from '@nestjs/axios';
@@ -11,8 +10,6 @@ import { InjectDataSource } from '@nestjs/typeorm';
 
 import { BcryptHandler } from '@peek/handler/bcrypt';
 
-import { EntityName } from '@shared/const/entity';
-
 import {
   UserAccountRepository,
   UserNotificationRepository,
@@ -20,7 +17,10 @@ import {
   UserPushTokenRepository,
   UserRepository,
   UserVisitRepository,
-} from '@database/repositories/user';
+} from '@libs/database/repositories/user';
+
+import { EntityName } from '@libs/shared/const/entity';
+import { UserAccountType } from '@libs/shared/const/user';
 
 import { CheckEmailCodeDto, CheckEmailDto } from '../auth/dto';
 import { AWSService } from '../aws';

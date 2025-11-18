@@ -3,12 +3,12 @@ import { DataSource } from 'typeorm';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 
-import { LIST_LIMIT } from '@peek/constant/list';
+import { LIST_LIMIT } from '@peek/shared/const/list';
 
-import { EntityName } from '@shared/const/entity';
+import { Inquiry, InquiryImage } from '@libs/database/entities/inquiry';
+import { InquiryImageRepository, InquiryReplyRepository, InquiryRepository } from '@libs/database/repositories/inquiry';
 
-import { Inquiry, InquiryImage } from '@database/entities/inquiry';
-import { InquiryImageRepository, InquiryReplyRepository, InquiryRepository } from '@database/repositories/inquiry';
+import { EntityName } from '@libs/shared/const/entity';
 
 import { CreateInquiryDto, GetInquiryListDto, UpdateInquiryDto } from './dto';
 

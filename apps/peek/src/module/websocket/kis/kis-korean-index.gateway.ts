@@ -1,5 +1,3 @@
-import { StockKoreanIndexType } from 'libs/shared/src/const/stock';
-import { TokenProvider } from 'libs/shared/src/const/token';
 import { Server, Socket } from 'socket.io';
 import { WebSocket } from 'ws';
 
@@ -7,7 +5,10 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 
-import { SecuritiesTokenRepository, StockKoreanIndexHistoryRepository } from '@database/repositories/stock';
+import { SecuritiesTokenRepository, StockKoreanIndexHistoryRepository } from '@libs/database/repositories/stock';
+
+import { StockKoreanIndexType } from '@libs/shared/const/stock';
+import { TokenProvider } from '@libs/shared/const/token';
 
 interface ILsIndex {
   time: string; // 시간

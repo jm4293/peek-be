@@ -2,7 +2,7 @@ import { EntityManager, Repository } from 'typeorm';
 
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { StockCategory } from '@database/entities/stock';
+import { StockCategory } from '@libs/database/entities/stock';
 
 @Injectable()
 export class StockCategoryRepository extends Repository<StockCategory> {

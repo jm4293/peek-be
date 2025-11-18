@@ -1,11 +1,5 @@
 import { Exclude } from 'class-transformer';
 import {
-  UserAccountStatus,
-  UserAccountStatusValue,
-  UserAccountType,
-  UserAccountTypeValue,
-} from 'libs/shared/src/const/user';
-import {
   Column,
   CreateDateColumn,
   Entity,
@@ -17,6 +11,13 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
+import {
+  UserAccountStatus,
+  UserAccountStatusValue,
+  UserAccountType,
+  UserAccountTypeValue,
+} from '@libs/shared/const/user';
 
 import { Board, BoardComment, BoardLike } from '../board';
 import { Inquiry } from '../inquiry';

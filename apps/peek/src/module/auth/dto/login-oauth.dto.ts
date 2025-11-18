@@ -1,6 +1,7 @@
 import { Transform } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { UserAccountType, UserAccountTypeValue } from 'libs/shared/src/const/user';
+
+import { UserAccountType, UserAccountTypeValue } from '@libs/shared/const/user';
 
 export class LoginOauthDto {
   @IsEnum(UserAccountType)
