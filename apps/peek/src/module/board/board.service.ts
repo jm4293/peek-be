@@ -18,7 +18,7 @@ import { StockCategoryRepository } from '@libs/database/repositories/stock';
 import { UserAccountRepository, UserPushTokenRepository, UserRepository } from '@libs/database/repositories/user';
 
 import { BoardType } from '@libs/shared/const/board';
-import { EntityName } from '@libs/shared/const/entity';
+import { EntityName, EntityRelation } from '@libs/shared/const/entity';
 import { UserNotificationType } from '@libs/shared/const/user';
 
 import {
@@ -115,8 +115,12 @@ export class BoardService {
   async getBoardDetail(boardId: number) {
     const board = await this.boardRepository.findOne({
       where: { id: boardId },
-      // relations: ['stockCategory', 'userAccount', 'userAccount.user', 'boardArticle'],
-      relations: [EntityName.StockCategory, EntityName.UserAccount, EntityName.User, EntityName.BoardArticle],
+      relations: [
+        EntityName.StockCategory,
+        EntityName.UserAccount,
+        EntityRelation.UserAccountUser,
+        EntityName.BoardArticle,
+      ],
     });
 
     if (!board) {

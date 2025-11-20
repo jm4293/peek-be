@@ -26,3 +26,10 @@ export const EntityName = {
   UserStockFavorite: 'userStockFavorite',
   UserVisit: 'userVisit',
 } as const;
+
+export const EntityRelation = {
+  UserAccountUser: 'userAccount.user',
+  BoardStockCategory: 'board.stockCategory',
+  BoardUserAccount: 'board.userAccount',
+  BoardCommentUserAccount: 'boardComment.userAccount',
+} as const;
