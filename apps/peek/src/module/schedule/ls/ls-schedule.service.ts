@@ -42,30 +42,34 @@ export class LsScheduleService implements OnModuleInit {
     await this.LsKoreanTop10Schedule();
   }
 
-  @Cron('0 8 * * *', { name: 'ls stock Token', timeZone: 'Asia/Seoul' })
+  @Cron('0 8 * * *', { name: 'ls-token-issue', timeZone: 'Asia/Seoul' })
   private async GetLsTokenSchedule() {
     if (this.configService.get('NODE_ENV') !== 'production') {
       return;
     }
 
+    this.logger.log('🔄 [8시] LS 토큰 재발급 스케줄러 시작');
     await this._tokenRevoke();
     await this._tokenIssue();
     await this._setLsToken();
+    this.logger.log('✅ [8시] LS 토큰 재발급 완료');
   }
 
-  @Cron('0 9 * * *', { name: 'ls stock Token', timeZone: 'Asia/Seoul' })
+  @Cron('0 9 * * *', { name: 'ls-websocket-reconnect', timeZone: 'Asia/Seoul' })
   private async LsKoreanIndexSchedule() {
     if (this.configService.get('NODE_ENV') !== 'production') {
       return;
     }
 
+    this.logger.log('🔄 [9시] LS 웹소켓 재연결 스케줄러 시작');
     this.lsKoreanIndexGateway.closeLsConnection();
     await this.lsKoreanIndexGateway.setLsToken();
     await this.lsKoreanIndexGateway.connectToLs();
     await this.lsKoreanIndexGateway.initKoreanIndex();
+    this.logger.log('✅ [9시] LS 웹소켓 재연결 완료');
   }
 
-  @Cron('*/10 * 9-16 * * *', { name: 'ls korean top 10 night', timeZone: 'Asia/Seoul' })
+  @Cron('0 */10 9-16 * * *', { name: 'ls-korean-top-10', timeZone: 'Asia/Seoul' })
   private async LsKoreanTop10Schedule() {
     const { order: order1, list: list1 } = await this._getKoreanTop10(0); // 1-20 순위
     // const { order: order2, list: list2 } = await this._getKoreanTop10(order1); // 21-40 순위
