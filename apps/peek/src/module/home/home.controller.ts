@@ -1,6 +1,4 @@
-import { Response } from 'express';
-
-import { Controller, Get, Res } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 
 import { Public } from '@peek/decorator/public';
 
@@ -12,7 +10,7 @@ export class HomeController {
 
   @Public()
   @Get('recent-boards')
-  async getRecentBoards(@Res() res: Response) {
+  async getRecentBoards() {
     const ret = await this.homeService.getRecentBoards();
 
     // return ResConfig.Success({ res, statusCode: 'OK', data: ret });

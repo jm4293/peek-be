@@ -1,12 +1,12 @@
 import cookieParser from 'cookie-parser';
 import * as admin from 'firebase-admin';
 
-import { ClassSerializerInterceptor } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
+import { CustomClassSerializerInterceptor } from './config/serializer';
 import { validationPipeConfig } from './config/validation-pipe';
 
 async function bootstrap() {
@@ -31,7 +31,7 @@ async function bootstrap() {
   // cookie-parser 미들웨어 추가 끝
 
   //  전역 Serialization 설정
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  app.useGlobalInterceptors(new CustomClassSerializerInterceptor(app.get(Reflector)));
   //  전역 Serialization 설정 끝
 
   // Firebase Admin SDK 초기화

@@ -16,7 +16,8 @@
     "start:prod": "concurrently --names \"PEEK\" -c \"blue\" \"node dist/apps/peek/main\"",
     "start:peek:dev": "nest start --watch peek",
     "build-rm": "rm -rf dist",
-    "node_modules-rm": "rm -rf ./node_modules"
+    "node_modules-rm": "rm -rf ./node_modules",
+    "clear-all": "rm -rf dist && rm -rf node_modules"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.914.0",
