@@ -69,8 +69,12 @@ export class LsScheduleService implements OnModuleInit {
     this.logger.log('✅ [9시] LS 웹소켓 재연결 완료');
   }
 
-  @Cron('0 */10 9-16 * * *', { name: 'ls-korean-top-10', timeZone: 'Asia/Seoul' })
+  @Cron('*/10 * 9-16 * * *', { name: 'ls-korean-top-10', timeZone: 'Asia/Seoul' })
   private async LsKoreanTop10Schedule() {
+    if (this.configService.get('NODE_ENV') !== 'production') {
+      return;
+    }
+
     const { order: order1, list: list1 } = await this._getKoreanTop10(0); // 1-20 순위
     // const { order: order2, list: list2 } = await this._getKoreanTop10(order1); // 21-40 순위
     // const { order: order3, list: list3 } = await this._getKoreanTop10(order2); // 41-60 순위
