@@ -48,7 +48,6 @@ export class UserController {
   }
 
   @Put()
-  @HttpCode(200)
   async updateUser(@Body() dto: UpdateUserDto, @Req() req: Request) {
     const { accountId } = ParseReqHandler.parseReq(req);
 
@@ -56,7 +55,6 @@ export class UserController {
   }
 
   @Patch('thumbnail')
-  @HttpCode(200)
   async updateThumbnail(@Body() dto: UpdateUserThumbnailDto, @Req() req: Request) {
     const { accountId } = ParseReqHandler.parseReq(req);
 

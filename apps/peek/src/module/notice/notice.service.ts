@@ -4,7 +4,7 @@ import { LIST_LIMIT } from '@peek/shared/const/list';
 
 import { NoticeRepository } from '@libs/database/repositories/notice';
 
-import { EntityName } from '@libs/shared/const/entity';
+import { EntityName, EntityRelation } from '@libs/shared/const/entity';
 
 import { GetNoticeListDto } from './dto';
 
@@ -30,8 +30,7 @@ export class NoticeService {
   async getNotice(id: number) {
     return await this.noticeRepository.findOne({
       where: { id },
-      // relations: [ENTITY_RELATIONS.NOTICE.USER_ACCOUNT, ENTITY_RELATIONS.NOTICE.USER_ACCOUNT_USER],
-      relations: [EntityName.UserAccount, EntityName.User],
+      relations: [EntityName.UserAccount, EntityRelation.UserAccountUser],
     });
   }
 }
