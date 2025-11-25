@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { InjectDataSource } from '@nestjs/typeorm';
 
-import { LsKoreanIndexGateway, LsKoreanTo10Gateway } from '@peek/module/websocket';
+import { LsKoreanIndexGateway, LsKoreanTo10Gateway, LsUsIndexGateway } from '@peek/module/websocket';
 
 import { SecuritiesTokenRepository } from '@libs/database/repositories/stock';
 
@@ -27,6 +27,7 @@ export class LsScheduleService implements OnModuleInit {
 
     private readonly lsKoreanIndexGateway: LsKoreanIndexGateway,
     private readonly lsKoreanTo10Gateway: LsKoreanTo10Gateway,
+    private readonly lsUsIndexGateway: LsUsIndexGateway,
 
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
@@ -34,12 +35,16 @@ export class LsScheduleService implements OnModuleInit {
   async onModuleInit() {
     // await this._tokenRevoke();
     // await this._tokenIssue();
-    await this.lsKoreanIndexGateway.setLsToken();
-    await this.lsKoreanIndexGateway.connectToLs();
-    await this.lsKoreanIndexGateway.initKoreanIndex();
+    await this.lsKoreanIndexGateway.setLsKoreanIndexToken();
+    await this.lsKoreanIndexGateway.connectToLsKoreanIndex();
+    await this.lsKoreanIndexGateway.initLsKoreanIndexData();
 
     await this._setLsToken();
     await this.LsKoreanTop10Schedule();
+
+    await this.lsUsIndexGateway.setLsUsIndexToken();
+    await this.lsUsIndexGateway.connectToLsUsIndex();
+    await this.lsUsIndexGateway.initLsUsIndexData();
   }
 
   @Cron('0 8 * * *', { name: 'ls-token-issue', timeZone: 'Asia/Seoul' })
@@ -62,10 +67,10 @@ export class LsScheduleService implements OnModuleInit {
     }
 
     this.logger.log('🔄 [9시] LS 웹소켓 재연결 스케줄러 시작');
-    this.lsKoreanIndexGateway.closeLsConnection();
-    await this.lsKoreanIndexGateway.setLsToken();
-    await this.lsKoreanIndexGateway.connectToLs();
-    await this.lsKoreanIndexGateway.initKoreanIndex();
+    this.lsKoreanIndexGateway.closeLsKoreanIndexConnection();
+    await this.lsKoreanIndexGateway.setLsKoreanIndexToken();
+    await this.lsKoreanIndexGateway.connectToLsKoreanIndex();
+    await this.lsKoreanIndexGateway.initLsKoreanIndexData();
     this.logger.log('✅ [9시] LS 웹소켓 재연결 완료');
   }
 
@@ -76,12 +81,12 @@ export class LsScheduleService implements OnModuleInit {
     }
 
     const { order: order1, list: list1 } = await this._getKoreanTop10(0); // 1-20 순위
-    // const { order: order2, list: list2 } = await this._getKoreanTop10(order1); // 21-40 순위
+    const { order: order2, list: list2 } = await this._getKoreanTop10(order1); // 21-40 순위
     // const { order: order3, list: list3 } = await this._getKoreanTop10(order2); // 41-60 순위
     // const { order: order4, list: list4 } = await this._getKoreanTop10(order3); // 61-80 순위
     // const { order: order5, list: list5 } = await this._getKoreanTop10(order4); // 81-100 순위
 
-    const list = [...list1];
+    const list = [...list1, ...list2];
 
     this.lsKoreanTo10Gateway.updateKorean10(list);
   }

@@ -9,6 +9,8 @@ import { SecuritiesTokenRepository, StockKoreanIndexHistoryRepository } from '@l
 import { StockKoreanIndexType } from '@libs/shared/const/stock';
 import { TokenProvider } from '@libs/shared/const/token';
 
+const TR_CD = 'IJ_';
+
 const KOSPI_TR_KEY = '001';
 const KOSDAQ_TR_KEY = '301';
 
@@ -50,7 +52,7 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
     this.logger.log(`웹소켓 LS 한국 지수 클라이언트 연결 해제: ${client.id}`);
   }
 
-  async connectToLs() {
+  async connectToLsKoreanIndex() {
     this.lsSocket = new WebSocket('wss://openapi.ls-sec.co.kr:9443/websocket');
 
     this.lsSocket.onopen = async () => {
@@ -60,7 +62,7 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
           tr_type: '3',
         },
         body: {
-          tr_cd: 'IJ_',
+          tr_cd: TR_CD,
           tr_key: KOSPI_TR_KEY,
         },
       };
@@ -71,26 +73,13 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
           tr_type: '3',
         },
         body: {
-          tr_cd: 'IJ_',
+          tr_cd: TR_CD,
           tr_key: KOSDAQ_TR_KEY,
         },
       };
 
       this.lsSocket.send(JSON.stringify(messageKOSPI));
       this.lsSocket.send(JSON.stringify(messageKOSDAQ));
-
-      // const nxtSamsung = {
-      //   header: {
-      //     token: `${this.lsSocketToken}`,
-      //     tr_type: '3',
-      //   },
-      //   body: {
-      //     tr_cd: 'NS3',
-      //     tr_key: 'N005930   ',
-      //   },
-      // };
-
-      // this.lsSocket.send(JSON.stringify(nxtSamsung));
 
       this.logger.log('웹소켓 LS 한국 지수 연결 성공');
     };
@@ -130,29 +119,29 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
     };
 
     this.lsSocket.onerror = (error) => {
-      this.logger.error('웹소켓 LS 오류:', error);
+      this.logger.error('웹소켓 LS 한국 지수 오류:', error);
     };
 
     this.lsSocket.onclose = (event) => {
-      this.logger.log(`웹소켓 LS 연결 종료: ${event.code} - ${event.reason}`);
+      this.logger.log(`웹소켓 LS 한국 지수 연결 종료: ${event.code} - ${event.reason}`);
     };
   }
 
-  async setLsToken() {
+  async setLsKoreanIndexToken() {
     try {
       const ret = await this.securitiesTokenRepository.getOAuthToken(TokenProvider.LS);
 
       this.lsSocketToken = ret.token;
 
-      this.logger.log('웹소켓 LS 토큰 갱신 완료');
+      this.logger.log('웹소켓 LS 한국 지수 토큰 갱신 완료');
     } catch (error) {
-      this.logger.error('웹소켓 LS 토큰 갱신 실패:', error);
+      this.logger.error('웹소켓 LS 한국 지수 토큰 갱신 실패:', error);
 
       throw error;
     }
   }
 
-  closeLsConnection() {
+  closeLsKoreanIndexConnection() {
     if (this.lsSocket) {
       this.lsSocket.close();
       this.lsSocket = null;
@@ -161,7 +150,7 @@ export class LsKoreanIndexGateway implements OnGatewayConnection, OnGatewayDisco
     }
   }
 
-  async initKoreanIndex() {
+  async initLsKoreanIndexData() {
     const kospiIndex = await this.stockKoreanIndexHistoryRepository.findOne({
       where: { type: StockKoreanIndexType.KOSPI },
       order: { createdAt: 'DESC' },
