@@ -19,6 +19,8 @@ export class NoticeService {
     const [notices, total] = await this.noticeRepository.findAndCount({
       skip: (page - 1) * LIST_LIMIT,
       take: LIST_LIMIT,
+      relations: [EntityName.NoticeImage],
+      order: { createdAt: 'DESC' },
     });
 
     const hasNextPage = page * LIST_LIMIT < total;

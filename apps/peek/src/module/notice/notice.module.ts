@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { NoticeRepository } from '@libs/database/repositories/notice';
+import { NoticeImageRepository, NoticeRepository } from '@libs/database/repositories/notice';
 
 import { NoticeController } from './notice.controller';
 import { NoticeService } from './notice.service';

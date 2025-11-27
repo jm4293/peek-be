@@ -6,6 +6,7 @@ import {
   Generated,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -13,6 +14,7 @@ import {
 import { NoticeType, NoticeTypeValue } from '@libs/shared/const/notice';
 
 import { UserAccount } from '../user';
+import { NoticeImage } from './notice-images.entity';
 
 @Entity()
 export class Notice {
@@ -56,4 +58,10 @@ export class Notice {
   })
   @JoinColumn({ name: 'userAccountId' })
   userAccount: UserAccount;
+
+  @OneToMany(() => NoticeImage, (noticeImages) => noticeImages.notice, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  noticeImages: NoticeImage[];
 }

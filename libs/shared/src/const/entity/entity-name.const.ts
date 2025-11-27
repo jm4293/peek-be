@@ -11,6 +11,7 @@ export const EntityName = {
   InquiryReply: 'inquiryReply',
 
   Notice: 'notice',
+  NoticeImage: 'noticeImages',
 
   SecuritiesToken: 'securitiesToken',
 
@@ -32,4 +33,5 @@ export const EntityRelation = {
   BoardStockCategory: 'board.stockCategory',
   BoardUserAccount: 'board.userAccount',
   BoardCommentUserAccount: 'boardComment.userAccount',
+  NoticeImageNotice: 'notice.noticeImages',
 } as const;
