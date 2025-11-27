@@ -57,16 +57,8 @@ export class BoardService {
     const queryBuilder = this.boardRepository
       .createQueryBuilder('board')
       .leftJoinAndSelect('board.stockCategory', 'stockCategory')
-      // .leftJoinAndSelect('board.userAccount', 'userAccount')
-      // .leftJoinAndSelect('userAccount.user', 'user')
-      .loadRelationCountAndMap(
-        'board.commentCount',
-        'board.boardComments',
-        'boardComments',
-        // (qb) =>qb.andWhere('boardComments.parentCommentId IS NULL'),
-      )
+      .loadRelationCountAndMap('board.commentCount', 'board.boardComments', 'boardComments')
       .loadRelationCountAndMap('board.likeCount', 'board.boardLikes')
-      // .where('board.deletedAt IS NULL')
       .andWhere('board.userAccountId = :accountId', { accountId })
       .orderBy('board.id', 'DESC')
       .skip((page - 1) * LIST_LIMIT)
@@ -81,27 +73,26 @@ export class BoardService {
   }
 
   async getBoardList(query: GetBoardListDto) {
-    const { page, stockCategory } = query;
+    const { page, stockCategory, sort, text } = query;
 
     const queryBuilder = this.boardRepository
       .createQueryBuilder('board')
       .leftJoinAndSelect('board.stockCategory', 'stockCategory')
       .leftJoinAndSelect('board.userAccount', 'userAccount')
       .leftJoinAndSelect('userAccount.user', 'user')
-      .loadRelationCountAndMap(
-        'board.commentCount',
-        'board.boardComments',
-        'boardComments',
-        //  (qb) => qb.andWhere('boardComments.parentCommentId IS NULL'),
-      )
+      .loadRelationCountAndMap('board.commentCount', 'board.boardComments', 'boardComments')
       .loadRelationCountAndMap('board.likeCount', 'board.boardLikes')
-      // .where('board.deletedAt IS NULL')
-      .orderBy('board.id', 'DESC')
+      // .where('board.title LIKE :text', { text: text ? `%${text}%` : '' })
+      .orderBy(sort === 'createdAt' ? 'board.createdAt' : 'board.viewCount', 'DESC')
       .skip((page - 1) * LIST_LIMIT)
       .take(LIST_LIMIT);
 
     if (stockCategory) {
       queryBuilder.andWhere('board.stockCategory = :stockCategory', { stockCategory });
+    }
+
+    if (text) {
+      queryBuilder.andWhere('board.title LIKE :text', { text: `%${text}%` });
     }
 
     const [boards, total] = await queryBuilder.getManyAndCount();

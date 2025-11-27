@@ -8,4 +8,10 @@ export class GetBoardListDto {
 
   @IsOptional()
   stockCategory?: number;
+
+  @IsOptional()
+  sort?: 'createdAt' | 'viewCount';
+
+  @IsOptional()
+  text?: string;
 }
