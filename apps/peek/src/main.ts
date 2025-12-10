@@ -1,5 +1,6 @@
 import cookieParser from 'cookie-parser';
 import * as admin from 'firebase-admin';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 import { ClassSerializerInterceptor } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -10,11 +11,17 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AuthGuardConfig } from './config/auth-guard';
 import { HttpExceptionFilter } from './config/exception-filter';
+import { LoggingInterceptor } from './config/logger';
 import { ResponseInterceptor } from './config/response-interceptor';
 import { validationPipeConfig } from './config/validation-pipe';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true, // 로거 초기화 전 로그 버퍼링
+  });
+
+  // Winston 로거를 NestJS 기본 로거로 설정
+  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
   const configService = app.get(ConfigService);
 
@@ -43,7 +50,7 @@ async function bootstrap() {
   // ============================================
   // 3. Interceptors 설정 (before - 로깅 등)
   // ============================================
-  // 필요시 여기에 before 인터셉터 추가
+  app.useGlobalInterceptors(new LoggingInterceptor());
   // Interceptors (before) 설정 끝
 
   // ============================================
@@ -97,8 +104,11 @@ async function bootstrap() {
   });
   // Swagger 설정 끝
 
-  await app.listen(configService.get('SERVER_PORT') as string, () => {
-    console.info(`서비스 서버: ${configService.get('SERVER_PORT')}`);
+  const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
+  const port = configService.get('SERVER_PORT') as string;
+
+  await app.listen(port, () => {
+    logger.log(`서비스 서버가 포트 ${port}에서 시작되었습니다.`, 'Bootstrap');
   });
 }
 bootstrap();

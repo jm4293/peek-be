@@ -77,7 +77,7 @@ export class BoardService {
 
     const queryBuilder = this.boardRepository
       .createQueryBuilder('board')
-      .leftJoinAndSelect('board.stockCategory', 'stockCategory')
+      .leftJoinAndSelect('board.stockCategory2', 'stockCategory')
       .leftJoinAndSelect('board.userAccount', 'userAccount')
       .leftJoinAndSelect('userAccount.user', 'user')
       .loadRelationCountAndMap('board.commentCount', 'board.boardComments', 'boardComments')

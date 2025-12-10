@@ -8,6 +8,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { cacheModuleConfig } from './config/cache';
 import { configModuleConfig } from './config/config';
+import { LoggerModule } from './config/logger';
 import { typeormModuleConfig } from './config/typeorm';
 import { AuthModule } from './module/auth';
 import { AWSModule } from './module/aws';
@@ -36,6 +37,7 @@ import { KisWebSocketModule, KiwoomWebSocketModule, LsWebSocketModule } from './
     TypeOrmModule.forRootAsync(typeormModuleConfig),
     ScheduleModule.forRoot(),
     CacheModule.register(cacheModuleConfig),
+    LoggerModule,
 
     AuthModule,
     AWSModule,
