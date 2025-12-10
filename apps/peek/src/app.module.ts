@@ -1,13 +1,11 @@
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthGuardConfig } from './config/auth-guard';
 import { cacheModuleConfig } from './config/cache';
 import { configModuleConfig } from './config/config';
 import { typeormModuleConfig } from './config/typeorm';
@@ -61,7 +59,7 @@ import { KisWebSocketModule, KiwoomWebSocketModule, LsWebSocketModule } from './
     // KiwoomWebSocketModule,
   ],
   controllers: [AppController],
-  providers: [{ provide: APP_GUARD, useClass: AuthGuardConfig }, AppService],
+  providers: [AppService],
   exports: [],
 })
 export class AppModule {}

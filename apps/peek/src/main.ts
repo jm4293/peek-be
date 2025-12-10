@@ -1,12 +1,16 @@
 import cookieParser from 'cookie-parser';
 import * as admin from 'firebase-admin';
 
+import { ClassSerializerInterceptor } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
+import { JwtService } from '@nestjs/jwt';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
-import { CustomClassSerializerInterceptor } from './config/serializer';
+import { AuthGuardConfig } from './config/auth-guard';
+import { HttpExceptionFilter } from './config/exception-filter';
+import { ResponseInterceptor } from './config/response-interceptor';
 import { validationPipeConfig } from './config/validation-pipe';
 
 async function bootstrap() {
@@ -16,23 +20,53 @@ async function bootstrap() {
 
   // configService.get('NODE_ENV') === 'development' && app.setGlobalPrefix('api');
 
+  // ============================================
+  // 1. Middleware 설정 (가장 먼저 실행)
+  // ============================================
   app.enableCors({
     origin: ['http://localhost:3000', 'http://8134293.iptime.org:42930', 'https://stock.peek.run'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
 
-  // 전역 Pipe 설정
-  app.useGlobalPipes(validationPipeConfig);
-  // 전역 Pipe 설정 끝
-
-  // cookie-parser 미들웨어 추가
   app.use(cookieParser());
-  // cookie-parser 미들웨어 추가 끝
+  // Middleware 설정 끝
 
-  //  전역 Serialization 설정
-  app.useGlobalInterceptors(new CustomClassSerializerInterceptor(app.get(Reflector)));
-  //  전역 Serialization 설정 끝
+  // ============================================
+  // 2. Guards 설정 (인증/권한 체크)
+  // ============================================
+  const reflector = app.get(Reflector);
+  const jwtService = app.get(JwtService);
+  app.useGlobalGuards(new AuthGuardConfig(jwtService, configService, reflector));
+  // Guards 설정 끝
+
+  // ============================================
+  // 3. Interceptors 설정 (before - 로깅 등)
+  // ============================================
+  // 필요시 여기에 before 인터셉터 추가
+  // Interceptors (before) 설정 끝
+
+  // ============================================
+  // 4. Pipes 설정 (검증/변환)
+  // ============================================
+  app.useGlobalPipes(validationPipeConfig);
+  // Pipes 설정 끝
+
+  // ============================================
+  // 5. Interceptors 설정 (after - Serialization, Response Formatting)
+  // ============================================
+  app.useGlobalInterceptors(
+    // new CustomClassSerializerInterceptor(app.get(Reflector)),
+    new ClassSerializerInterceptor(app.get(Reflector)),
+    new ResponseInterceptor(),
+  );
+  // Interceptors (after) 설정 끝
+
+  // ============================================
+  // 6. Exception Filters 설정 (예외 처리)
+  // ============================================
+  app.useGlobalFilters(new HttpExceptionFilter());
+  // Exception Filters 설정 끝
 
   // Firebase Admin SDK 초기화
   const serviceAccount = {
