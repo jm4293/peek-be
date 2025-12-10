@@ -9,7 +9,7 @@ import {
   ACCESS_TOKEN_NAME,
   REFRESH_TOKEN_COOKIE_TIME,
   REFRESH_TOKEN_NAME,
-} from '@peek/shared/const/cookie';
+} from '@peek/shared/constants/cookie';
 
 import { AuthService } from './auth.service';
 import { CheckEmailCodeDto, CheckEmailDto, LoginEmailDto, LoginOauthDto, SignupEmailDto } from './dto';

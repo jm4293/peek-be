@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 
-import { LIST_LIMIT } from '@peek/shared/const/list';
+import { LIST_LIMIT } from '@peek/shared/constants/list';
 
 import { Inquiry, InquiryImage } from '@libs/database/entities/inquiry';
 import { InquiryImageRepository, InquiryReplyRepository, InquiryRepository } from '@libs/database/repositories/inquiry';

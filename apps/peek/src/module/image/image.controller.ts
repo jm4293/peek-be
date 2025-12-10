@@ -16,7 +16,7 @@ import {
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 
 import { Public } from '@peek/decorator/public';
-import { IMAGE_TYPE } from '@peek/shared/const/image-type';
+import { IMAGE_TYPE } from '@peek/shared/constants/image-type';
 
 import { ImageService } from './image.service';
 

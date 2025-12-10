@@ -4,8 +4,8 @@ import sharp from 'sharp';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { AWS_S3_BUCKET_NAME } from '@peek/shared/const/aws';
-import { IMAGE_TYPE } from '@peek/shared/const/image-type';
+import { AWS_S3_BUCKET_NAME } from '@peek/shared/constants/aws';
+import { IMAGE_TYPE } from '@peek/shared/constants/image-type';
 
 @Injectable()
 export class AWSService {

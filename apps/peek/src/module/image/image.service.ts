@@ -3,8 +3,8 @@ import sharp from 'sharp';
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 
-import { AWS_S3_BUCKET_NAME } from '@peek/shared/const/aws';
-import { IMAGE_TYPE } from '@peek/shared/const/image-type';
+import { AWS_S3_BUCKET_NAME } from '@peek/shared/constants/aws';
+import { IMAGE_TYPE } from '@peek/shared/constants/image-type';
 
 import { AWSService } from '../aws';
 

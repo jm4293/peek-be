@@ -8,7 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 import { BcryptHandler } from '@peek/handler/bcrypt';
-import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_NAME, REFRESH_TOKEN_TIME } from '@peek/shared/const/cookie';
+import { ACCESS_TOKEN_TIME, REFRESH_TOKEN_NAME, REFRESH_TOKEN_TIME } from '@peek/shared/constants/cookie';
 import { IJwtToken } from '@peek/type/interface';
 
 import { User, UserAccount } from '@libs/database/entities/user';

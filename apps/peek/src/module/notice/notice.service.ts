@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { LIST_LIMIT } from '@peek/shared/const/list';
+import { LIST_LIMIT } from '@peek/shared/constants/list';
 
 import { NoticeRepository } from '@libs/database/repositories/notice';
 

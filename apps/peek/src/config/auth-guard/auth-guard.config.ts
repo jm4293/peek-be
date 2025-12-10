@@ -6,15 +6,15 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 
 import { IS_PUBLIC_KEY } from '@peek/decorator/public';
-import { ACCESS_TOKEN_NAME } from '@peek/shared/const/cookie';
+import { ACCESS_TOKEN_NAME } from '@peek/shared/constants/cookie';
 import { IJwtToken } from '@peek/type/interface';
 
 @Injectable()
 export class AuthGuardConfig implements CanActivate {
   constructor(
-    private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly reflector: Reflector,
+    private readonly jwtService: JwtService,
   ) {}
 
   async canActivate(context: ExecutionContext) {

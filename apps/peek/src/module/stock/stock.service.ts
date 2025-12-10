@@ -4,7 +4,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { LIST_LIMIT } from '@peek/shared/const/list';
+import { LIST_LIMIT } from '@peek/shared/constants/list';
 
 import { StockKoreanCompany } from '@libs/database/entities/stock';
 import {

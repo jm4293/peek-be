@@ -20,10 +20,10 @@ async function bootstrap() {
     bufferLogs: true, // 로거 초기화 전 로그 버퍼링
   });
 
+  const configService = app.get(ConfigService);
+
   // Winston 로거를 NestJS 기본 로거로 설정
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
-
-  const configService = app.get(ConfigService);
 
   // configService.get('NODE_ENV') === 'development' && app.setGlobalPrefix('api');
 
@@ -44,7 +44,7 @@ async function bootstrap() {
   // ============================================
   const reflector = app.get(Reflector);
   const jwtService = app.get(JwtService);
-  app.useGlobalGuards(new AuthGuardConfig(jwtService, configService, reflector));
+  app.useGlobalGuards(new AuthGuardConfig(configService, reflector, jwtService));
   // Guards 설정 끝
 
   // ============================================

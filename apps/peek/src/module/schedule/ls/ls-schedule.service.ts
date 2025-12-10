@@ -35,16 +35,16 @@ export class LsScheduleService implements OnModuleInit {
   async onModuleInit() {
     // await this._tokenRevoke();
     // await this._tokenIssue();
-    await this.lsKoreanIndexGateway.setLsKoreanIndexToken();
-    await this.lsKoreanIndexGateway.connectToLsKoreanIndex();
-    await this.lsKoreanIndexGateway.initLsKoreanIndexData();
-
-    await this._setLsToken();
-    await this.LsKoreanTop10Schedule();
-
-    await this.lsUsIndexGateway.setLsUsIndexToken();
-    await this.lsUsIndexGateway.connectToLsUsIndex();
-    await this.lsUsIndexGateway.initLsUsIndexData();
+    // await this.lsKoreanIndexGateway.setLsKoreanIndexToken();
+    // await this.lsKoreanIndexGateway.connectToLsKoreanIndex();
+    // await this.lsKoreanIndexGateway.initLsKoreanIndexData();
+    //
+    // await this._setLsToken();
+    // await this.LsKoreanTop10Schedule();
+    //
+    // await this.lsUsIndexGateway.setLsUsIndexToken();
+    // await this.lsUsIndexGateway.connectToLsUsIndex();
+    // await this.lsUsIndexGateway.initLsUsIndexData();
   }
 
   @Cron('0 8 * * *', { name: 'ls-token-issue', timeZone: 'Asia/Seoul' })

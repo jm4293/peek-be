@@ -5,7 +5,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 import { NotificationHandler } from '@peek/handler/notification';
-import { LIST_LIMIT } from '@peek/shared/const/list';
+import { LIST_LIMIT } from '@peek/shared/constants/list';
 
 import { Board, BoardArticle, BoardComment, BoardLike } from '@libs/database/entities/board';
 import {
@@ -77,7 +77,7 @@ export class BoardService {
 
     const queryBuilder = this.boardRepository
       .createQueryBuilder('board')
-      .leftJoinAndSelect('board.stockCategory2', 'stockCategory')
+      .leftJoinAndSelect('board.stockCategory', 'stockCategory')
       .leftJoinAndSelect('board.userAccount', 'userAccount')
       .leftJoinAndSelect('userAccount.user', 'user')
       .loadRelationCountAndMap('board.commentCount', 'board.boardComments', 'boardComments')
